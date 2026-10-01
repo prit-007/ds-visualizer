@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import ArrayVisualizer from './pages/ArrayVisualizer';
 import LinkedListVisualizer from './pages/LinkedListVisualizer';
 import TreeVisualizer from './pages/TreeVisualizer';
+import Lessons from './pages/Lessons';
+import LessonReader from './pages/LessonReader';
 import ComingSoon from './pages/ComingSoon';
 
 const App = () => {
@@ -18,6 +20,8 @@ const App = () => {
           <Route path='/array' element={<ArrayVisualizer />} />
           <Route path='/linked-list' element={<LinkedListVisualizer />} />
           <Route path='/tree' element={<TreeVisualizer />} />
+          <Route path='/lessons' element={<Lessons />} />
+          <Route path='/lessons/:slug' element={<LessonReader />} />
           <Route path='/stack-queue' element={<ComingSoon title="Stack & Queue" />} />
           <Route path='/graph' element={<ComingSoon title="Graph" />} />
           <Route path='/hash-table' element={<ComingSoon title="Hash Table" />} />

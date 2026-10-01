@@ -55,6 +55,15 @@ describe('guided tour', () => {
   });
 });
 
+describe('lessons navigation', () => {
+  test('tutorials menu links to the lessons index', () => {
+    renderLayout();
+
+    fireEvent.click(screen.getByRole('button', { name: /Tutorials/ }));
+    expect(screen.getByRole('link', { name: 'Lessons' })).toHaveAttribute('href', '/lessons');
+  });
+});
+
 describe('dark mode', () => {
   beforeEach(() => {
     localStorage.clear();

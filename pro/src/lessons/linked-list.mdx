@@ -1,0 +1,24 @@
+import { Link } from 'react-router-dom';
+
+# Linked Lists: Pointer Chasing
+
+## Why it matters
+
+A linked list throws away contiguity. Each node stores a value plus a pointer to the next one,
+so inserting or removing is just rewiring two pointers — no shifting, no reallocation. The trade:
+reaching index `i` means walking `i` hops, and every hop is a fresh memory read.
+
+## How it works
+
+1. **Add** appends a node and updates the tail's `next` pointer — O(1) at the tail.
+2. **Insert at position** walks `cur` to position `i - 1`, then points the new node at the old
+   successor — O(i) advances, one pointer change at a time.
+3. **Remove at position** reconnects `prev.next` around the victim — the walk is the expensive part.
+4. **Search** follows `next` until the value matches or the pointer goes `null` — O(n).
+
+## Practice
+
+- Predict first: removing at position 0 of a 12-node list needs how many pointer hops?
+- Then watch it: <Link to="/linked-list">open the linked-list visualizer</Link> and follow the
+  pointer-hop narration as `cur` advances.
+- Compare both structures: run the same insert on array and list — where does the work move?

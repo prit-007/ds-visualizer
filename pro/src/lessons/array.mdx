@@ -1,0 +1,24 @@
+import { Link } from 'react-router-dom';
+
+# Arrays: Contiguous Memory
+
+## Why it matters
+
+An array packs values into consecutive addresses, so the machine can jump straight to slot *i*
+with a little arithmetic — no walking, no following links. That cheap jump is why reading index
+`i` is O(1), and it is also why inserting in the middle is expensive: everything after the hole
+must slide one address to the right.
+
+## How it works
+
+1. **Index becomes an address:** `address = base + i × elementSize`.
+2. **Push** writes at the end — amortized O(1) until the block is full and must be reallocated.
+3. **Insert at position** shifts the tail right, then writes — O(n) moves, narrated step by step.
+4. **Remove at position** shifts the tail left to close the gap — also O(n).
+
+## Practice
+
+- Predict first: inserting at index `0` of a 12-element array must move how many elements?
+- Then watch it: <Link to="/array">open the array visualizer</Link>, insert at 0, and check the
+  move narration against your prediction.
+- Push until the visualizer warns you about size — every real language has a growth policy.

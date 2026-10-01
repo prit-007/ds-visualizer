@@ -1,0 +1,44 @@
+import { render, screen } from '@testing-library/react';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { MemoryRouter } from 'react-router-dom';
+import Lessons from './Lessons';
+import { LESSONS } from '../lessons';
+
+describe('Lessons list', () => {
+  test('lists every lesson as a link to its reader route', () => {
+    render(
+      <MemoryRouter>
+        <Lessons />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('heading', { level: 1, name: /lessons/i })).toBeInTheDocument();
+    LESSONS.forEach((lesson) => {
+      const link = screen.getByRole('link', { name: new RegExp(lesson.title) });
+      expect(link).toHaveAttribute('href', `/lessons/${lesson.slug}`);
+    });
+  });
+
+  test('cards show the summary and structure tag', () => {
+    render(
+      <MemoryRouter>
+        <Lessons />
+      </MemoryRouter>
+    );
+
+    LESSONS.forEach((lesson) => {
+      expect(screen.getByText(lesson.summary)).toBeInTheDocument();
+      expect(screen.getByText(lesson.structure)).toBeInTheDocument();
+    });
+  });
+
+  test('css contract: cards and article prose styles exist', () => {
+    const moduleUrl = import.meta.url;
+    const css = readFileSync(fileURLToPath(new URL('./Lessons.css', moduleUrl)), 'utf8');
+
+    expect(css).toMatch(/\.lesson-card\s*\{/);
+    expect(css).toMatch(/\.lesson-article\s*\{/);
+    expect(css).toMatch(/\.dark \.lesson-card/);
+  });
+});

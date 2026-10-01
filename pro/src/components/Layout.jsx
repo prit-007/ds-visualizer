@@ -179,6 +179,11 @@ const Layout = () => {
                 {isSidebarOpen && expandedCategories.tutorials && (
                   <ul className="pl-10 mt-1 space-y-1">
                     <li>
+                      <Link to="/lessons" className="block px-4 py-2 text-sm text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-gray-800 rounded-xl">
+                        Lessons
+                      </Link>
+                    </li>
+                    <li>
                       <Link to="/beginner" className="block px-4 py-2 text-sm text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-gray-800 rounded-xl">
                         Beginners
                       </Link>

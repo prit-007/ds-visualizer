@@ -1,0 +1,27 @@
+import { Link } from 'react-router-dom';
+
+# AVL Trees: Self-Balancing Search
+
+## Why it matters
+
+A plain binary search tree is only fast while it stays balanced — skewed inserts degrade search
+to a linked list, O(n). An AVL tree records a **height** and a **balance factor** on every node
+and repairs the shape with rotations the moment a subtree drifts, so search, insert and delete
+all stay O(log n).
+
+## How it works
+
+1. **Insert** walks down comparing values, creates the node, then climbs back up updating heights.
+2. **Balance factor** = `height(left) - height(right)`; anything outside `-1, 0, +1` needs repair.
+3. **Rotations** are the repair: LL and RR are single rotations, LR and RL are double rotations —
+   each one re-wires a constant number of pointers to restore balance.
+4. **Delete** is the same idea with one extra pass: remove the node (two children pull in the
+   in-order successor), then recheck and rotate on the way up.
+
+## Practice
+
+- Predict first: inserting `10` into the tree `[50, 30]` — which rotation runs, and what becomes
+  the new root?
+- Then watch it: <Link to="/tree">open the tree visualizer</Link>, insert `10`, and read the
+  `h:`/`bf:` badges before and after the rotation.
+- Try deletion: remove the root of a three-node tree and follow the successor-copy narration.
