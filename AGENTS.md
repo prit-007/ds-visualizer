@@ -31,7 +31,7 @@ React data-structure visualizer. **All app code lives in `pro/`** (Vite 8, migra
 
 ## Testing & TDD policy
 
-Current state (verified): **`npm run test:ci` is green — 27 files, 233 tests, 0 unhandled errors.**
+Current state (verified): **`npm run test:ci` is green — 30 files, 242 tests, 0 unhandled errors.**
 
 - `src/App.test.jsx` — hero + nav; **route-completeness contract**: every one of the 19 sidebar routes must render non-blank `<main>`, and every `<nav>` link must be a registered route.
 - `src/lib/avl.test.js` — unit/property tests for the AVL core (rotations, delete cases, traversals incl. **`levelOrder`**, `nodeCount` invariants, `fast-check` property: sorted inorder + balance invariant) + **operation traces**: the optional `trace` param on `insert`/`deleteNode`/`minValueNode` records `created/compare/move/duplicate/recheck/rotate/replace/two-children/successor-descend/copy-successor/missing` events that `treeSteps` turns into narration. **These 24 trace tests are the contract for the `avl.js` refactor — event order/shape must stay byte-identical.**
@@ -39,6 +39,7 @@ Current state (verified): **`npm run test:ci` is green — 27 files, 233 tests, 
 - `src/lib/treeLayout.test.js` — pure coordinate layout: in-order slotting, constant depth spacing, edge endpoints trimmed to `NODE_RADIUS`, bounds, height/balance metadata.
 - `src/pages/*.test.jsx` — page tests: TreeVisualizer smoke + **tree canvas rendering** (slots/edges/badges/edge states via fake timers + CSS contract) + **traversal controls** (4 buttons incl. Level-order, BFS chips, CSS contract) + memory + presets + dual-pane; Array/LinkedList tab switching, **appearance with 12 elements** (values/indices/memory cells/pointers + CSS `flex-wrap` contract), and **empty-state behavior** (message, sane placeholder, guided error, insert-at-0 still works). Page tests that drive a run use the module-scope `finishRun()`/`advance(n)` fake-timer helpers (each 1000 ms round advances one step; React only creates the next timer after the `act()` flush).
 - `src/pages/{Home,ComingSoon}.test.jsx`, `src/components/{TabNavigation,OperationPlayer,ErrorMessage,ComplexityInfo,PropertyDisplay,CodePane,CasePresets,MemoryRepresentation,ElementNode,Layout,GuidedTour}.test.jsx` — `OperationPlayer.test.jsx` uses **fake timers** (`vi.useFakeTimers`) to drive play/pause/step/speed/scrub/keyboard + the stale-steps clamp regression.
+- `src/lessons/lessons.test.jsx`, `src/pages/{Lessons,LessonReader}.test.jsx` — manifest shape (unique slugs, one per structure, `Component` renders through the **MDX pipeline** under Vitest), list cards/links/hrefs + `Lessons.css` contract, reader slug routing + unknown-slug empty state. **JSX in tests must be `.jsx`** — `lessons.test.js` failed import-analysis until renamed (the documented Vite/Rolldown rule, hit again).
 - `src/index.css.test.js`, `src/tailwind.config.test.js` — contract tests over design tokens (incl. `--kind-*` vars) and the tailwind scales.
 
 Policy for new work:
@@ -76,6 +77,7 @@ Policy for new work:
 - `src/components/OperationPlayer.jsx` = the step player all three pages render (internal `currentStep/isPlaying/speed`; absolute-state actions make `seek(0..k)` replay idempotent; keyboard Space/←/→ ignored when focus is in an input/button; `pseudocode` prop renders the `CodePane` dual pane; render-time `stepIndex` clamp guards short-step rerenders).
 - `src/components/Layout.jsx` = sidebar shell + `<Outlet>`; Sun/Moon dark-mode toggle (`aria-pressed`, localStorage `theme`, `documentElement.classList.toggle('dark')`).
 - `src/pages/` = one page per structure. **CSS gotcha:** there is no `ArrayVisualizer.css` (deleted) — array styles live in `src/index.css`; LinkedList/Tree have their own page CSS. `:root` design tokens (`--primary-color`, `--kind-compare/move/found/error` etc.) are defined at the top of `index.css` — `ElementNode` and `TreeVisualizer.css` depend on them; don't remove.
+- **Lessons (Phase 5.2):** `@mdx-js/rollup` registered first in `pro/vite.config.mjs` `plugins`; `src/lessons/index.js` = manifest (`LESSONS` with `slug/title/summary/structure/Component` + `getLesson`) over `src/lessons/{array,linked-list,tree}.mdx` (each: h1 = manifest title, why → how → practice, `<Link>` CTA to its visualizer). `/lessons` (`Lessons.jsx` list) + `/lessons/:slug` (`LessonReader.jsx`, unknown slug → `.empty-state`) share `src/pages/Lessons.css`; sidebar link lives in the Tutorials submenu.
 - **Tree rendering (Phase 4 overhaul):** `TreeVisualizer.jsx` no longer has the recursive `renderTree` — it maps `layoutTree(treeRoot)` into an absolutely positioned `.tree-canvas` (SVG `path.tree-edge` cubic connectors with `tree-edge-active/highlighted/removing` states + `.tree-node-slot` per `ElementNode`, badge `h:<height> bf:<balance>`). `TreeVisualizer.css` owns the canvas, node circle and the traversal pill group/result chips (there is no `.btn`/`.traversal-*` styling in `index.css`).
 - `src/pages/ComingSoon.jsx` = placeholder page (`title` prop) — all 15 unimplemented sidebar routes point at it.
 - `src/visualizations/` = decorative components used only by `src/pages/Home.jsx`.
@@ -113,9 +115,10 @@ Sidebar also advertises stack/queue, graph, hash table, sorting, searching, grap
 Kept in `ROADMAP.md` (phases with checkboxes). Summary:
 
 ### What has been done
-- **Phase 5 started — guided tour shipped (commit `feat(tour)`):** `driver.js` first-run auto-start + sidebar "Take the tour" replay (`src/lib/tourSteps.js` 4-step config → `.sidebar`/`.workspace`/`.theme-toggle`/`.sidebar-footer` anchors; `onDestroyStarted` persists `TOUR_COMPLETED_KEY` only on user close/finish, unmount destroy does not), `setupTests.js` seeds the flag for every suite.
+- **Phase 5 started — first two learning features shipped:** guided tour (`feat(tour)`) and **MDX lessons** (`feat(lessons)`): manifest + 3 why/how/practice lessons, `/lessons` + `/lessons/:slug` routes, Tutorials→Lessons sidebar link, `Lessons.css` with dark variants.
+- Tour mechanics: `src/lib/tourSteps.js` 4-step config anchored on `.sidebar`/`.workspace`/`.theme-toggle`/`.sidebar-footer`; `onDestroyStarted` persists `TOUR_COMPLETED_KEY` only on user close/finish (unmount destroy does not); `setupTests.js` seeds the flag for every suite.
 - CRA → **Vite 8 + Vitest 4** migration (tests were red under CRA's Jest 27 — resolved)
-- Test suite green: **233 tests / 27 files** (AVL + trace tests, step-builder units incl. traversal narration + pseudocode line/vars contracts, treeLayout units, route contract, appearance/empty-state, tree canvas/traversal, page + component tests incl. fake-timer OperationPlayer + guided-tour)
+- Test suite green: **242 tests / 30 files** (AVL + trace tests, step-builder units incl. traversal narration + pseudocode line/vars contracts, treeLayout units, route contract, appearance/empty-state, tree canvas/traversal, page + component tests incl. fake-timer OperationPlayer + guided-tour + MDX lessons)
 - All step logic extracted to `src/lib/` (`avl.js`, `treeSteps.js`, `arraySteps.js`, `linkedListSteps.js`, `treeLayout.js`, `pseudocode.js`, `presets.js`, `motionPrefs.js`, `tourSteps.js`); fixed 2 AVL crash bugs + 3 step-builder bugs (loop-closure highlighting, search null deref, empty-state `0--1`) + 1 player bug (stale-step clamp)
 - Node-by-node narration: AVL trace events → per-node compare/move/recheck/rotate steps; traversal backtrack steps; per-index array shifts; linked-list pointer hops
 - Lint: **0 errors, 0 warnings** (was 16 warnings); all 19 sidebar routes registered (`ComingSoon`); Home CTAs are real `<Link>`s
@@ -124,6 +127,6 @@ Kept in `ROADMAP.md` (phases with checkboxes). Summary:
 - Array, linked-list, AVL-tree visualizers with animated step playback + complexity panels; empty-state + >10-element appearance covered by tests
 
 ### What should be done (see ROADMAP.md for detail/order)
-1. Phase 5: learning layer (lessons, prediction mode, progress)
+1. Phase 5: learning layer (lessons ✅ + guided tour ✅ done; next: prediction mode, progress store, curriculum map)
 2. Phase 6/7: differentiators (time-travel, complexity lab, story↔memory toggle) + new structures + real sorting/searching pages
 3. Deferred cleanup: LinkedList node markup → ElementNode (needs coordinated CSS + test selector rename)
