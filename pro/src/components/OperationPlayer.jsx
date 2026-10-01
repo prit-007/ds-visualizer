@@ -20,6 +20,7 @@ const OperationPlayer = ({
   steps = [],
   onComplete,
   onPlayStateChange,
+  onPredictionAnswer,
   title = 'Operation Steps',
   pseudocode = null,
 }) => {
@@ -149,13 +150,14 @@ const OperationPlayer = ({
       if (!question) return;
       const wasCorrect = guessIndex === question.correctIndex;
       setScore((s) => ({ correct: s.correct + (wasCorrect ? 1 : 0), total: s.total + 1 }));
+      onPredictionAnswer?.(wasCorrect);
       setQuestion(null);
       const resume = pendingResume;
       setPendingResume(false);
       seek(Math.min(currentStep + 1, steps.length - 1));
       if (resume) changePlayState(true);
     },
-    [question, pendingResume, currentStep, steps.length, seek, changePlayState]
+    [question, pendingResume, currentStep, steps.length, seek, changePlayState, onPredictionAnswer]
   );
 
   useEffect(() => {

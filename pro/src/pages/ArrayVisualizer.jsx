@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { buildAddSteps, buildInsertSteps, buildRemoveSteps } from "../lib/arraySteps";
 import { ARRAY_PSEUDOCODE } from "../lib/pseudocode";
+import { recordOperation, recordPrediction } from "../lib/progress";
 import ElementNode from "../components/ElementNode";
 import OperationPlayer from "../components/OperationPlayer";
 import TabNavigation from "../components/TabNavigation";
@@ -197,7 +198,11 @@ const ArrayVisualizer = ({ initialArray }) => {
           {run && (
             <OperationPlayer
               steps={run.steps}
-              onComplete={run.onComplete}
+              onComplete={() => {
+                run.onComplete?.();
+                recordOperation(`array:${activeTab}`);
+              }}
+              onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
               pseudocode={ARRAY_PSEUDOCODE[activeTab]}
             />

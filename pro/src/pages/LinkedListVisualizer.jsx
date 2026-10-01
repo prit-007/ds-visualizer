@@ -4,6 +4,7 @@ import { gsap } from "gsap";
 import "./LinkedListVisualizer.css";
 import { buildAddSteps, buildInsertSteps, buildRemoveSteps } from "../lib/linkedListSteps";
 import { LINKED_LIST_PSEUDOCODE } from "../lib/pseudocode";
+import { recordOperation, recordPrediction } from "../lib/progress";
 import { prefersReducedMotion } from "../lib/motionPrefs";
 import OperationPlayer from "../components/OperationPlayer";
 import TabNavigation from "../components/TabNavigation";
@@ -346,7 +347,11 @@ const LinkedListVisualizer = ({ initialNodes }) => {
           {run && (
             <OperationPlayer
               steps={run.steps}
-              onComplete={run.onComplete}
+              onComplete={() => {
+                run.onComplete?.();
+                recordOperation(`linked-list:${activeTab}`);
+              }}
+              onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
               pseudocode={LINKED_LIST_PSEUDOCODE[activeTab]}
             />

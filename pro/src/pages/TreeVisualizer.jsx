@@ -12,6 +12,7 @@ import "./TreeVisualizer.css";
 import { AVLTree } from "../lib/avl";
 import { buildInsertSteps, buildDeleteSteps, buildSearchSteps, buildTraversalSteps } from "../lib/treeSteps";
 import { TREE_PSEUDOCODE } from "../lib/pseudocode";
+import { recordOperation, recordPrediction } from "../lib/progress";
 import { layoutTree } from "../lib/treeLayout";
 
 // Cubic connector from parent bottom to child top (pure; used by the svg layer)
@@ -343,7 +344,11 @@ const TreeVisualizer = () => {
           {run && (
             <OperationPlayer
               steps={run.steps}
-              onComplete={run.onComplete}
+              onComplete={() => {
+                run.onComplete?.();
+                recordOperation(`tree:${pseudocodeKey}`);
+              }}
+              onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
               pseudocode={TREE_PSEUDOCODE[pseudocodeKey]}
             />

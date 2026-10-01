@@ -1,7 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import LessonReader from './LessonReader';
 import { LESSONS } from '../lessons';
+
+vi.mock('../lib/celebration', () => ({ fireCelebration: vi.fn() }));
 
 const renderReader = (path) =>
   render(
@@ -32,5 +34,34 @@ describe('LessonReader', () => {
       'href',
       '/lessons'
     );
+  });
+});
+
+describe('lesson completion', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  test('marking complete stores xp, fires celebration and disables the button', async () => {
+    const { fireCelebration } = await import('../lib/celebration');
+    renderReader(`/lessons/${LESSONS[0].slug}`);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mark as complete' }));
+
+    const stored = JSON.parse(localStorage.getItem('ds-visualizer:progress'));
+    expect(stored.lessons[LESSONS[0].slug]).toBe(true);
+    expect(stored.xp).toBe(25);
+    expect(fireCelebration).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: /completed/i })).toBeDisabled();
+  });
+
+  test('a completed lesson renders as already done on next visit', async () => {
+    localStorage.setItem(
+      'ds-visualizer:progress',
+      JSON.stringify({ version: 1, xp: 25, lessons: { [LESSONS[0].slug]: true } })
+    );
+    renderReader(`/lessons/${LESSONS[0].slug}`);
+
+    expect(screen.getByRole('button', { name: /completed/i })).toBeDisabled();
   });
 });

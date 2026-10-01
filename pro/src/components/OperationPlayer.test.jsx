@@ -275,7 +275,12 @@ describe('prediction mode', () => {
   });
 
   test('answering correctly advances, scores a point and closes the question', () => {
-    const steps = openQuestionManually();
+    const steps = makeSteps();
+    const onPredictionAnswer = vi.fn();
+    render(<OperationPlayer steps={steps} onComplete={vi.fn()} onPredictionAnswer={onPredictionAnswer} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Predict next step' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'step two' }));
 
@@ -283,16 +288,23 @@ describe('prediction mode', () => {
     expect(screen.getByText('2 / 3')).toBeInTheDocument();
     expect(screen.getByText('Score 1 / 1')).toBeInTheDocument();
     expect(screen.queryByText('What happens next?')).not.toBeInTheDocument();
+    expect(onPredictionAnswer).toHaveBeenCalledWith(true);
   });
 
   test('answering wrongly still advances but scores zero', () => {
-    openQuestionManually();
+    const steps = makeSteps();
+    const onPredictionAnswer = vi.fn();
+    render(<OperationPlayer steps={steps} onComplete={vi.fn()} onPredictionAnswer={onPredictionAnswer} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Predict next step' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
 
     fireEvent.click(screen.getByRole('button', { name: 'step three' }));
 
     expect(screen.getByText('2 / 3')).toBeInTheDocument();
     expect(screen.getByText('Score 0 / 1')).toBeInTheDocument();
     expect(screen.queryByText('What happens next?')).not.toBeInTheDocument();
+    expect(onPredictionAnswer).toHaveBeenCalledWith(false);
   });
 
   test('auto-play pauses for a guess and resumes after answering', () => {

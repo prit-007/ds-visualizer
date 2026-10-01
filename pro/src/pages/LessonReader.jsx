@@ -1,10 +1,18 @@
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getLesson } from '../lessons';
+import { isLessonComplete, recordLesson } from '../lib/progress';
+import { fireCelebration } from '../lib/celebration';
 import './Lessons.css';
 
 const LessonReader = () => {
   const { slug } = useParams();
   const lesson = getLesson(slug);
+  const [completed, setCompleted] = useState(() => isLessonComplete(slug));
+
+  useEffect(() => {
+    setCompleted(isLessonComplete(slug));
+  }, [slug]);
 
   if (!lesson) {
     return (
@@ -16,12 +24,29 @@ const LessonReader = () => {
     );
   }
 
+  const handleComplete = () => {
+    if (completed) return;
+    recordLesson(slug);
+    fireCelebration();
+    setCompleted(true);
+  };
+
   return (
     <article className="lesson-article">
       <Link to="/lessons" className="lesson-back">
         ← Back to lessons
       </Link>
       <lesson.Component />
+      <div className="lesson-footer">
+        <button
+          type="button"
+          className="lesson-complete"
+          onClick={handleComplete}
+          disabled={completed}
+        >
+          {completed ? 'Completed ✓' : 'Mark as complete'}
+        </button>
+      </div>
     </article>
   );
 };
