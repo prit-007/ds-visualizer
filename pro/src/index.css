@@ -341,6 +341,64 @@ h3 {
   text-align: right;
 }
 
+.player-predict {
+  border: 1px solid #e0f2fe;
+  background-color: white;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+.player-predict.active {
+  background-color: #0284c7;
+  border-color: #0284c7;
+  color: white;
+}
+
+.prediction-panel {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #e0f2fe;
+  border-radius: 0.5rem;
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.prediction-prompt {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #0369a1;
+}
+
+.prediction-option {
+  text-align: left;
+  border: 1px solid #bae6fd;
+  background-color: white;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #0f172a;
+  transition: all 0.15s ease;
+}
+
+.prediction-option:hover {
+  background-color: #f0f9ff;
+  border-color: #0284c7;
+}
+
+.prediction-score {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0284c7;
+  white-space: nowrap;
+}
+
 .player-body.with-code {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -719,6 +777,42 @@ h3 {
 
 .dark .player-counter {
   color: #94a3b8;
+}
+
+.dark .player-predict {
+  background-color: #1e293b;
+  border-color: #475569;
+  color: #38bdf8;
+}
+
+.dark .player-predict.active {
+  background-color: #0284c7;
+  border-color: #0284c7;
+  color: white;
+}
+
+.dark .prediction-panel {
+  background-color: #1e293b;
+  border-color: #475569;
+}
+
+.dark .prediction-prompt {
+  color: #7dd3fc;
+}
+
+.dark .prediction-option {
+  background-color: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+.dark .prediction-option:hover {
+  background-color: #334155;
+  border-color: #38bdf8;
+}
+
+.dark .prediction-score {
+  color: #38bdf8;
 }
 
 .dark .error-message {

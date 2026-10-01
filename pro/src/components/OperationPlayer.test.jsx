@@ -1,4 +1,6 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 import OperationPlayer from './OperationPlayer';
 
 const makeSteps = () => [
@@ -229,5 +231,110 @@ describe('OperationPlayer', () => {
       rerender(<OperationPlayer steps={makeSteps()} onComplete={vi.fn()} />)
     ).not.toThrow();
     expect(container.querySelector('.player-counter')).toHaveTextContent('1 / 3');
+  });
+});
+
+describe('prediction mode', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const openQuestionManually = () => {
+    const steps = makeSteps();
+    render(<OperationPlayer steps={steps} onComplete={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Predict next step' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
+    return steps;
+  };
+
+  test('toggle starts off and reflects aria-pressed with a score chip', () => {
+    render(<OperationPlayer steps={makeSteps()} onComplete={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
+
+    const toggle = screen.getByRole('button', { name: 'Predict next step' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByText(/score/i)).not.toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Score 0 / 0')).toBeInTheDocument();
+  });
+
+  test('advancing with predict on asks for a guess instead of revealing', () => {
+    const steps = openQuestionManually();
+
+    expect(screen.getByText('What happens next?')).toBeInTheDocument();
+    expect(steps[1].action).not.toHaveBeenCalled();
+    expect(screen.getByText('1 / 3')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'step two' })).toBeInTheDocument();
+  });
+
+  test('answering correctly advances, scores a point and closes the question', () => {
+    const steps = openQuestionManually();
+
+    fireEvent.click(screen.getByRole('button', { name: 'step two' }));
+
+    expect(steps[1].action).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('2 / 3')).toBeInTheDocument();
+    expect(screen.getByText('Score 1 / 1')).toBeInTheDocument();
+    expect(screen.queryByText('What happens next?')).not.toBeInTheDocument();
+  });
+
+  test('answering wrongly still advances but scores zero', () => {
+    openQuestionManually();
+
+    fireEvent.click(screen.getByRole('button', { name: 'step three' }));
+
+    expect(screen.getByText('2 / 3')).toBeInTheDocument();
+    expect(screen.getByText('Score 0 / 1')).toBeInTheDocument();
+    expect(screen.queryByText('What happens next?')).not.toBeInTheDocument();
+  });
+
+  test('auto-play pauses for a guess and resumes after answering', () => {
+    const steps = makeSteps();
+    render(<OperationPlayer steps={steps} onComplete={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Predict next step' }));
+
+    advance(1000);
+    expect(screen.getByText('What happens next?')).toBeInTheDocument();
+    expect(screen.getByText('1 / 3')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'step two' }));
+    expect(screen.getByText('2 / 3')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument();
+
+    advance(1000);
+    expect(screen.getByText('What happens next?')).toBeInTheDocument();
+    expect(screen.getByText('2 / 3')).toBeInTheDocument();
+    expect(steps[2].action).not.toHaveBeenCalled();
+  });
+
+  test('toggling predict off mid-question cancels it without scoring', () => {
+    openQuestionManually();
+
+    const toggle = screen.getByRole('button', { name: 'Predict next step' });
+    fireEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByText('What happens next?')).not.toBeInTheDocument();
+    expect(screen.queryByText(/score/i)).not.toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(screen.getByText('Score 0 / 0')).toBeInTheDocument();
+  });
+
+  test('css contract: prediction styles live in index.css', () => {
+    const moduleUrl = import.meta.url;
+    const css = readFileSync(fileURLToPath(new URL('../index.css', moduleUrl)), 'utf8');
+
+    expect(css).toMatch(/\.prediction-panel\s*\{/);
+    expect(css).toMatch(/\.prediction-option\s*\{/);
+    expect(css).toMatch(/\.prediction-score\s*\{/);
   });
 });

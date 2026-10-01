@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import CodePane from './CodePane';
+import { buildPredictionQuestion } from '../lib/prediction';
 
 const STEP_MS = 1000;
 
@@ -26,6 +27,10 @@ const OperationPlayer = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [finished, setFinished] = useState(false);
+  const [predictMode, setPredictMode] = useState(false);
+  const [question, setQuestion] = useState(null);
+  const [pendingResume, setPendingResume] = useState(false);
+  const [score, setScore] = useState({ correct: 0, total: 0 });
 
   const onCompleteRef = useRef(onComplete);
   const onPlayStateRef = useRef(onPlayStateChange);
@@ -45,11 +50,17 @@ const OperationPlayer = ({
     if (steps.length === 0) {
       setCurrentStep(0);
       setFinished(false);
+      setQuestion(null);
+      setPendingResume(false);
+      setScore({ correct: 0, total: 0 });
       changePlayState(false);
       return;
     }
     setCurrentStep(0);
     setFinished(false);
+    setQuestion(null);
+    setPendingResume(false);
+    setScore({ correct: 0, total: 0 });
     steps[0]?.action?.();
     changePlayState(true);
   }, [steps, changePlayState]);
@@ -66,15 +77,26 @@ const OperationPlayer = ({
     }
     const timer = setTimeout(() => {
       const next = currentStep + 1;
+      if (predictMode) {
+        const guessed = buildPredictionQuestion(steps, currentStep);
+        if (guessed) {
+          setQuestion(guessed);
+          setPendingResume(true);
+          changePlayState(false);
+          return;
+        }
+      }
       setCurrentStep(next);
       steps[next]?.action?.();
     }, STEP_MS / speed);
     return () => clearTimeout(timer);
-  }, [isPlaying, currentStep, speed, steps, changePlayState]);
+  }, [isPlaying, currentStep, speed, steps, changePlayState, predictMode]);
 
   const seek = useCallback(
     (index) => {
       const idx = Math.min(Math.max(index, 0), Math.max(steps.length - 1, 0));
+      setQuestion(null);
+      setPendingResume(false);
       setCurrentStep(idx);
       setFinished(false);
       for (let i = 0; i <= idx; i++) {
@@ -85,6 +107,7 @@ const OperationPlayer = ({
   );
 
   const togglePlay = useCallback(() => {
+    if (question) return;
     if (isPlaying) {
       changePlayState(false);
       return;
@@ -93,17 +116,47 @@ const OperationPlayer = ({
       seek(0);
     }
     changePlayState(true);
-  }, [isPlaying, finished, seek, changePlayState]);
+  }, [question, isPlaying, finished, seek, changePlayState]);
 
   const goNext = useCallback(() => {
+    if (question) return;
+    if (predictMode) {
+      const guessed = buildPredictionQuestion(steps, currentStep);
+      if (guessed) {
+        changePlayState(false);
+        setPendingResume(false);
+        setQuestion(guessed);
+        return;
+      }
+    }
     changePlayState(false);
     seek(currentStep + 1);
-  }, [changePlayState, seek, currentStep]);
+  }, [question, predictMode, changePlayState, seek, currentStep, steps]);
 
   const goPrev = useCallback(() => {
     changePlayState(false);
     seek(currentStep - 1);
   }, [changePlayState, seek, currentStep]);
+
+  const togglePredict = useCallback(() => {
+    setQuestion(null);
+    setPendingResume(false);
+    setPredictMode((p) => !p);
+  }, []);
+
+  const answerPrediction = useCallback(
+    (guessIndex) => {
+      if (!question) return;
+      const wasCorrect = guessIndex === question.correctIndex;
+      setScore((s) => ({ correct: s.correct + (wasCorrect ? 1 : 0), total: s.total + 1 }));
+      setQuestion(null);
+      const resume = pendingResume;
+      setPendingResume(false);
+      seek(Math.min(currentStep + 1, steps.length - 1));
+      if (resume) changePlayState(true);
+    },
+    [question, pendingResume, currentStep, steps.length, seek, changePlayState]
+  );
 
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -156,6 +209,21 @@ const OperationPlayer = ({
           )}
           {step?.description}
         </p>
+        {question && (
+          <div className="prediction-panel" role="group" aria-label="Prediction choices">
+            <p className="prediction-prompt">{question.prompt}</p>
+            {question.options.map((option, idx) => (
+              <button
+                key={option}
+                type="button"
+                className="prediction-option"
+                onClick={() => answerPrediction(idx)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="progress-bar-container">
           <motion.div
             className="progress-bar"
@@ -185,7 +253,7 @@ const OperationPlayer = ({
             type="button"
             className="player-btn"
             onClick={goNext}
-            disabled={stepIndex >= steps.length - 1}
+            disabled={stepIndex >= steps.length - 1 || Boolean(question)}
             aria-label="Next step"
           >
             ⏭
@@ -197,6 +265,15 @@ const OperationPlayer = ({
             aria-label={`Speed ${speed}x`}
           >
             {speed}×
+          </button>
+          <button
+            type="button"
+            className={`player-predict${predictMode ? ' active' : ''}`}
+            onClick={togglePredict}
+            aria-pressed={predictMode}
+            aria-label="Predict next step"
+          >
+            🎯
           </button>
           <input
             type="range"
@@ -210,6 +287,11 @@ const OperationPlayer = ({
             }}
             aria-label="Step position"
           />
+          {predictMode && (
+            <span className="prediction-score">
+              Score {score.correct} / {score.total}
+            </span>
+          )}
           <span className="player-counter">
             {stepIndex + 1} / {steps.length}
           </span>
