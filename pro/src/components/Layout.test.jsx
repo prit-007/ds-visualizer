@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Layout from './Layout';
+import { TOUR_STEPS } from '../lib/tourSteps';
 
 const renderLayout = () =>
   render(
@@ -35,6 +36,22 @@ describe('Layout keyboard accessibility', () => {
     fireEvent.click(algorithms);
     expect(algorithms).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('link', { name: 'Sorting' })).toBeInTheDocument();
+  });
+});
+
+describe('guided tour', () => {
+  test('sidebar offers the tour replay', () => {
+    renderLayout();
+
+    expect(screen.getByRole('button', { name: 'Take the guided tour' })).toBeInTheDocument();
+  });
+
+  test('tour steps point at real layout anchors', () => {
+    renderLayout();
+
+    TOUR_STEPS.forEach((step) => {
+      expect(document.querySelector(step.element)).not.toBeNull();
+    });
   });
 });
 

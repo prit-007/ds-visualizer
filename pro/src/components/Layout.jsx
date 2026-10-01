@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 import { Menu, Home, ChevronRight, ChevronDown, Database, Code, BookOpen, BarChart2, Github, Settings, HelpCircle, Sun, Moon } from 'lucide-react';
+import GuidedTour from './GuidedTour';
 
 const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -28,7 +29,7 @@ const Layout = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-indigo-950 dark:to-blue-950 flex">
       {/* Sidebar */}
-      <div className={`bg-white dark:bg-gray-900 shadow-xl border-r border-indigo-100 dark:border-gray-700 transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col`}>
+      <div className={`sidebar bg-white dark:bg-gray-900 shadow-xl border-r border-indigo-100 dark:border-gray-700 transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col`}>
         {/* Logo Section */}
         <div className="p-4 flex items-center justify-between border-b border-indigo-100 dark:border-gray-700">
           {isSidebarOpen && <span className="text-xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">AlgoViz</span>}
@@ -212,7 +213,7 @@ const Layout = () => {
         </div>
         
         {/* Bottom Links */}
-        <div className="p-4 border-t border-indigo-100 dark:border-gray-700">
+        <div className="sidebar-footer p-4 border-t border-indigo-100 dark:border-gray-700">
           <ul className="space-y-2 px-2">
             <li>
               <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="flex items-center px-4 py-2 text-indigo-700 dark:text-indigo-200 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-800 rounded-xl">
@@ -232,6 +233,7 @@ const Layout = () => {
                 {isSidebarOpen && <span className="ml-3 font-medium">Help</span>}
               </Link>
             </li>
+            <GuidedTour collapsed={!isSidebarOpen} />
           </ul>
         </div>
       </div>
@@ -247,13 +249,13 @@ const Layout = () => {
             onClick={() => setIsDark((d) => !d)}
             aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
             aria-pressed={isDark}
-            className="p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-gray-700 text-indigo-600 dark:text-indigo-300 transition-colors duration-fast"
+            className="theme-toggle p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-gray-700 text-indigo-600 dark:text-indigo-300 transition-colors duration-fast"
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </header>
         
-        <main className="p-6">
+        <main className="workspace p-6">
           <Outlet />
         </main>
       </div>
