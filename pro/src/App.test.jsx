@@ -24,6 +24,7 @@ const ADVERTISED_ROUTES = [
   '/lessons',
   '/curriculum',
   '/complexity',
+  '/challenges',
   '/visualizer',
   '/settings',
   '/help',

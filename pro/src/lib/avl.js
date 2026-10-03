@@ -221,12 +221,12 @@ export class AVLTree {
     return this.rebalanceAfterDelete(root, trace);
   }
 
-  search(root, value) {
+  search(root, value, trace = null) {
     if (!root) return false;
+    emit(trace, { type: 'compare', node: root.value, value });
     if (root.value === value) return true;
-    if (value < root.value)
-      return this.search(root.left, value);
-    return this.search(root.right, value);
+    if (value < root.value) return this.search(root.left, value, trace);
+    return this.search(root.right, value, trace);
   }
 
   // Shared depth-first core; the named traversals are thin wrappers.

@@ -403,3 +403,28 @@ describe('counterfactual: rotations disabled', () => {
     expect(trace.filter((e) => e.type === 'rotate-skipped')).toHaveLength(0);
   });
 });
+
+describe('search trace', () => {
+  test('records a compare per visited node when given a trace', () => {
+    const tree = build([20, 10, 30]);
+    const trace = [];
+
+    expect(tree.search(tree.root, 30, trace)).toBe(true);
+
+    expect(trace.filter((event) => event.type === 'compare').map((event) => event.node)).toEqual([
+      20, 30,
+    ]);
+  });
+
+  test('a missing target traces only the failed path; no-trace calls stay untraced', () => {
+    const tree = build([20, 10, 30]);
+    const trace = [];
+
+    expect(tree.search(tree.root, 25, trace)).toBe(false);
+    expect(trace.every((event) => event.type === 'compare')).toBe(true);
+    expect(trace.map((event) => event.node)).toEqual([20, 30]);
+
+    expect(tree.search(tree.root, 10)).toBe(true);
+    expect(tree.search(null, 1)).toBe(false);
+  });
+});
