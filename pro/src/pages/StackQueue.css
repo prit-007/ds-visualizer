@@ -1,0 +1,108 @@
+.stack-queue-container {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.stack-queue-elements {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  min-height: 100px;
+}
+
+.stack-queue-element {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 2px solid #0284c7;
+  background-color: white;
+  color: #1e293b;
+  font-weight: bold;
+  font-size: 1.25rem;
+  position: relative;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stack-queue-element.active {
+  border-color: #0284c7;
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+.stack-queue-element.highlighted {
+  background-color: #0284c7;
+  color: white;
+}
+
+.stack-queue-bracket {
+  font-size: 3rem;
+  font-weight: 300;
+  color: #0284c7;
+  padding: 0 0.5rem;
+}
+
+.structure-toggle {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.structure-toggle button {
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  border: 2px solid #0284c7;
+  background-color: white;
+  color: #0284c7;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.structure-toggle button[aria-pressed='true'] {
+  background-color: #0284c7;
+  color: white;
+}
+
+.structure-toggle button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dark .stack-queue-container {
+  background: transparent;
+}
+
+.dark .stack-queue-element {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border-color: #0369a1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+.dark .stack-queue-element.highlighted {
+  background-color: #0369a1;
+  color: white;
+}
+
+.dark .stack-queue-bracket {
+  color: #38bdf8;
+}
+
+.dark .structure-toggle button {
+  background-color: #1e293b;
+  color: #7dd3fc;
+  border-color: #0369a1;
+}
+
+.dark .structure-toggle button[aria-pressed='true'] {
+  background-color: #0369a1;
+  color: white;
+}

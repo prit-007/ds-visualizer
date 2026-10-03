@@ -11,6 +11,7 @@ import LessonReader from './pages/LessonReader';
 import Curriculum from './pages/Curriculum';
 import ComplexityLab from './pages/ComplexityLab';
 import Challenges from './pages/Challenges';
+import StackQueue from './pages/StackQueue';
 import ComingSoon from './pages/ComingSoon';
 
 const App = () => {
@@ -28,7 +29,7 @@ const App = () => {
           <Route path='/curriculum' element={<Curriculum />} />
           <Route path='/complexity' element={<ComplexityLab />} />
           <Route path='/challenges' element={<Challenges />} />
-          <Route path='/stack-queue' element={<ComingSoon title="Stack & Queue" />} />
+          <Route path='/stack-queue' element={<StackQueue />} />
           <Route path='/graph' element={<ComingSoon title="Graph" />} />
           <Route path='/hash-table' element={<ComingSoon title="Hash Table" />} />
           <Route path='/sorting' element={<ComingSoon title="Sorting Visualizer" />} />

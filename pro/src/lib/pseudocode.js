@@ -143,3 +143,54 @@ export const TREE_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+export const STACK_PSEUDOCODE = {
+  push: [
+    'procedure stackPush(stack, value)',
+    '  n ← length(stack)',
+    '  stack[n] ← value',
+    '  size ← n + 1',
+    'end procedure',
+  ],
+  pop: [
+    'procedure stackPop(stack)',
+    '  n ← length(stack)',
+    '  removed ← stack[n - 1]',
+    '  size ← n - 1',
+    '  return removed',
+    'end procedure',
+  ],
+  peek: [
+    'procedure stackPeek(stack)',
+    '  n ← length(stack)',
+    '  top ← stack[n - 1]',
+    '  return top',
+    'end procedure',
+  ],
+};
+
+export const QUEUE_PSEUDOCODE = {
+  enqueue: [
+    'procedure queueEnqueue(queue, value)',
+    '  n ← length(queue)',
+    '  queue[n] ← value',
+    '  size ← n + 1',
+    'end procedure',
+  ],
+  dequeue: [
+    'procedure queueDequeue(queue)',
+    '  n ← length(queue)',
+    '  removed ← queue[0]',
+    '  for i ← 1 to n - 1 do',
+    '    queue[i - 1] ← queue[i]',
+    '  size ← n - 1',
+    '  return removed',
+    'end procedure',
+  ],
+  peek: [
+    'procedure queuePeek(queue)',
+    '  front ← queue[0]',
+    '  return front',
+    'end procedure',
+  ],
+};
