@@ -350,3 +350,51 @@ describe('prediction mode', () => {
     expect(css).toMatch(/\.prediction-score\s*\{/);
   });
 });
+
+describe('operation counters', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const counterSteps = () => [
+    { description: 'a', action: vi.fn(), kind: 'compare' },
+    { description: 'b', action: vi.fn(), kind: 'compare' },
+    { description: 'c', action: vi.fn(), kind: 'move' },
+  ];
+
+  test('shows live counts that advance with the current step', () => {
+    render(<OperationPlayer steps={counterSteps()} />);
+
+    const group = document.querySelector('.op-counters');
+    expect(group).toBeInTheDocument();
+    expect(group.querySelector('[data-kind="compare"]')).toHaveTextContent('Compares 1');
+    expect(group.querySelector('[data-kind="move"]')).toHaveTextContent('Moves 0');
+    expect(group.querySelector('[data-kind="total"]')).toHaveTextContent('Steps 1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
+    expect(group.querySelector('[data-kind="compare"]')).toHaveTextContent('Compares 2');
+    expect(group.querySelector('[data-kind="move"]')).toHaveTextContent('Moves 0');
+    expect(group.querySelector('[data-kind="total"]')).toHaveTextContent('Steps 2');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next step' }));
+    expect(group.querySelector('[data-kind="move"]')).toHaveTextContent('Moves 1');
+    expect(group.querySelector('[data-kind="total"]')).toHaveTextContent('Steps 3');
+  });
+
+  test('hides the counters when there are no steps', () => {
+    render(<OperationPlayer steps={[]} />);
+    expect(document.querySelector('.op-counters')).not.toBeInTheDocument();
+  });
+
+  test('css contract: counter styles live in index.css', () => {
+    const moduleUrl = import.meta.url;
+    const css = readFileSync(fileURLToPath(new URL('../index.css', moduleUrl)), 'utf8');
+    expect(css).toMatch(/\.op-counters\s*\{/);
+    expect(css).toMatch(/\.op-counter\s*\{/);
+    expect(css).toMatch(/\.dark \.op-counters/);
+  });
+});

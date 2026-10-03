@@ -23,6 +23,7 @@ const ADVERTISED_ROUTES = [
   '/greedy',
   '/lessons',
   '/curriculum',
+  '/complexity',
   '/visualizer',
   '/settings',
   '/help',

@@ -9,6 +9,7 @@ import TreeVisualizer from './pages/TreeVisualizer';
 import Lessons from './pages/Lessons';
 import LessonReader from './pages/LessonReader';
 import Curriculum from './pages/Curriculum';
+import ComplexityLab from './pages/ComplexityLab';
 import ComingSoon from './pages/ComingSoon';
 
 const App = () => {
@@ -24,6 +25,7 @@ const App = () => {
           <Route path='/lessons' element={<Lessons />} />
           <Route path='/lessons/:slug' element={<LessonReader />} />
           <Route path='/curriculum' element={<Curriculum />} />
+          <Route path='/complexity' element={<ComplexityLab />} />
           <Route path='/stack-queue' element={<ComingSoon title="Stack & Queue" />} />
           <Route path='/graph' element={<ComingSoon title="Graph" />} />
           <Route path='/hash-table' element={<ComingSoon title="Hash Table" />} />

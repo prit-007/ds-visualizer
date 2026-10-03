@@ -1,0 +1,189 @@
+.complexity-page {
+  max-width: 52rem;
+  margin: 0 auto;
+}
+
+.dark .complexity-page {
+  color: #e5e7eb;
+}
+
+.complexity-intro {
+  color: #4b5563;
+  margin-bottom: 1.25rem;
+}
+
+.complexity-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.complexity-controls label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.complexity-controls select {
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.5rem;
+  border: 1px solid #c7d2fe;
+  background-color: #fff;
+  color: #111827;
+  font-size: 0.85rem;
+}
+
+.complexity-empty {
+  padding: 1.5rem;
+  border: 1px dashed #c7d2fe;
+  border-radius: 0.75rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.complexity-error {
+  color: #b91c1c;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.complexity-classification {
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.6rem;
+  background-color: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.complexity-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.complexity-table th,
+.complexity-table td {
+  text-align: left;
+  padding: 0.45rem 0.7rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.85rem;
+}
+
+.complexity-table th {
+  color: #374151;
+  font-weight: 700;
+}
+
+.complexity-figure {
+  margin: 0 0 1rem;
+}
+
+.complexity-plot {
+  width: 100%;
+  max-width: 32rem;
+  height: auto;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+}
+
+.complexity-theory-line {
+  fill: none;
+  stroke: #9ca3af;
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+.complexity-measured-line {
+  fill: none;
+  stroke: #4f46e5;
+  stroke-width: 2.5;
+}
+
+.complexity-legend {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.78rem;
+  margin-top: 0.4rem;
+  color: #4b5563;
+}
+
+.complexity-legend-measured::before {
+  content: '';
+  display: inline-block;
+  width: 1.1rem;
+  height: 0;
+  border-top: 3px solid #4f46e5;
+  vertical-align: middle;
+  margin-right: 0.35rem;
+}
+
+.complexity-legend-theory::before {
+  content: '';
+  display: inline-block;
+  width: 1.1rem;
+  height: 0;
+  border-top: 3px dashed #9ca3af;
+  vertical-align: middle;
+  margin-right: 0.35rem;
+}
+
+.complexity-note {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.dark .complexity-intro,
+.dark .complexity-note,
+.dark .complexity-legend {
+  color: #9ca3af;
+}
+
+.dark .complexity-controls label,
+.dark .complexity-table th {
+  color: #d1d5db;
+}
+
+.dark .complexity-controls select {
+  background-color: #111827;
+  color: #f3f4f6;
+  border-color: #4338ca;
+}
+
+.dark .complexity-empty {
+  border-color: #4338ca;
+  color: #9ca3af;
+}
+
+.dark .complexity-error {
+  color: #fca5a5;
+}
+
+.dark .complexity-classification {
+  background-color: #1e1b4b;
+  color: #c7d2fe;
+  border-color: #4338ca;
+}
+
+.dark .complexity-table th,
+.dark .complexity-table td {
+  border-bottom-color: #374151;
+}
+
+.dark .complexity-plot {
+  background-color: #111827;
+  border-color: #374151;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .complexity-plot * {
+    transition: none;
+  }
+}

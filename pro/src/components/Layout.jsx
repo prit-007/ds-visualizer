@@ -188,6 +188,11 @@ const Layout = () => {
                         Curriculum map
                       </Link>
                     </li>
+                    <li>
+                      <Link to="/complexity" className="block px-4 py-2 text-sm text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-gray-800 rounded-xl">
+                        Complexity Lab
+                      </Link>
+                    </li>
                   </ul>
                 )}
               </li>

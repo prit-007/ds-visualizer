@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import CodePane from './CodePane';
 import { buildPredictionQuestion } from '../lib/prediction';
+import { countKinds } from '../lib/opCounters';
 
 const STEP_MS = 1000;
 
@@ -189,6 +190,7 @@ const OperationPlayer = ({
   const step = steps[stepIndex];
 
   const progress = ((stepIndex + 1) / steps.length) * 100;
+  const counters = steps.length > 0 ? countKinds(steps, stepIndex) : null;
   const cycleSpeed = () => setSpeed((s) => (s === 1 ? 2 : s === 2 ? 0.5 : 1));
 
   return (
@@ -233,6 +235,25 @@ const OperationPlayer = ({
             animate={{ width: `${progress}%` }}
           />
         </div>
+        {counters && (
+          <div className="op-counters" role="group" aria-label="Operation counters">
+            <span className="op-counter" data-kind="compare">
+              Compares {counters.compare}
+            </span>
+            <span className="op-counter" data-kind="move">
+              Moves {counters.move}
+            </span>
+            <span className="op-counter" data-kind="found">
+              Found {counters.found}
+            </span>
+            <span className="op-counter" data-kind="error">
+              Errors {counters.error}
+            </span>
+            <span className="op-counter" data-kind="total">
+              Steps {counters.total}
+            </span>
+          </div>
+        )}
         <div className="player-controls">
           <button
             type="button"
