@@ -41,6 +41,21 @@ const recheckStep = (event, ui, line) => {
   };
 };
 
+// Counterfactual mode (rotations off): narrate the rotation that would have
+// run so learners see exactly what the toggle suppressed.
+const rotationSkippedStep = (event, ui, line) => {
+  const { case: caseName, node, child } = event;
+  return {
+    description: `Rotations disabled — skipping ${caseName} rotation at ${node} (${child} stays below)`,
+    kind: 'error',
+    line,
+    vars: { case: caseName, node },
+    action: () => {
+      ui.setHighlightedNodes(child === undefined ? [node] : [node, child]);
+    },
+  };
+};
+
 const moveStep = (event, ui, target, line) => {
   const { node, dir } = event;
   const relation = dir === 'left' ? '<' : '>';
@@ -70,6 +85,7 @@ export const buildInsertSteps = (trace, value, ui) => {
   ];
 
   let lastMove = null;
+  let skippedRotation = false;
 
   for (const event of trace) {
     if (event.type === 'compare') {
@@ -111,6 +127,15 @@ export const buildInsertSteps = (trace, value, ui) => {
           event.case === 'LL' || event.case === 'LR' ? 10 : 11
         )
       );
+    } else if (event.type === 'rotate-skipped') {
+      skippedRotation = true;
+      steps.push(
+        rotationSkippedStep(
+          event,
+          ui,
+          event.case === 'LL' || event.case === 'LR' ? 10 : 11
+        )
+      );
     } else if (event.type === 'duplicate') {
       steps.push({
         description: `${value} already exists in the tree, insertion skipped`,
@@ -127,7 +152,9 @@ export const buildInsertSteps = (trace, value, ui) => {
   }
 
   steps.push({
-    description: 'Insertion complete, tree is balanced',
+    description: skippedRotation
+      ? 'Insertion complete — tree left unbalanced (rotations disabled)'
+      : 'Insertion complete, tree is balanced',
     kind: 'found',
     line: 13,
     vars: { value },
@@ -156,6 +183,7 @@ export const buildDeleteSteps = (trace, value, ui) => {
   ];
 
   let target = value;
+  let skippedRotation = false;
 
   for (let i = 0; i < trace.length; i++) {
     const event = trace[i];
@@ -265,6 +293,9 @@ export const buildDeleteSteps = (trace, value, ui) => {
       steps.push(recheckStep(event, ui, 12));
     } else if (event.type === 'rotate') {
       steps.push(rotationStep(event, ui, 12));
+    } else if (event.type === 'rotate-skipped') {
+      skippedRotation = true;
+      steps.push(rotationSkippedStep(event, ui, 12));
     } else if (event.type === 'missing') {
       steps.push({
         description: `${event.value} does not exist in the tree`,
@@ -279,7 +310,9 @@ export const buildDeleteSteps = (trace, value, ui) => {
   }
 
   steps.push({
-    description: 'Deletion complete, tree is balanced',
+    description: skippedRotation
+      ? 'Deletion complete — tree left unbalanced (rotations disabled)'
+      : 'Deletion complete, tree is balanced',
     kind: 'found',
     line: 13,
     vars: { value },

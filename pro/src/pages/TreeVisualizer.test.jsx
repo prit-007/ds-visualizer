@@ -284,3 +284,30 @@ describe('traversal controls', () => {
     expect(css).toMatch(/\.dark \.traversal/);
   });
 });
+
+describe('counterfactual rotations toggle', () => {
+  test('toggle flips aria-pressed and reveals the disabled-rotations note', () => {
+    render(<TreeVisualizer />);
+
+    const toggle = screen.getByRole('button', { name: 'Toggle AVL rotations' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText(/rotations disabled/i)).not.toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByText(/rotations disabled/i)).toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText(/rotations disabled/i)).not.toBeInTheDocument();
+  });
+
+  test('css contract: counterfactual styles live in TreeVisualizer.css', () => {
+    const moduleUrl = import.meta.url;
+    const css = readFileSync(fileURLToPath(new URL('./TreeVisualizer.css', moduleUrl)), 'utf8');
+
+    expect(css).toMatch(/\.counterfactual-row\s*\{/);
+    expect(css).toMatch(/\.counterfactual-note\s*\{/);
+    expect(css).toMatch(/\.dark \.counterfactual-note/);
+  });
+});

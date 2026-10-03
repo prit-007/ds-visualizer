@@ -195,3 +195,27 @@
   border-color: #166534;
   color: #4ade80;
 }
+
+.counterfactual-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.counterfactual-note {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+}
+
+.dark .counterfactual-note {
+  color: #fca5a5;
+  background-color: rgba(127, 29, 29, 0.35);
+  border-color: #991b1b;
+}

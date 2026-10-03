@@ -720,3 +720,39 @@ describe('pseudocode lines and variable watch', () => {
     expect(steps[steps.length - 1].vars).toEqual({ type: 'levelOrder' });
   });
 });
+
+describe('counterfactual narration (rotations disabled)', () => {
+  test('rotate-skipped events narrate the skipped rotation and final imbalance', () => {
+    const tree = new AVLTree({ rotations: false });
+    const trace = [];
+    tree.root = tree.insert(tree.root, 30, trace);
+    tree.root = tree.insert(tree.root, 20, trace);
+    tree.root = tree.insert(tree.root, 10, trace);
+
+    const ui = makeUi();
+    const steps = buildInsertSteps(trace, 10, ui);
+
+    const skipped = steps.find((s) => s.description.includes('Rotations disabled'));
+    expect(skipped).toBeDefined();
+    expect(skipped.kind).toBe('error');
+    expect(skipped.vars).toEqual({ case: 'LL', node: 30 });
+    expect(descriptions(steps)[steps.length - 1]).toMatch(/unbalanced/);
+    runAll(steps);
+    expect(ui.setHighlightedNodes).toHaveBeenCalled();
+  });
+
+  test('delete narration ends unbalanced when rotations are off', () => {
+    const tree = new AVLTree({ rotations: false });
+    const trace = [];
+    tree.root = tree.insert(tree.root, 30, trace);
+    tree.root = tree.insert(tree.root, 10, trace);
+    tree.root = tree.insert(tree.root, 20, trace);
+    tree.root = tree.insert(tree.root, 5, trace);
+    const deleteTrace = [];
+    tree.root = tree.deleteNode(tree.root, 20, deleteTrace);
+
+    const ui = makeUi();
+    const steps = buildDeleteSteps(deleteTrace, 20, ui);
+    expect(descriptions(steps)[steps.length - 1]).toMatch(/unbalanced/);
+  });
+});

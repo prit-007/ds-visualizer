@@ -37,6 +37,7 @@ const TreeVisualizer = () => {
   const [pseudocodeKey, setPseudocodeKey] = useState("insert");
   const [error, setError] = useState(null);
   const [showTraversalAnimation, setShowTraversalAnimation] = useState(false);
+  const [rotations, setRotations] = useState(true);
   
   // Refs
   const containerRef = useRef(null);
@@ -48,6 +49,12 @@ const TreeVisualizer = () => {
       return () => clearTimeout(timeout);
     }
   }, [error]);
+
+  // Counterfactual toggle: strategy flag on the shared AVL instance;
+  // applies to the next operation (existing nodes keep their shape).
+  useEffect(() => {
+    tree.rotations = rotations;
+  }, [rotations, tree]);
 
   const startRun = (steps, onComplete) => {
     setIsAnimating(true);
@@ -392,6 +399,24 @@ const TreeVisualizer = () => {
               { label: "Random case", onClick: () => applyPreset(uniqueRandomValues(7)) },
             ]}
           />
+
+          <div className="counterfactual-row">
+            <button
+              type="button"
+              className={`btn traversal-btn${rotations ? " active" : ""}`}
+              aria-label="Toggle AVL rotations"
+              aria-pressed={rotations}
+              onClick={() => setRotations(!rotations)}
+              disabled={isAnimating}
+            >
+              Rotations {rotations ? "On" : "Off"}
+            </button>
+            {!rotations && (
+              <span className="counterfactual-note">
+                Rotations disabled — the tree may grow unbalanced
+              </span>
+            )}
+          </div>
 
           <div className="operation-inputs">
             <div className="input-group">

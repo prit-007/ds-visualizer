@@ -21,9 +21,13 @@ export class AVLNode {
 const emit = (trace, event) => trace?.push(event);
 
 export class AVLTree {
-  constructor() {
+  // `{ rotations: false }` is the counterfactual mode: heights and balance
+  // factors are still maintained (so the badges tell the truth) but no
+  // rotation ever runs — the tree degrades toward plain-BST shape.
+  constructor({ rotations = true } = {}) {
     this.root = null;
     this.nodeCount = 0;
+    this.rotations = rotations;
   }
 
   getHeight(node) {
@@ -72,58 +76,68 @@ export class AVLTree {
   rebalanceAfterInsert(root, value, trace) {
     const balance = this.recheck(root, trace);
 
-    if (balance > 1 && value < root.left.value) {
-      emit(trace, { type: 'rotate', case: 'LL', node: root.value, child: root.left.value });
-      return this.rightRotate(root);
+    const caseName =
+      balance > 1 && value < root.left.value
+        ? 'LL'
+        : balance < -1 && value > root.right.value
+          ? 'RR'
+          : balance > 1 && value > root.left.value
+            ? 'LR'
+            : balance < -1 && value < root.right.value
+              ? 'RL'
+              : null;
+
+    if (!caseName) return root;
+
+    const child = caseName === 'LL' || caseName === 'LR' ? root.left.value : root.right.value;
+    if (!this.rotations) {
+      emit(trace, { type: 'rotate-skipped', case: caseName, node: root.value, child });
+      return root;
     }
 
-    if (balance < -1 && value > root.right.value) {
-      emit(trace, { type: 'rotate', case: 'RR', node: root.value, child: root.right.value });
-      return this.leftRotate(root);
-    }
-
-    if (balance > 1 && value > root.left.value) {
-      emit(trace, { type: 'rotate', case: 'LR', node: root.value, child: root.left.value });
+    emit(trace, { type: 'rotate', case: caseName, node: root.value, child });
+    if (caseName === 'LL') return this.rightRotate(root);
+    if (caseName === 'RR') return this.leftRotate(root);
+    if (caseName === 'LR') {
       root.left = this.leftRotate(root.left);
       return this.rightRotate(root);
     }
-
-    if (balance < -1 && value < root.right.value) {
-      emit(trace, { type: 'rotate', case: 'RL', node: root.value, child: root.right.value });
-      root.right = this.rightRotate(root.right);
-      return this.leftRotate(root);
-    }
-
-    return root;
+    root.right = this.rightRotate(root.right);
+    return this.leftRotate(root);
   }
 
   // Delete-side balancing decides the case from the child's balance factor.
   rebalanceAfterDelete(root, trace) {
     const balance = this.recheck(root, trace);
 
-    if (balance > 1 && this.getBalanceFactor(root.left) >= 0) {
-      emit(trace, { type: 'rotate', case: 'LL', node: root.value, child: root.left.value });
-      return this.rightRotate(root);
+    const caseName =
+      balance > 1 && this.getBalanceFactor(root.left) >= 0
+        ? 'LL'
+        : balance > 1 && this.getBalanceFactor(root.left) < 0
+          ? 'LR'
+          : balance < -1 && this.getBalanceFactor(root.right) <= 0
+            ? 'RR'
+            : balance < -1 && this.getBalanceFactor(root.right) > 0
+              ? 'RL'
+              : null;
+
+    if (!caseName) return root;
+
+    const child = caseName === 'LL' || caseName === 'LR' ? root.left.value : root.right.value;
+    if (!this.rotations) {
+      emit(trace, { type: 'rotate-skipped', case: caseName, node: root.value, child });
+      return root;
     }
 
-    if (balance > 1 && this.getBalanceFactor(root.left) < 0) {
-      emit(trace, { type: 'rotate', case: 'LR', node: root.value, child: root.left.value });
+    emit(trace, { type: 'rotate', case: caseName, node: root.value, child });
+    if (caseName === 'LL') return this.rightRotate(root);
+    if (caseName === 'LR') {
       root.left = this.leftRotate(root.left);
       return this.rightRotate(root);
     }
-
-    if (balance < -1 && this.getBalanceFactor(root.right) <= 0) {
-      emit(trace, { type: 'rotate', case: 'RR', node: root.value, child: root.right.value });
-      return this.leftRotate(root);
-    }
-
-    if (balance < -1 && this.getBalanceFactor(root.right) > 0) {
-      emit(trace, { type: 'rotate', case: 'RL', node: root.value, child: root.right.value });
-      root.right = this.rightRotate(root.right);
-      return this.leftRotate(root);
-    }
-
-    return root;
+    if (caseName === 'RR') return this.leftRotate(root);
+    root.right = this.rightRotate(root.right);
+    return this.leftRotate(root);
   }
 
   insert(root, value, trace = null) {

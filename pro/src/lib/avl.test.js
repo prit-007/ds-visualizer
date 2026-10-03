@@ -353,3 +353,53 @@ describe('property: random insert sequences stay sorted and balanced', () => {
     );
   });
 });
+
+describe('counterfactual: rotations disabled', () => {
+  const buildNoRotate = (values) => {
+    const tree = new AVLTree({ rotations: false });
+    values.forEach((v) => {
+      tree.root = tree.insert(tree.root, v);
+    });
+    return tree;
+  };
+
+  test('an LL sequence stays unbalanced but sorted and fully counted', () => {
+    const tree = new AVLTree({ rotations: false });
+    const trace = [];
+    tree.root = tree.insert(tree.root, 30, trace);
+    tree.root = tree.insert(tree.root, 20, trace);
+    tree.root = tree.insert(tree.root, 10, trace);
+
+    expect(tree.root.value).toBe(30);
+    expect(tree.isBalanced()).toBe(false);
+    expect(tree.inOrder(tree.root)).toEqual([10, 20, 30]);
+    expect(tree.nodeCount).toBe(3);
+    expect(tree.root.height).toBe(3);
+    expect(trace.filter((e) => e.type === 'rotate')).toHaveLength(0);
+    expect(trace.filter((e) => e.type === 'rotate-skipped').length).toBeGreaterThan(0);
+    expect(trace.filter((e) => e.type === 'recheck').length).toBeGreaterThan(0);
+  });
+
+  test('delete still works and narrates without rotations', () => {
+    const tree = buildNoRotate([30, 20, 10, 40]);
+    const trace = [];
+    tree.root = tree.deleteNode(tree.root, 20, trace);
+
+    expect(tree.inOrder(tree.root)).toEqual([10, 30, 40]);
+    expect(tree.nodeCount).toBe(3);
+    expect(trace.filter((e) => e.type === 'rotate')).toHaveLength(0);
+  });
+
+  test('the default tree still rotates (regression)', () => {
+    const tree = new AVLTree();
+    const trace = [];
+    tree.root = tree.insert(tree.root, 30, trace);
+    tree.root = tree.insert(tree.root, 20, trace);
+    tree.root = tree.insert(tree.root, 10, trace);
+
+    expect(tree.root.value).toBe(20);
+    expect(tree.isBalanced()).toBe(true);
+    expect(trace.filter((e) => e.type === 'rotate')).toHaveLength(1);
+    expect(trace.filter((e) => e.type === 'rotate-skipped')).toHaveLength(0);
+  });
+});
