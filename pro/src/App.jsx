@@ -8,6 +8,7 @@ import LinkedListVisualizer from './pages/LinkedListVisualizer';
 import TreeVisualizer from './pages/TreeVisualizer';
 import Lessons from './pages/Lessons';
 import LessonReader from './pages/LessonReader';
+import Curriculum from './pages/Curriculum';
 import ComingSoon from './pages/ComingSoon';
 
 const App = () => {
@@ -22,6 +23,7 @@ const App = () => {
           <Route path='/tree' element={<TreeVisualizer />} />
           <Route path='/lessons' element={<Lessons />} />
           <Route path='/lessons/:slug' element={<LessonReader />} />
+          <Route path='/curriculum' element={<Curriculum />} />
           <Route path='/stack-queue' element={<ComingSoon title="Stack & Queue" />} />
           <Route path='/graph' element={<ComingSoon title="Graph" />} />
           <Route path='/hash-table' element={<ComingSoon title="Hash Table" />} />
@@ -30,10 +32,6 @@ const App = () => {
           <Route path='/graph-algo' element={<ComingSoon title="Graph Algorithms" />} />
           <Route path='/dynamic-programming' element={<ComingSoon title="Dynamic Programming" />} />
           <Route path='/greedy' element={<ComingSoon title="Greedy Algorithms" />} />
-          <Route path='/beginner' element={<ComingSoon title="Beginner Track" />} />
-          <Route path='/intermediate' element={<ComingSoon title="Intermediate Track" />} />
-          <Route path='/advanced' element={<ComingSoon title="Advanced Track" />} />
-          <Route path='/practice' element={<ComingSoon title="Practice" />} />
           <Route path='/visualizer' element={<ComingSoon title="Visualizer" />} />
           <Route path='/settings' element={<ComingSoon title="Settings" />} />
           <Route path='/help' element={<ComingSoon title="Help" />} />

@@ -184,23 +184,8 @@ const Layout = () => {
                       </Link>
                     </li>
                     <li>
-                      <Link to="/beginner" className="block px-4 py-2 text-sm text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-gray-800 rounded-xl">
-                        Beginners
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/intermediate" className="block px-4 py-2 text-sm text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-gray-800 rounded-xl">
-                        Intermediate
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/advanced" className="block px-4 py-2 text-sm text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-gray-800 rounded-xl">
-                        Advanced
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/practice" className="block px-4 py-2 text-sm text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-gray-800 rounded-xl">
-                        Practice Problems
+                      <Link to="/curriculum" className="block px-4 py-2 text-sm text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-gray-800 rounded-xl">
+                        Curriculum map
                       </Link>
                     </li>
                   </ul>

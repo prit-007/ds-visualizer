@@ -64,6 +64,28 @@ describe('lessons navigation', () => {
   });
 });
 
+describe('curriculum navigation', () => {
+  test('tutorials menu links to the curriculum map', () => {
+    renderLayout();
+
+    fireEvent.click(screen.getByRole('button', { name: /Tutorials/ }));
+    expect(screen.getByRole('link', { name: 'Curriculum map' })).toHaveAttribute(
+      'href',
+      '/curriculum'
+    );
+  });
+
+  test('the dead track links are gone from the sidebar', () => {
+    renderLayout();
+
+    fireEvent.click(screen.getByRole('button', { name: /Tutorials/ }));
+    expect(screen.queryByRole('link', { name: 'Beginners' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Intermediate' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Advanced' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Practice Problems' })).not.toBeInTheDocument();
+  });
+});
+
 describe('dark mode', () => {
   beforeEach(() => {
     localStorage.clear();
