@@ -10,6 +10,7 @@ import ErrorMessage from "../components/ErrorMessage";
 import ComplexityInfo from "../components/ComplexityInfo";
 import PropertyDisplay from "../components/PropertyDisplay";
 import MemoryRepresentation from "../components/MemoryRepresentation";
+import ViewToggle from "../components/ViewToggle";
 import CasePresets from "../components/CasePresets";
 import { randomValues, sortedSequence } from "../lib/presets";
 
@@ -25,6 +26,7 @@ const ArrayVisualizer = ({ initialArray }) => {
   const [error, setError] = useState(null);
   const [removingElementIndex, setRemovingElementIndex] = useState(null);
   const [shiftingElements, setShiftingElements] = useState([]);
+  const [view, setView] = useState("story");
 
   // Refs
   const containerRef = useRef(null);
@@ -160,41 +162,56 @@ const ArrayVisualizer = ({ initialArray }) => {
     });
   };
 
+  const memoryBlocks = array.map((value, index) => ({
+    address: `0x${(index * 4 + 100).toString(16).toUpperCase()}`,
+    value,
+    isActive: activeElementIndex === index,
+    isShifting: shiftingElements.includes(index),
+  }));
+
   return (
     <div className="array-visualizer-container" ref={containerRef}>
       <h1>Interactive Array Visualizer</h1>
-      
+
       <div className="visualizer-grid">
         {/* Visualization area */}
         <div className="visualization-area">
           <h2>Array Visualization</h2>
-          
-          <div className="array-container">
-            {array.length === 0 ? (
-              <p className="empty-state">Array is empty — add an element to get started.</p>
-            ) : (
-              <div className="array-display">
-                <div className="array-bracket">[</div>
-                <div className="array-elements">
-                  <AnimatePresence mode="popLayout">
-                    {array.map((value, index) => (
-                      <ElementNode 
-                        key={`${index}-${value}`}
-                        value={value}
-                        index={index}
-                        isActive={activeElementIndex === index}
-                        isHighlighted={shiftingElements.includes(index)}
-                        isRemoving={removingElementIndex === index}
-                        className="array-element"
-                      />
-                    ))}
-                  </AnimatePresence>
+
+          <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
+
+          {view === "story" ? (
+            <div className="array-container">
+              {array.length === 0 ? (
+                <p className="empty-state">Array is empty — add an element to get started.</p>
+              ) : (
+                <div className="array-display">
+                  <div className="array-bracket">[</div>
+                  <div className="array-elements">
+                    <AnimatePresence mode="popLayout">
+                      {array.map((value, index) => (
+                        <ElementNode
+                          key={`${index}-${value}`}
+                          value={value}
+                          index={index}
+                          isActive={activeElementIndex === index}
+                          isHighlighted={shiftingElements.includes(index)}
+                          isRemoving={removingElementIndex === index}
+                          className="array-element"
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                  <div className="array-bracket">]</div>
                 </div>
-                <div className="array-bracket">]</div>
-              </div>
-            )}
-          </div>
-          
+              )}
+            </div>
+          ) : array.length === 0 ? (
+            <p className="empty-state">No memory cells yet — add an element to get started.</p>
+          ) : (
+            <MemoryRepresentation blocks={memoryBlocks} />
+          )}
+
           {run && (
             <OperationPlayer
               steps={run.steps}
@@ -207,16 +224,9 @@ const ArrayVisualizer = ({ initialArray }) => {
               pseudocode={ARRAY_PSEUDOCODE[activeTab]}
             />
           )}
-          
-          {/* Memory representation */}
-          <MemoryRepresentation
-            blocks={array.map((value, index) => ({
-              address: `0x${(index * 4 + 100).toString(16).toUpperCase()}`,
-              value,
-              isActive: activeElementIndex === index,
-              isShifting: shiftingElements.includes(index),
-            }))}
-          />
+
+          {/* Memory representation (story view only — memory view shows it above) */}
+          {view === "story" && <MemoryRepresentation blocks={memoryBlocks} />}
         </div>
         
         {/* Controls area */}

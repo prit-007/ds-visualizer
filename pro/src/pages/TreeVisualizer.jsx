@@ -6,6 +6,7 @@ import TabNavigation from "../components/TabNavigation";
 import ComplexityInfo from "../components/ComplexityInfo";
 import ErrorMessage from "../components/ErrorMessage";
 import MemoryRepresentation from "../components/MemoryRepresentation";
+import ViewToggle from "../components/ViewToggle";
 import CasePresets from "../components/CasePresets";
 import { sortedSequence, uniqueRandomValues } from "../lib/presets";
 import "./TreeVisualizer.css";
@@ -38,6 +39,7 @@ const TreeVisualizer = () => {
   const [error, setError] = useState(null);
   const [showTraversalAnimation, setShowTraversalAnimation] = useState(false);
   const [rotations, setRotations] = useState(true);
+  const [view, setView] = useState("story");
   
   // Refs
   const containerRef = useRef(null);
@@ -305,49 +307,57 @@ const TreeVisualizer = () => {
         {/* Visualization area */}
         <div className="card visualization-area">
           <h2>Tree Visualization</h2>
-          
-          <div className="tree-container">
-            {treeRoot ? (
-              <div
-                className="tree-canvas"
-                style={{ width: `${layout.width}px`, height: `${layout.height}px` }}
-              >
-                <svg
-                  className="tree-edges"
-                  width={layout.width}
-                  height={layout.height}
-                  aria-hidden="true"
+
+          <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
+
+          {view === "story" ? (
+            <div className="tree-container">
+              {treeRoot ? (
+                <div
+                  className="tree-canvas"
+                  style={{ width: `${layout.width}px`, height: `${layout.height}px` }}
                 >
-                  {layout.edges.map((edge) => (
-                    <path
-                      key={`${edge.parentValue}-${edge.childValue}`}
-                      className={`tree-edge ${edgeState(edge)}`.trim()}
-                      d={edgePath(edge)}
-                    />
-                  ))}
-                </svg>
-                {layout.nodes.map((entry) => (
-                  <div
-                    key={entry.value}
-                    className="tree-node-slot"
-                    style={{ left: `${entry.x}px`, top: `${entry.y}px` }}
+                  <svg
+                    className="tree-edges"
+                    width={layout.width}
+                    height={layout.height}
+                    aria-hidden="true"
                   >
-                    <ElementNode
-                      value={entry.value}
-                      index={`h:${entry.height} bf:${entry.balance}`}
-                      isActive={entry.value === activeNodeValue}
-                      isHighlighted={highlightedNodes.includes(entry.value)}
-                      isRemoving={entry.value === removingNodeValue}
-                      className="tree-node"
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">Tree is empty. Insert some values to begin.</div>
-            )}
-          </div>
-          
+                    {layout.edges.map((edge) => (
+                      <path
+                        key={`${edge.parentValue}-${edge.childValue}`}
+                        className={`tree-edge ${edgeState(edge)}`.trim()}
+                        d={edgePath(edge)}
+                      />
+                    ))}
+                  </svg>
+                  {layout.nodes.map((entry) => (
+                    <div
+                      key={entry.value}
+                      className="tree-node-slot"
+                      style={{ left: `${entry.x}px`, top: `${entry.y}px` }}
+                    >
+                      <ElementNode
+                        value={entry.value}
+                        index={`h:${entry.height} bf:${entry.balance}`}
+                        isActive={entry.value === activeNodeValue}
+                        isHighlighted={highlightedNodes.includes(entry.value)}
+                        isRemoving={entry.value === removingNodeValue}
+                        className="tree-node"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state">Tree is empty. Insert some values to begin.</div>
+              )}
+            </div>
+          ) : memoryBlocks.length === 0 ? (
+            <div className="empty-state">No memory cells yet — insert some values to begin.</div>
+          ) : (
+            <MemoryRepresentation blocks={memoryBlocks} />
+          )}
+
           {run && (
             <OperationPlayer
               steps={run.steps}
@@ -375,7 +385,7 @@ const TreeVisualizer = () => {
               </div>
             )}
 
-            <MemoryRepresentation blocks={memoryBlocks} />
+            {view === "story" && <MemoryRepresentation blocks={memoryBlocks} />}
           </div>
         
         {/* Controls area */}

@@ -12,6 +12,7 @@ import ErrorMessage from "../components/ErrorMessage";
 import ComplexityInfo from "../components/ComplexityInfo";
 import PropertyDisplay from "../components/PropertyDisplay";
 import MemoryRepresentation from "../components/MemoryRepresentation";
+import ViewToggle from "../components/ViewToggle";
 import CasePresets from "../components/CasePresets";
 import { randomValues, sortedSequence } from "../lib/presets";
 
@@ -135,6 +136,7 @@ const LinkedListVisualizer = ({ initialNodes }) => {
   const [run, setRun] = useState(null);
   const [error, setError] = useState(null);
   const [removingNodeIndex, setRemovingNodeIndex] = useState(null);
+  const [view, setView] = useState("story");
   
   // Refs
   const containerRef = useRef(null);
@@ -319,31 +321,39 @@ const LinkedListVisualizer = ({ initialNodes }) => {
         {/* Visualization area */}
         <div className="visualization-area">
           <h2>Linked List Visualization</h2>
-          
-          <div className="linked-list-display">
-            {nodes.length === 0 ? (
-              <p className="empty-state">Linked list is empty — add a node to get started.</p>
-            ) : (
-              <AnimatePresence mode="popLayout">
-                {nodes.map((node, index) => (
-                  <React.Fragment key={node.id}>
-                    <LinkedListNode 
-                      value={node.value}
-                      index={index}
-                      isActive={activeNodeIndex === index}
-                      isHighlighted={false}
-                      isRemoving={removingNodeIndex === index}
-                    />
-                    
-                    {index < nodes.length - 1 && (
-                      <LinkedListPointer isActive={activePointerIndex === index} />
-                    )}
-                  </React.Fragment>
-                ))}
-              </AnimatePresence>
-            )}
-          </div>
-          
+
+          <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
+
+          {view === "story" ? (
+            <div className="linked-list-display">
+              {nodes.length === 0 ? (
+                <p className="empty-state">Linked list is empty — add a node to get started.</p>
+              ) : (
+                <AnimatePresence mode="popLayout">
+                  {nodes.map((node, index) => (
+                    <React.Fragment key={node.id}>
+                      <LinkedListNode
+                        value={node.value}
+                        index={index}
+                        isActive={activeNodeIndex === index}
+                        isHighlighted={false}
+                        isRemoving={removingNodeIndex === index}
+                      />
+
+                      {index < nodes.length - 1 && (
+                        <LinkedListPointer isActive={activePointerIndex === index} />
+                      )}
+                    </React.Fragment>
+                  ))}
+                </AnimatePresence>
+              )}
+            </div>
+          ) : nodes.length === 0 ? (
+            <p className="empty-state">No memory cells yet — add a node to get started.</p>
+          ) : (
+            <MemoryRepresentation blocks={memoryBlocks} />
+          )}
+
           {run && (
             <OperationPlayer
               steps={run.steps}
@@ -357,7 +367,7 @@ const LinkedListVisualizer = ({ initialNodes }) => {
             />
           )}
 
-          <MemoryRepresentation blocks={memoryBlocks} />
+          {view === "story" && <MemoryRepresentation blocks={memoryBlocks} />}
         </div>
         
         {/* Controls area */}

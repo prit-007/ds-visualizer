@@ -236,3 +236,21 @@ describe('dual pane pseudocode', () => {
     expect(pane.querySelector('.code-line.active')).not.toBeNull();
   });
 });
+
+describe('story ↔ memory view', () => {
+  test('memory view swaps the list canvas for pointer cells', () => {
+    render(<LinkedListVisualizer />);
+
+    expect(document.querySelector('.linked-list-display')).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Memory' }));
+
+    expect(document.querySelector('.linked-list-display')).toBeNull();
+    expect(screen.getByText('0x2000')).toBeInTheDocument();
+    expect(screen.getByText(/next → 0x2010/i)).toBeInTheDocument();
+    expect(document.querySelectorAll('.memory-representation')).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Story' }));
+    expect(document.querySelector('.linked-list-display')).not.toBeNull();
+  });
+});

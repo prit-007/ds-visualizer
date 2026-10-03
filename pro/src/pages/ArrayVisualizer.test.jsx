@@ -153,3 +153,33 @@ describe('dual pane pseudocode', () => {
     expect(pane.querySelector('.code-line.active')).not.toBeNull();
   });
 });
+
+describe('story ↔ memory view', () => {
+  test('memory view swaps the array canvas for its memory cells', () => {
+    render(<ArrayVisualizer />);
+
+    expect(screen.getByRole('button', { name: 'Story' })).toHaveAttribute('aria-pressed', 'true');
+    expect(document.querySelector('.array-container')).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Memory' }));
+
+    expect(screen.getByRole('button', { name: 'Memory' })).toHaveAttribute('aria-pressed', 'true');
+    expect(document.querySelector('.array-container')).toBeNull();
+    expect(screen.getByText('0x64')).toBeInTheDocument();
+    expect(document.querySelectorAll('.memory-representation')).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Story' }));
+    expect(document.querySelector('.array-container')).not.toBeNull();
+    expect(document.querySelectorAll('.memory-representation')).toHaveLength(1);
+  });
+
+  test('memory view of an empty array shows an empty note', () => {
+    render(<ArrayVisualizer initialArray={[]} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Memory' }));
+
+    expect(document.querySelector('.array-container')).toBeNull();
+    expect(document.querySelectorAll('.memory-representation')).toHaveLength(0);
+    expect(screen.getByText(/no memory cells/i)).toBeInTheDocument();
+  });
+});

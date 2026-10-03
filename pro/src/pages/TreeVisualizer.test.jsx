@@ -311,3 +311,22 @@ describe('counterfactual rotations toggle', () => {
     expect(css).toMatch(/\.dark \.counterfactual-note/);
   });
 });
+
+describe('story ↔ memory view', () => {
+  test('memory view swaps the tree canvas for pointer cells', () => {
+    render(<TreeVisualizer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Average case' }));
+
+    expect(document.querySelector('.tree-canvas')).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Memory' }));
+
+    expect(document.querySelector('.tree-canvas')).toBeNull();
+    expect(screen.getByText('0x3000')).toBeInTheDocument();
+    expect(screen.getAllByText(/left →/).length).toBeGreaterThan(0);
+    expect(document.querySelectorAll('.memory-representation')).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Story' }));
+    expect(document.querySelector('.tree-canvas')).not.toBeNull();
+  });
+});
