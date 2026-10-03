@@ -997,3 +997,113 @@ h3 {
   color: #fca5a5;
   border-color: #7f1d1d;
 }
+
+.run-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.run-history-empty {
+  color: #6b7280;
+  font-size: 0.85rem;
+  padding: 0.75rem 0;
+}
+
+.run-history-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.run-history-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.6rem;
+  background-color: #f9fafb;
+}
+
+.run-history-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.run-history-meta {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.run-history-fork {
+  margin-left: auto;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.7rem;
+}
+
+.run-history-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.run-history-diff {
+  border: 1px solid #c7d2fe;
+  background-color: #eef2ff;
+  border-radius: 0.6rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.run-history-diff-steps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.run-history-diff-a {
+  color: #b45309;
+}
+
+.run-history-diff-b {
+  color: #047857;
+}
+
+.dark .run-history-empty,
+.dark .run-history-meta {
+  color: #9ca3af;
+}
+
+.dark .run-history-item {
+  background-color: #111827;
+  border-color: #374151;
+}
+
+.dark .run-history-select {
+  color: #f3f4f6;
+}
+
+.dark .run-history-diff {
+  background-color: #1e1b4b;
+  border-color: #4338ca;
+  color: #e5e7eb;
+}
+
+.dark .run-history-diff-a {
+  color: #fbbf24;
+}
+
+.dark .run-history-diff-b {
+  color: #34d399;
+}

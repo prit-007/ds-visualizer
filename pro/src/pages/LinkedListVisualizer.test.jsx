@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { gsap } from 'gsap';
 import LinkedListVisualizer from './LinkedListVisualizer';
 import { LINKED_LIST_PSEUDOCODE } from '../lib/pseudocode';
+import { clearRuns, listRuns, recordRun } from '../lib/timeTravel';
 
 // GSAP's transform parser crashes on framer-motion's inline `scale(0)` under
 // jsdom; animation is never asserted directly, so a spy mock keeps runs clean.
@@ -134,7 +135,7 @@ describe('reduced motion', () => {
 describe('shared shell panels', () => {
   test('shows complexity and property panels', () => {
     const { container } = render(<LinkedListVisualizer />);
-    expect(container.querySelectorAll('.info-panel')).toHaveLength(2);
+    expect(container.querySelectorAll('.info-panel')).toHaveLength(3); // complexity, properties, run history
     expect(screen.getByText('Time Complexity')).toBeInTheDocument();
     expect(screen.getByText('Linked List Properties')).toBeInTheDocument();
     expect(screen.getByText('Length:')).toBeInTheDocument();
@@ -282,5 +283,71 @@ describe('share', () => {
     expect(document.querySelectorAll('.linked-list-node')).toHaveLength(2);
     expect(screen.getAllByText('5').length).toBeGreaterThan(0);
     expect(screen.getAllByText('15').length).toBeGreaterThan(0);
+  });
+});
+
+describe('run history', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+  });
+
+  const finishRun = () => {
+    for (let i = 0; i < 30; i += 1) {
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+    }
+  };
+
+  test('a completed add is recorded and fork rewinds the list', () => {
+    render(<LinkedListVisualizer />);
+
+    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+      target: { value: '99' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Add to End' }));
+    finishRun();
+
+    const runs = listRuns('linked-list');
+    expect(runs).toHaveLength(1);
+    expect(runs[0].label).toBe('Add 99');
+    expect(runs[0].before).toEqual([10, 20, 30, 40]);
+    expect(runs[0].after).toEqual([10, 20, 30, 40, 99]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fork' }));
+
+    // state-driven cells (animated nodes linger while exiting)
+    expect(document.querySelectorAll('.memory-block')).toHaveLength(4);
+    expect(
+      [...document.querySelectorAll('.memory-value')].map((n) => n.textContent)
+    ).not.toContain('99');
+    expect(listRuns('linked-list')).toHaveLength(1);
+  });
+
+  test('seeded history renders and fork applies the run before state', () => {
+    recordRun({
+      structure: 'linked-list',
+      label: 'Seeded list run',
+      before: [7],
+      after: [7, 8],
+      steps: ['step one'],
+      counters: { compare: 0, move: 1, found: 0, error: 0, total: 1 },
+      meta: null,
+    });
+
+    render(<LinkedListVisualizer />);
+    expect(screen.getByText('Seeded list run')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fork' }));
+    expect(document.querySelectorAll('.memory-block')).toHaveLength(1);
+    expect(
+      [...document.querySelectorAll('.memory-value')].map((n) => n.textContent)
+    ).toEqual(['7']);
   });
 });

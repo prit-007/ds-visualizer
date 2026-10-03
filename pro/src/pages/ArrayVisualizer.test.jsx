@@ -1,8 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import ArrayVisualizer from './ArrayVisualizer';
 import { ARRAY_PSEUDOCODE } from '../lib/pseudocode';
+import { clearRuns, listRuns, recordRun } from '../lib/timeTravel';
 
 // GSAP's transform parser crashes on framer-motion's inline `scale(0)` under
 // jsdom; animation is never asserted directly, so a spy mock keeps runs clean.
@@ -42,7 +43,7 @@ describe('ArrayVisualizer', () => {
 
   test('uses the shared info panels for complexity and properties', () => {
     const { container } = render(<ArrayVisualizer />);
-    expect(container.querySelectorAll('.info-panel')).toHaveLength(2);
+    expect(container.querySelectorAll('.info-panel')).toHaveLength(3); // complexity, properties, run history
     expect(screen.getByText('Time Complexity')).toBeInTheDocument();
     expect(screen.getByText('Array Properties')).toBeInTheDocument();
   });
@@ -216,5 +217,72 @@ describe('share', () => {
     render(<ArrayVisualizer />);
 
     expect(screen.getAllByText('50').length).toBeGreaterThan(0);
+  });
+});
+
+describe('run history', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+  });
+
+  const finishRun = () => {
+    for (let i = 0; i < 30; i += 1) {
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+    }
+  };
+
+  test('a completed push is recorded and fork rewinds to its before state', () => {
+    render(<ArrayVisualizer />);
+
+    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+      target: { value: '99' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Add to End' }));
+    finishRun();
+
+    const runs = listRuns('array');
+    expect(runs).toHaveLength(1);
+    expect(runs[0].label).toBe('Add 99');
+    expect(runs[0].before).toEqual([10, 20, 30, 40, 50]);
+    expect(runs[0].after).toEqual([10, 20, 30, 40, 50, 99]);
+
+    expect(document.querySelector('.run-history')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Fork' }));
+
+    // state-driven cells (animated nodes linger while exiting)
+    expect(document.querySelectorAll('.memory-block')).toHaveLength(5);
+    expect(
+      [...document.querySelectorAll('.memory-value')].map((n) => n.textContent)
+    ).not.toContain('99');
+    expect(listRuns('array')).toHaveLength(1);
+  });
+
+  test('seeded history renders and fork applies the run before state', () => {
+    recordRun({
+      structure: 'array',
+      label: 'Seeded run',
+      before: [7],
+      after: [7, 8],
+      steps: ['step one', 'step two'],
+      counters: { compare: 1, move: 1, found: 0, error: 0, total: 2 },
+      meta: null,
+    });
+
+    render(<ArrayVisualizer />);
+    expect(screen.getByText('Seeded run')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fork' }));
+    expect(document.querySelectorAll('.memory-block')).toHaveLength(1);
+    expect(
+      [...document.querySelectorAll('.memory-value')].map((n) => n.textContent)
+    ).toEqual(['7']);
   });
 });

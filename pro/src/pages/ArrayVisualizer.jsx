@@ -12,7 +12,9 @@ import PropertyDisplay from "../components/PropertyDisplay";
 import MemoryRepresentation from "../components/MemoryRepresentation";
 import ViewToggle from "../components/ViewToggle";
 import ShareButton from "../components/ShareButton";
+import RunHistoryPanel from "../components/RunHistoryPanel";
 import { readScenario } from "../lib/share";
+import { recordRun, listRuns } from "../lib/timeTravel";
 import CasePresets from "../components/CasePresets";
 import { randomValues, sortedSequence } from "../lib/presets";
 
@@ -46,9 +48,10 @@ const ArrayVisualizer = ({ initialArray }) => {
     }
   }, [error]);
 
-  const startRun = (steps, onComplete) => {
+  const startRun = (steps, onComplete, runMeta) => {
     setIsAnimating(true);
     setRun({ steps, onComplete });
+    if (runMeta) recordRun({ structure: "array", steps, ...runMeta });
   };
 
   const applyPreset = (values) => {
@@ -82,12 +85,17 @@ const ArrayVisualizer = ({ initialArray }) => {
     });
     
     // Run the animation
-    startRun(steps, () => {
-      // Update the array after animation
-      setArray([...array, newValue]);
-      setValue("");
-      setActiveElementIndex(null);
-    });
+    const nextArray = [...array, newValue];
+    startRun(
+      steps,
+      () => {
+        // Update the array after animation
+        setArray(nextArray);
+        setValue("");
+        setActiveElementIndex(null);
+      },
+      { before: [...array], after: nextArray, label: `Add ${newValue}` }
+    );
   };
   
   const handleInsertElement = () => {
@@ -116,16 +124,20 @@ const ArrayVisualizer = ({ initialArray }) => {
     });
     
     // Run the animation
-    startRun(steps, () => {
-      // Update the array after animation
-      const updatedArray = [...array];
-      updatedArray.splice(pos, 0, newValue);
-      setArray(updatedArray);
-      setValue("");
-      setPosition("");
-      setActiveElementIndex(null);
-      setShiftingElements([]);
-    });
+    const nextArray = [...array];
+    nextArray.splice(pos, 0, newValue);
+    startRun(
+      steps,
+      () => {
+        // Update the array after animation
+        setArray(nextArray);
+        setValue("");
+        setPosition("");
+        setActiveElementIndex(null);
+        setShiftingElements([]);
+      },
+      { before: [...array], after: nextArray, label: `Insert ${newValue} at ${pos}` }
+    );
   };
   
   const handleRemoveElement = () => {
@@ -158,16 +170,24 @@ const ArrayVisualizer = ({ initialArray }) => {
     });
     
     // Run the animation
-    startRun(steps, () => {
-      // Update the array after animation
-      const updatedArray = [...array];
-      updatedArray.splice(pos, 1);
-      setArray(updatedArray);
-      setPosition("");
-      setActiveElementIndex(null);
-      setRemovingElementIndex(null);
-      setShiftingElements([]);
-    });
+    const nextArray = [...array];
+    nextArray.splice(pos, 1);
+    startRun(
+      steps,
+      () => {
+        // Update the array after animation
+        setArray(nextArray);
+        setPosition("");
+        setActiveElementIndex(null);
+        setRemovingElementIndex(null);
+        setShiftingElements([]);
+      },
+      { before: [...array], after: nextArray, label: `Remove at ${pos}` }
+    );
+  };
+
+  const handleForkRun = (run) => {
+    if (run.structure === "array") applyPreset([...run.before]);
   };
 
   const memoryBlocks = array.map((value, index) => ({
@@ -343,6 +363,16 @@ const ArrayVisualizer = ({ initialArray }) => {
               { name: "Length", value: array.length },
               { name: "Memory Size", value: `${array.length * 4} bytes` },
             ]}
+          />
+        </div>
+
+        {/* Run history: fork rewinds to a run's before state */}
+        <div className="info-panel">
+          <h3>Run history</h3>
+          <RunHistoryPanel
+            runs={listRuns("array")}
+            onFork={handleForkRun}
+            disabled={isAnimating}
           />
         </div>
       </div>

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import TreeVisualizer from './TreeVisualizer';
 import { TREE_PSEUDOCODE } from '../lib/pseudocode';
+import { clearRuns, listRuns, recordRun } from '../lib/timeTravel';
 
 // Vite rewrites inline `new URL(x, import.meta.url)` against the dev-server
 // origin, so bind the raw value first (see AGENTS.md).
@@ -355,5 +356,62 @@ describe('share', () => {
     expect(screen.getAllByText('30').length).toBeGreaterThan(0);
     expect(screen.getAllByText('20').length).toBeGreaterThan(0);
     expect(screen.getAllByText('40').length).toBeGreaterThan(0);
+  });
+});
+
+describe('run history', () => {
+  beforeEach(() => {
+    clearRuns();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+  });
+
+  test('a completed insert is recorded with rotation settings and fork rebuilds', () => {
+    vi.useFakeTimers();
+    render(<TreeVisualizer />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Average case' }));
+    // state-driven cells (animated nodes linger while exiting)
+    const beforeCount = document.querySelectorAll('.memory-block').length;
+    expect(beforeCount).toBeGreaterThan(0);
+
+    insertValue(42);
+
+    const runs = listRuns('tree');
+    expect(runs).toHaveLength(1);
+    expect(runs[0].label).toBe('Insert 42');
+    expect(runs[0].meta).toEqual({ rotations: true });
+    expect(runs[0].after).toContain(42);
+    expect(document.querySelectorAll('.memory-block')).toHaveLength(beforeCount + 1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fork' }));
+
+    expect(document.querySelectorAll('.memory-block')).toHaveLength(beforeCount);
+    expect(listRuns('tree')).toHaveLength(1);
+  });
+
+  test('seeded history renders and fork applies the run before state', () => {
+    recordRun({
+      structure: 'tree',
+      label: 'Seeded tree run',
+      before: [30, 20],
+      after: [30, 20, 40],
+      steps: ['step one'],
+      counters: { compare: 1, move: 0, found: 0, error: 0, total: 1 },
+      meta: { rotations: false },
+    });
+
+    render(<TreeVisualizer />);
+    expect(screen.getByText('Seeded tree run')).toBeInTheDocument();
+    expect(screen.getByText(/rotations off/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fork' }));
+    expect(document.querySelectorAll('.memory-block')).toHaveLength(2);
+    expect(
+      [...document.querySelectorAll('.memory-value')].map((n) => n.textContent)
+    ).toEqual(['30', '20']);
   });
 });

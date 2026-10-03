@@ -14,7 +14,9 @@ import PropertyDisplay from "../components/PropertyDisplay";
 import MemoryRepresentation from "../components/MemoryRepresentation";
 import ViewToggle from "../components/ViewToggle";
 import ShareButton from "../components/ShareButton";
+import RunHistoryPanel from "../components/RunHistoryPanel";
 import { readScenario } from "../lib/share";
+import { recordRun, listRuns } from "../lib/timeTravel";
 import CasePresets from "../components/CasePresets";
 import { randomValues, sortedSequence } from "../lib/presets";
 
@@ -185,9 +187,10 @@ const LinkedListVisualizer = ({ initialNodes }) => {
     }
   }, [error]);
 
-  const startRun = (steps, onComplete) => {
+  const startRun = (steps, onComplete, runMeta) => {
     setIsAnimating(true);
     setRun({ steps, onComplete });
+    if (runMeta) recordRun({ structure: "linked-list", steps, ...runMeta });
   };
 
   const applyPreset = (values) => {
@@ -224,13 +227,22 @@ const LinkedListVisualizer = ({ initialNodes }) => {
     });
     
     // Run the animation
-    startRun(steps, () => {
-      // Update the list after animation
-      setNodes([...nodes, newNode]);
-      setValue("");
-      setActiveNodeIndex(null);
-      setActivePointerIndex(null);
-    });
+    const nextNodes = [...nodes, newNode];
+    startRun(
+      steps,
+      () => {
+        // Update the list after animation
+        setNodes(nextNodes);
+        setValue("");
+        setActiveNodeIndex(null);
+        setActivePointerIndex(null);
+      },
+      {
+        before: nodes.map((node) => node.value),
+        after: nextNodes.map((node) => node.value),
+        label: `Add ${newValue}`,
+      }
+    );
   };
   
   const handleInsertNode = () => {
@@ -262,19 +274,23 @@ const LinkedListVisualizer = ({ initialNodes }) => {
     });
     
     // Run the animation
-    startRun(steps, () => {
-      // Update the list after animation
-      const updatedNodes = [
-        ...nodes.slice(0, pos),
-        newNode,
-        ...nodes.slice(pos)
-      ];
-      setNodes(updatedNodes);
-      setValue("");
-      setPosition("");
-      setActiveNodeIndex(null);
-      setActivePointerIndex(null);
-    });
+    const nextNodes = [...nodes.slice(0, pos), newNode, ...nodes.slice(pos)];
+    startRun(
+      steps,
+      () => {
+        // Update the list after animation
+        setNodes(nextNodes);
+        setValue("");
+        setPosition("");
+        setActiveNodeIndex(null);
+        setActivePointerIndex(null);
+      },
+      {
+        before: nodes.map((node) => node.value),
+        after: nextNodes.map((node) => node.value),
+        label: `Insert ${newValue} at ${pos}`,
+      }
+    );
   };
   
   const handleRemoveNode = () => {
@@ -307,18 +323,27 @@ const LinkedListVisualizer = ({ initialNodes }) => {
     });
     
     // Run the animation
-    startRun(steps, () => {
-      // Update the list after animation
-      const updatedNodes = [
-        ...nodes.slice(0, pos),
-        ...nodes.slice(pos + 1)
-      ];
-      setNodes(updatedNodes);
-      setPosition("");
-      setActiveNodeIndex(null);
-      setActivePointerIndex(null);
-      setRemovingNodeIndex(null);
-    });
+    const nextNodes = [...nodes.slice(0, pos), ...nodes.slice(pos + 1)];
+    startRun(
+      steps,
+      () => {
+        // Update the list after animation
+        setNodes(nextNodes);
+        setPosition("");
+        setActiveNodeIndex(null);
+        setActivePointerIndex(null);
+        setRemovingNodeIndex(null);
+      },
+      {
+        before: nodes.map((node) => node.value),
+        after: nextNodes.map((node) => node.value),
+        label: `Remove at ${pos}`,
+      }
+    );
+  };
+
+  const handleForkRun = (run) => {
+    if (run.structure === "linked-list") applyPreset([...run.before]);
   };
 
   return (
@@ -482,6 +507,16 @@ const LinkedListVisualizer = ({ initialNodes }) => {
               { name: "Length", value: nodes.length },
               { name: "Memory Size", value: `${nodes.length * 16} bytes` },
             ]}
+          />
+        </div>
+
+        {/* Run history: fork rewinds to a run's before state */}
+        <div className="info-panel">
+          <h3>Run history</h3>
+          <RunHistoryPanel
+            runs={listRuns("linked-list")}
+            onFork={handleForkRun}
+            disabled={isAnimating}
           />
         </div>
       </div>

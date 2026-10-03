@@ -8,7 +8,9 @@ import ErrorMessage from "../components/ErrorMessage";
 import MemoryRepresentation from "../components/MemoryRepresentation";
 import ViewToggle from "../components/ViewToggle";
 import ShareButton from "../components/ShareButton";
+import RunHistoryPanel from "../components/RunHistoryPanel";
 import { readScenario } from "../lib/share";
+import { recordRun, listRuns } from "../lib/timeTravel";
 import CasePresets from "../components/CasePresets";
 import { sortedSequence, uniqueRandomValues } from "../lib/presets";
 import "./TreeVisualizer.css";
@@ -69,9 +71,10 @@ const TreeVisualizer = () => {
     tree.rotations = rotations;
   }, [rotations, tree]);
 
-  const startRun = (steps, onComplete) => {
+  const startRun = (steps, onComplete, runMeta) => {
     setIsAnimating(true);
     setRun({ steps, onComplete });
+    if (runMeta) recordRun({ structure: "tree", steps, ...runMeta });
   };
 
   // Completion shared by every run: clear transient highlights first
@@ -144,6 +147,7 @@ const TreeVisualizer = () => {
       return;
     }
     
+    const beforeValues = tree.preOrder(tree.root);
     const trace = [];
     tree.root = tree.insert(tree.root, newValue, trace);
 
@@ -161,7 +165,13 @@ const TreeVisualizer = () => {
         // Re-render from the already-updated tree after the animation
         buildVisualTree();
         setValue("");
-      })
+      }),
+      {
+        before: beforeValues,
+        after: tree.preOrder(tree.root),
+        label: `Insert ${newValue}`,
+        meta: { rotations: tree.rotations },
+      }
     );
   };
   
@@ -182,6 +192,7 @@ const TreeVisualizer = () => {
       return;
     }
     
+    const beforeValues = tree.preOrder(tree.root);
     const trace = [];
     tree.root = tree.deleteNode(tree.root, deleteValue, trace);
 
@@ -200,7 +211,13 @@ const TreeVisualizer = () => {
         buildVisualTree();
         setRemovingNodeValue(null);
         setValue("");
-      })
+      }),
+      {
+        before: beforeValues,
+        after: tree.preOrder(tree.root),
+        label: `Delete ${deleteValue}`,
+        meta: { rotations: tree.rotations },
+      }
     );
   };
   
@@ -228,7 +245,13 @@ const TreeVisualizer = () => {
       steps,
       withCleanup(() => {
         setValue("");
-      })
+      }),
+      {
+        before: tree.preOrder(tree.root),
+        after: tree.preOrder(tree.root),
+        label: `Search ${searchValue}`,
+        meta: { rotations: tree.rotations },
+      }
     );
   };
   
@@ -250,8 +273,18 @@ const TreeVisualizer = () => {
       steps,
       withCleanup(() => {
         setShowTraversalAnimation(false);
-      })
+      }),
+      {
+        before: tree.preOrder(tree.root),
+        after: tree.preOrder(tree.root),
+        label: `${type} traversal`,
+        meta: { rotations: tree.rotations },
+      }
     );
+  };
+
+  const handleForkRun = (run) => {
+    if (run.structure === "tree") applyPreset([...run.before]);
   };
   
   // Calculate tree properties
@@ -519,6 +552,16 @@ const TreeVisualizer = () => {
             title="Tree Properties"
             properties={treeProperties}
           />
+
+          {/* Run history: fork rewinds to a run's before state */}
+          <div className="info-panel">
+            <h3>Run history</h3>
+            <RunHistoryPanel
+              runs={listRuns("tree")}
+              onFork={handleForkRun}
+              disabled={isAnimating}
+            />
+          </div>
         </div>
       </div>
     </div>
