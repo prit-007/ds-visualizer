@@ -80,15 +80,15 @@ Exit criteria met: `npm run lint` = 0 warnings; Array/LinkedList lost the tab ba
 
 Exit criteria met: **`lint` 0 err/0 warn, `test:ci` 223 tests / 25 files, build green**; every operation completable keyboard-only (focusable buttons + guarded player keys); visual language identical across all pages; dual-pane live on Array/List/Tree.
 
-## Phase 5 — Learning layer `[ ]`
+## Phase 5 — Learning layer `[x]`
 
 - [x] First-run guided tour (`driver.js`, MIT) — shipped: 4-step tour on `.sidebar`/`.workspace`/`.theme-toggle`/`.sidebar-footer`, first-run auto-start, "Take the tour" replay in the sidebar footer, `TOUR_COMPLETED_KEY` persisted on user close/finish only
 - [x] Lessons in MDX (`@mdx-js`, MIT): why → how → practice, one per structure, wired to routes — shipped: `@mdx-js/rollup` in `vite.config.mjs`, `src/lessons/*.mdx` (array, linked-list, tree) + manifest, `/lessons` list + `/lessons/:slug` reader, Tutorials→Lessons sidebar link
 - [x] Prediction mode: guess the next step/highlight before it plays; scored — shipped: 🎯 toggle in `OperationPlayer`, `src/lib/prediction.js` builds a deterministic 4-option question at each advance boundary (real step narrations + generic distractors, rotated position), auto-play pauses for the guess and resumes after answering, session `Score c / t` chip
 - [x] Progress store (localStorage): XP, streaks, per-operation mastery; `canvas-confetti` on milestones — shipped: `src/lib/progress.js` (`PROGRESS_KEY`, corrupt-safe `loadProgress`, `recordOperation`/`recordLesson`/`recordPrediction`, `touchStreak` day-gap rules) + `src/lib/celebration.js`; player `onPredictionAnswer` prop, per-page `onComplete` records `<page>:<tab>` keys, LessonReader "Mark as complete" button (confetti on first completion, disabled on revisit), Lessons-page `.progress-summary` chips + completed-card tint
-- [~] Curriculum map (concept dependency graph) replacing the dead sidebar sections
+- [x] Curriculum map (concept dependency graph) replacing the dead sidebar sections — shipped: `src/lib/curriculum.js` (`CONCEPTS` DAG + longest-path `layoutCurriculum` + `masteryFor` new/started/mastered from the progress store), `/curriculum` page (`Curriculum.jsx`/`.css`: absolutely-positioned nodes over SVG edges, mastery tints, dark variants), Tutorials submenu now Lessons + Curriculum map; the 4 dead track links (`/beginner`/`/intermediate`/`/advanced`/`/practice`) removed from sidebar and routes
 
-Exit criteria: a new learner finishes 3 guided lessons with visible progress, fully offline.
+Exit criteria **met**: a new learner finishes 3 guided lessons with visible progress (XP chips, confetti, mastery tints on the curriculum map), fully offline. **Phase 5 complete.**
 
 ## Phase 6 — Differentiators (features no other visualizer has) `[ ]`
 
