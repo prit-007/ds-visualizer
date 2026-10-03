@@ -94,8 +94,8 @@ Exit criteria **met**: a new learner finishes 3 guided lessons with visible prog
 
 - [ ] Time-travel: record runs as Immer patches (`zundo`); scrub anywhere, fork a run, compare two runs with a step diff (e.g. AVL rotations on vs off)
 - [ ] Empirical complexity lab: live operation counters during animation + Web Worker n-sweep plotting **measured** growth vs theoretical O() curves
-- [ ] Memory truth pane: `MemoryBlock` already revived as `MemoryRepresentation` in Phase 4 (addresses + pointer rows on all three pages) — remaining: layout behind the pretty nodes + story ↔ memory toggle
-- [ ] Counterfactual toggles: disable rotations / caching / path compression via strategy flags in `src/lib`
+- [x] Memory truth pane: `MemoryBlock` already revived as `MemoryRepresentation` in Phase 4 (addresses + pointer rows on all three pages) — shipped: story ↔ memory toggle (`ViewToggle`, shared across Array/List/Tree) swaps the main canvas between the pretty rendering and the raw address/value/pointer cells; exactly one `.memory-representation` on screen in either view, empty-state note when there are no cells
+- [x] Counterfactual toggles: disable rotations / caching / path compression via strategy flags in `src/lib` — shipped: `new AVLTree({ rotations: false })` keeps heights/balance honest but skips every rotation (emits `rotate-skipped`), `treeSteps` narrates the skipped case + honest "tree left unbalanced" finale; `/tree` gets an aria-pressed Rotations On/Off switch + disabled-rotations note (cache/path-compression items land with their structures in Phase 7)
 - [ ] Share: encode whole scenarios in URL hash; export run as WebM via `MediaRecorder` (no server)
 - [ ] Adversarial input challenges: "construct the input that maximizes comparisons", scored
 
