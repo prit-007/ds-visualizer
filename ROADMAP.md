@@ -104,7 +104,7 @@ Exit criteria: each feature demoable on `/tree` with zero backend.
 
 ## Phase 7 — Content expansion `[ ]`
 
-- [ ] New structure pages via the Tree pattern: stack/queue, hash table, graph (layout: `d3-hierarchy` / `@xyflow/react`, MIT)
+- [x] New structure pages via the Tree pattern — **stack/queue shipped** (`feat(stack-queue)`: `src/lib/stackQueueSteps.js` LIFO/FIFO builders + `STACK_PSEUDOCODE`/`QUEUE_PSEUDOCODE`, `/stack-queue` page with Stack|Queue toggle, structure-specific tabs, shared set, empty-state errors, honest array-backed dequeue O(n)); remaining: hash table, graph (layout: `d3-hierarchy` / `@xyflow/react`, MIT)
 - [ ] Real sorting + searching visualizers (replace decorative `SortingVisualization`)
 - [ ] string/float value support (currently integers only) — *level-order traversal shipped early in Phase 4*
 - [ ] Structure/algorithm benchmarks: Web Worker, median-of-N, noise warnings
