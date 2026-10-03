@@ -330,3 +330,30 @@ describe('story ↔ memory view', () => {
     expect(document.querySelector('.tree-canvas')).not.toBeNull();
   });
 });
+
+describe('share', () => {
+  beforeEach(() => {
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    window.location.hash = '';
+  });
+
+  test('renders a share button', () => {
+    render(<TreeVisualizer />);
+    expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument();
+  });
+
+  test('seeds the tree from a shared scenario hash', async () => {
+    const { encodeScenario } = await import('../lib/share');
+    window.location.hash = `#s=${encodeScenario({ v: 1, structure: 'tree', values: [30, 20, 40] })}`;
+
+    render(<TreeVisualizer />);
+
+    expect(document.querySelectorAll('.tree-node')).toHaveLength(3);
+    expect(screen.getAllByText('30').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('20').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('40').length).toBeGreaterThan(0);
+  });
+});

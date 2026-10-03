@@ -183,3 +183,38 @@ describe('story ↔ memory view', () => {
     expect(screen.getByText(/no memory cells/i)).toBeInTheDocument();
   });
 });
+
+describe('share', () => {
+  beforeEach(() => {
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    window.location.hash = '';
+  });
+
+  test('renders a share button', () => {
+    render(<ArrayVisualizer />);
+    expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument();
+  });
+
+  test('seeds the array from a shared scenario hash', async () => {
+    const { encodeScenario } = await import('../lib/share');
+    window.location.hash = `#s=${encodeScenario({ v: 1, structure: 'array', values: [99, 77] })}`;
+
+    render(<ArrayVisualizer />);
+
+    expect(document.querySelectorAll('.array-element')).toHaveLength(2);
+    expect(screen.getAllByText('99').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('77').length).toBeGreaterThan(0);
+  });
+
+  test('ignores a scenario meant for another structure', async () => {
+    const { encodeScenario } = await import('../lib/share');
+    window.location.hash = `#s=${encodeScenario({ v: 1, structure: 'tree', values: [1] })}`;
+
+    render(<ArrayVisualizer />);
+
+    expect(screen.getAllByText('50').length).toBeGreaterThan(0);
+  });
+});

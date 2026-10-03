@@ -918,3 +918,46 @@ h3 {
   border-color: #6366f1;
   color: #ffffff;
 }
+
+.share-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.share-btn {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid #c7d2fe;
+  background-color: #eef2ff;
+  color: #4338ca;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.share-btn:hover {
+  background-color: #e0e7ff;
+}
+
+.share-note {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+.dark .share-btn {
+  background-color: #312e81;
+  border-color: #4338ca;
+  color: #c7d2fe;
+}
+
+.dark .share-btn:hover {
+  background-color: #3730a3;
+}
+
+.dark .share-note {
+  color: #34d399;
+}

@@ -254,3 +254,33 @@ describe('story ↔ memory view', () => {
     expect(document.querySelector('.linked-list-display')).not.toBeNull();
   });
 });
+
+describe('share', () => {
+  beforeEach(() => {
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    window.location.hash = '';
+  });
+
+  test('renders a share button', () => {
+    render(<LinkedListVisualizer />);
+    expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument();
+  });
+
+  test('seeds the list from a shared scenario hash', async () => {
+    const { encodeScenario } = await import('../lib/share');
+    window.location.hash = `#s=${encodeScenario({
+      v: 1,
+      structure: 'linked-list',
+      values: [5, 15],
+    })}`;
+
+    render(<LinkedListVisualizer />);
+
+    expect(document.querySelectorAll('.linked-list-node')).toHaveLength(2);
+    expect(screen.getAllByText('5').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('15').length).toBeGreaterThan(0);
+  });
+});

@@ -13,6 +13,8 @@ import ComplexityInfo from "../components/ComplexityInfo";
 import PropertyDisplay from "../components/PropertyDisplay";
 import MemoryRepresentation from "../components/MemoryRepresentation";
 import ViewToggle from "../components/ViewToggle";
+import ShareButton from "../components/ShareButton";
+import { readScenario } from "../lib/share";
 import CasePresets from "../components/CasePresets";
 import { randomValues, sortedSequence } from "../lib/presets";
 
@@ -126,7 +128,13 @@ const LinkedListPointer = ({ isActive }) => {
 
 const LinkedListVisualizer = ({ initialNodes }) => {
   // State
-  const [nodes, setNodes] = useState(() => initialNodes ?? [10, 20, 30, 40].map(createNode));
+  const [nodes, setNodes] = useState(() => {
+    const scenario = readScenario();
+    if (scenario && scenario.structure === "linked-list" && Array.isArray(scenario.values)) {
+      return scenario.values.map(createNode);
+    }
+    return initialNodes ?? [10, 20, 30, 40].map(createNode);
+  });
   const [value, setValue] = useState("");
   const [position, setPosition] = useState("");
   const [activeTab, setActiveTab] = useState("add");
@@ -323,6 +331,8 @@ const LinkedListVisualizer = ({ initialNodes }) => {
           <h2>Linked List Visualization</h2>
 
           <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
+
+          <ShareButton structure="linked-list" values={nodes.map((node) => node.value)} />
 
           {view === "story" ? (
             <div className="linked-list-display">

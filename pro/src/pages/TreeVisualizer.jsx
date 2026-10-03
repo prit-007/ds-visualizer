@@ -7,6 +7,8 @@ import ComplexityInfo from "../components/ComplexityInfo";
 import ErrorMessage from "../components/ErrorMessage";
 import MemoryRepresentation from "../components/MemoryRepresentation";
 import ViewToggle from "../components/ViewToggle";
+import ShareButton from "../components/ShareButton";
+import { readScenario } from "../lib/share";
 import CasePresets from "../components/CasePresets";
 import { sortedSequence, uniqueRandomValues } from "../lib/presets";
 import "./TreeVisualizer.css";
@@ -24,8 +26,17 @@ const edgePath = ({ x1, y1, x2, y2 }) => {
 
 const TreeVisualizer = () => {
   // State
-  const [tree] = useState(new AVLTree());
-  const [treeRoot, setTreeRoot] = useState(null);
+  const [tree] = useState(() => {
+    const instance = new AVLTree();
+    const scenario = readScenario();
+    if (scenario && scenario.structure === "tree" && Array.isArray(scenario.values)) {
+      scenario.values.forEach((v) => {
+        instance.root = instance.insert(instance.root, v);
+      });
+    }
+    return instance;
+  });
+  const [treeRoot, setTreeRoot] = useState(() => tree.root);
   const [value, setValue] = useState("");
   const [activeTab, setActiveTab] = useState("insert");
   const [highlightedNodes, setHighlightedNodes] = useState([]);
@@ -309,6 +320,8 @@ const TreeVisualizer = () => {
           <h2>Tree Visualization</h2>
 
           <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
+
+          <ShareButton structure="tree" values={tree.preOrder(treeRoot)} />
 
           {view === "story" ? (
             <div className="tree-container">
