@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import Layout from './Layout';
 import { TOUR_STEPS } from '../lib/tourSteps';
 
@@ -7,6 +7,19 @@ const renderLayout = () =>
   render(
     <MemoryRouter>
       <Layout />
+    </MemoryRouter>
+  );
+
+const renderLayoutAt = (path) =>
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<div>Home page</div>} />
+          <Route path="array" element={<div>Array page</div>} />
+          <Route path="tree" element={<div>Tree page</div>} />
+        </Route>
+      </Routes>
     </MemoryRouter>
   );
 
@@ -83,6 +96,43 @@ describe('curriculum navigation', () => {
     expect(screen.queryByRole('link', { name: 'Intermediate' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Advanced' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Practice Problems' })).not.toBeInTheDocument();
+  });
+});
+
+describe('navigation UX', () => {
+  test('the active route is marked with aria-current and active styling', () => {
+    renderLayoutAt('/array');
+
+    const arrayLink = screen.getByRole('link', { name: /Arrays/ });
+    expect(arrayLink).toHaveAttribute('aria-current', 'page');
+    expect(arrayLink.className).toContain('font-semibold');
+
+    const treeLink = screen.getByRole('link', { name: 'Trees' });
+    expect(treeLink).not.toHaveAttribute('aria-current');
+    expect(treeLink.className).not.toContain('font-semibold');
+  });
+
+  test('collapsing the sidebar keeps the icon rail and unmounts submenu labels', () => {
+    renderLayout();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle navigation' }));
+
+    // submenu links unmount when the rail collapses; top-level links remain
+    const nav = screen.getByRole('navigation');
+    const hrefs = within(nav).getAllByRole('link').map((l) => l.getAttribute('href'));
+    expect(hrefs).toContain('/');
+    expect(hrefs).not.toContain('/array');
+    expect(hrefs).not.toContain('/tree');
+  });
+
+  test('an open sidebar shows the mobile backdrop for tap-to-close', () => {
+    renderLayout();
+    expect(document.querySelector('.fixed.inset-0.z-30')).not.toBeNull();
+  });
+
+  test('route changes render page content inside the workspace', () => {
+    renderLayoutAt('/array');
+    expect(screen.getByRole('main').textContent).toContain('Array page');
   });
 });
 
