@@ -24,7 +24,7 @@
 
 .hash-bucket-index {
   flex: 0 0 96px;
-  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
   color: #0284c7;
   font-weight: 600;

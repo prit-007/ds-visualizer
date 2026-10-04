@@ -91,3 +91,35 @@ describe('dark theme tokens', () => {
     expect(indexCss).toMatch(/\.dark \.steps-container[^}]*var\(--panel-color\)/);
   });
 });
+
+describe('typography + micro-interactions polish', () => {
+  test('font tokens exist and surfaces use them', () => {
+    expect(indexCss).toMatch(/--font-sans:\s*'Inter'/);
+    expect(indexCss).toMatch(/--font-mono:\s*'SF Mono'/);
+    expect(indexCss).toMatch(/body\s*\{[^}]*font-family:\s*var\(--font-sans\)/);
+    expect(indexCss).toMatch(/code\s*\{[^}]*font-family:\s*var\(--font-mono\)/);
+    expect(indexCss).toMatch(/\.code-pane\s*\{[^}]*font-family:\s*var\(--font-mono\)/);
+    expect(indexCss).toMatch(/\.memory-address\s*\{[^}]*font-family:\s*var\(--font-mono\)/);
+  });
+
+  test('press feedback scales on primary controls', () => {
+    expect(indexCss).toMatch(/\.operation-button:active[^}]*scale\(0\.98\)/);
+    expect(indexCss).toMatch(/\.player-btn:active[^}]*scale\(0\.94\)/);
+    expect(indexCss).toMatch(/\.preset-button:active[^}]*scale\(0\.96\)/);
+    expect(indexCss).toMatch(/\.data-action-btn:active[^}]*scale\(0\.96\)/);
+    expect(indexCss).toMatch(/\.tab-button:active[^}]*scale\(0\.97\)/);
+  });
+
+  test('panels share radius and animate shadows', () => {
+    expect(indexCss).toMatch(/\.visualization-area\s*\{[^}]*border-radius: 1rem/);
+    expect(indexCss).toMatch(/\.controls-area\s*\{[^}]*border-radius: 1rem/);
+    expect(indexCss).toMatch(/\.info-panel\s*\{[^}]*border-radius: 1rem/);
+    expect(indexCss).toMatch(/\.visualization-area\s*\{[^}]*transition:[^}]*box-shadow/);
+  });
+
+  test('the active step chip pulses, guarded by reduced motion', () => {
+    expect(indexCss).toMatch(/@keyframes step-chip-pulse/);
+    expect(indexCss).toMatch(/@media \(prefers-reduced-motion: no-preference\)/);
+    expect(indexCss).toMatch(/\.current-step \.step-chip[^}]*step-chip-pulse/);
+  });
+});

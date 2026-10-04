@@ -13,20 +13,24 @@
   --kind-move: #6366f1;
   --kind-found: #22c55e;
   --kind-error: #ef4444;
+  /* Type scale: Inter-first sans (falls back to the system stack offline),
+     SF Mono-first monospace for code, addresses and key chips */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+    'Helvetica Neue', sans-serif;
+  --font-mono: 'SF Mono', 'SFMono-Regular', ui-monospace, Menlo, Monaco,
+    Consolas, 'Liberation Mono', 'Courier New', monospace;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: var(--font-mono);
 }
 
 :focus-visible {
@@ -46,7 +50,7 @@ code {
 }
 /* Array visualizer */
 .array-visualizer-container {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
@@ -97,6 +101,13 @@ h3 {
   border-radius: 1rem;
   padding: 2rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .visualization-area:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12);
+  }
 }
 
 .empty-state {
@@ -220,6 +231,7 @@ h3 {
 }
 
 .memory-address {
+  font-family: var(--font-mono);
   background-color: #e0f2fe;
   color: #0284c7;
   font-size: 0.7rem;
@@ -326,6 +338,10 @@ h3 {
   background-color: #f0f9ff;
 }
 
+.player-btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
 .player-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -425,6 +441,7 @@ h3 {
 
 /* Dual-pane pseudocode */
 .code-pane {
+  font-family: var(--font-mono);
   background-color: #282c34;
   border-radius: 0.5rem;
   padding: 0.75rem;
@@ -525,6 +542,10 @@ h3 {
   background-color: #e0f2fe;
 }
 
+.preset-button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
 .preset-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -550,6 +571,13 @@ h3 {
   border-radius: 1rem;
   padding: 2rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .controls-area:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12);
+  }
 }
 
 .error-message {
@@ -592,6 +620,10 @@ h3 {
 
 .tab-button:hover:not(.active):not(:disabled) {
   background-color: rgba(255, 255, 255, 0.5);
+}
+
+.tab-button:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .tab-button:disabled {
@@ -651,7 +683,7 @@ h3 {
 }
 
 .operation-button:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
 .operation-button:disabled {
@@ -662,9 +694,10 @@ h3 {
 .info-panel {
   margin-top: 2rem;
   background-color: #f0f9ff;
-  border-radius: 0.75rem;
+  border-radius: 1rem;
   padding: 1.5rem;
   border: 1px solid #bae6fd;
+  transition: box-shadow 0.2s ease;
 }
 
 .complexity-item, .property-item {
@@ -756,6 +789,7 @@ h3 {
 }
 
 .dark .memory-address {
+  font-family: var(--font-mono);
   background-color: #0c4a6e;
   color: #7dd3fc;
 }
@@ -1234,6 +1268,10 @@ h3 {
   background-color: #f1f5f9;
 }
 
+.data-action-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
 .data-action-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -1275,4 +1313,21 @@ h3 {
 
 .dark .operation-button:hover:not(:disabled) {
   box-shadow: 0 6px 10px -1px rgba(2, 132, 199, 0.35);
+}
+
+/* Subtle pulse on the active step chip while a run plays */
+@keyframes step-chip-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(2, 132, 199, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .current-step .step-chip {
+    animation: step-chip-pulse 1.6s ease-in-out infinite;
+  }
 }

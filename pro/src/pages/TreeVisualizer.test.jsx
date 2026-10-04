@@ -9,6 +9,10 @@ import { clearRuns, listRuns, recordRun } from '../lib/timeTravel';
 // origin, so bind the raw value first (see AGENTS.md).
 const moduleUrl = import.meta.url;
 
+// The tree page is the heaviest render in the app; under full-suite
+// parallel load its fake-timer runs intermittently exceed the 5s default.
+vi.setConfig({ testTimeout: 20000 });
+
 vi.mock('gsap', () => ({
   gsap: { to: vi.fn(), set: vi.fn(), timeline: vi.fn() },
 }));
@@ -333,6 +337,10 @@ describe('counterfactual rotations toggle', () => {
 
   test('css contract: counterfactual styles live in TreeVisualizer.css', () => {
     const moduleUrl = import.meta.url;
+
+// The tree page is the heaviest render in the app; under full-suite
+// parallel load its fake-timer runs intermittently exceed the 5s default.
+vi.setConfig({ testTimeout: 20000 });
     const css = readFileSync(fileURLToPath(new URL('./TreeVisualizer.css', moduleUrl)), 'utf8');
 
     expect(css).toMatch(/\.counterfactual-row\s*\{/);

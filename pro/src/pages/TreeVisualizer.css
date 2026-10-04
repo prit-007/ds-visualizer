@@ -323,7 +323,7 @@
   background-color: #f0f9ff;
   color: #0c4a6e;
   font-weight: 700;
-  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-family: var(--font-mono);
 }
 
 .dark .btree-node {
