@@ -109,7 +109,10 @@ Exit criteria: each feature demoable on `/tree` with zero backend.
 - [x] Real **sorting** visualizer shipped (`feat(sorting)`: `/sorting` page with bubble/selection/insertion, `sortingSteps.js` + `SORTING_PSEUDOCODE`, `ElementNode.isSorted`, presets incl. reverse/nearly-sorted; decorative `SortingVisualization` remains on Home until the searching page lands); remaining: searching visualizer
 - [x] **Tree algorithms** shipped (`feat(tree-algos)`: Validate BST / Mirror / LCA on `/tree` via `treeAlgoSteps.js` + `TREE_ALGO_PSEUDOCODE`, Algorithms panel with distinct run-button labels; mirror flips the AVL instance in place on completion) **+ BFS/DFS** (`feat(tree)`: unified Traversals & Algorithms panel — BFS with queue narration, DFS with stack narration, result chips kept).
 - [x] **Sorting expanded** to six algorithms (`feat(sorting)`: + merge/quick/heap O(n log n); `fix(sorting)` — per-step `displayArray` snapshots + stable ids + `ElementNode.layout` so **swaps visibly move nodes** during playback, not just highlight).
-- [x] **Layout UX overhaul** (`feat(layout)`: viewport-height shell with workspace-internal scroll, mobile drawer + backdrop, active-route highlighting, scroll-to-top on route change, framer-motion page transitions honoring reduced-motion).
+- [x] **Layout UX overhaul**
+- [x] **B-tree mode** shipped (`feat(btree)`: order-3 B-tree on `/tree` — `src/lib/btree.js` + `btreeSteps.js` + `btreeLayout.js`, Binary | B-Tree toggle, key-box canvas, insert with split/median narration, search, in-order chips).
+- [x] **Searching visualizer** shipped (`feat(searching)`: `/searching` linear + binary, `searchingSteps.js` + `SEARCHING_PSEUDOCODE`, Enter-to-search form, unsorted-binary guided error; decorative search content remains on Home until further polish).
+- [x] **Dark-mode polish** (`feat(dark)`: `.dark .linked-list-node`, `.dark .operation-button`, coverage sweep + token-flip contract). (`feat(layout)`: viewport-height shell with workspace-internal scroll, mobile drawer + backdrop, active-route highlighting, scroll-to-top on route change, framer-motion page transitions honoring reduced-motion).
 - [ ] string/float value support (currently integers only) — *level-order traversal shipped early in Phase 4*
 - [ ] Structure/algorithm benchmarks: Web Worker, median-of-N, noise warnings
 
