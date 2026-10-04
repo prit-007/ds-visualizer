@@ -24,7 +24,7 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/spa-fallback.mjs",
     "preview": "vite preview",
     "test": "vitest",
     "test:ci": "vitest run",

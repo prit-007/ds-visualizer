@@ -1,0 +1,42 @@
+# Build the Vite app and publish dist/ to the gh-pages branch.
+# After the first run: Settings → Pages → Source: "Deploy from branch"
+# → gh-pages / root.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: pro/package-lock.json
+
+      - name: Install dependencies
+        working-directory: pro
+        run: npm ci
+
+      - name: Build
+        working-directory: pro
+        run: npm run build
+        env:
+          BASE_PATH: /ds-visualizer/
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./pro/dist

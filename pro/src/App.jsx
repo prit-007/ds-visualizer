@@ -20,7 +20,7 @@ import ComingSoon from './pages/ComingSoon';
 
 const App = () => {
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL}>
       <MotionConfig reducedMotion="user">
         <Routes>
         <Route path="/" element={<Layout />}>
