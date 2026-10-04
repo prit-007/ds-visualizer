@@ -22,6 +22,7 @@ const rotationStep = (event, ui, line) => {
     line,
     vars: { case: event.case, node },
     action: () => {
+      ui.setActiveNodeValue?.(node);
       ui.setHighlightedNodes(child === undefined ? [node] : [node, child]);
     },
   };
@@ -51,6 +52,7 @@ const rotationSkippedStep = (event, ui, line) => {
     line,
     vars: { case: caseName, node },
     action: () => {
+      ui.setActiveNodeValue?.(node);
       ui.setHighlightedNodes(child === undefined ? [node] : [node, child]);
     },
   };

@@ -91,3 +91,23 @@ test('a single node fits a minimal canvas', () => {
   expect(layout.nodes[0].x).toBe(CANVAS_PAD);
   expect(layout.nodes[0].y).toBe(CANVAS_PAD);
 });
+
+test('wide trees compress horizontally instead of stretching', () => {
+  // 20 sequential inserts through AVL stay reasonably balanced but still
+  // produce many slots — the gap must shrink below H_GAP.
+  const values = Array.from({ length: 20 }, (_, i) => (i + 1) * 3);
+  const layout = layoutTree(build(values).root);
+
+  expect(layout.nodes.length).toBe(20);
+  const gap = layout.nodes[1].x - layout.nodes[0].x;
+  expect(gap).toBeLessThan(H_GAP);
+  expect(gap).toBeGreaterThanOrEqual(72);
+  // natural width stays under ~1400px for 20 nodes (scale-to-fit then
+  // handles the rest) — no more multi-thousand-pixel stretches
+  expect(layout.width).toBeLessThanOrEqual(60 * 2 + 19 * 130);
+});
+
+test('small trees keep the comfortable H_GAP', () => {
+  const layout = layoutTree(build([20, 10, 30]).root);
+  expect(layout.nodes[1].x - layout.nodes[0].x).toBe(H_GAP);
+});

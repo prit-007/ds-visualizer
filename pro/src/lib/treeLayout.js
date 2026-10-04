@@ -7,11 +7,25 @@ export const NODE_RADIUS = 30;
 export const H_GAP = 110;
 export const V_GAP = 110;
 export const CANVAS_PAD = 60;
+export const MIN_H_GAP = 72;
+
+// Adaptive horizontal gap: small trees keep the comfortable H_GAP (test
+// contracts + readability); wide trees compress so the canvas fits the
+// viewport without horizontal scrolling. 72px keeps node circles apart
+// (2 × NODE_RADIUS = 60).
+export const hGapFor = (nodeCount) =>
+  Math.max(MIN_H_GAP, Math.min(H_GAP, Math.floor(1300 / Math.max(nodeCount, 1))));
+
+const countNodes = (node) => {
+  if (!node) return 0;
+  return 1 + countNodes(node.left) + countNodes(node.right);
+};
 
 export const layoutTree = (root) => {
   const nodes = [];
   const byNode = new Map();
   let slot = 0;
+  const gap = hGapFor(countNodes(root));
 
   const assign = (node, depth) => {
     if (!node) return;
@@ -19,7 +33,7 @@ export const layoutTree = (root) => {
     const entry = {
       value: node.value,
       depth,
-      x: CANVAS_PAD + slot * H_GAP,
+      x: CANVAS_PAD + slot * gap,
       y: CANVAS_PAD + depth * V_GAP,
       height: node.height,
       balance: (node.left ? node.left.height : 0) - (node.right ? node.right.height : 0),
@@ -55,7 +69,7 @@ export const layoutTree = (root) => {
   }
 
   const maxDepth = nodes.reduce((max, n) => Math.max(max, n.depth), 0);
-  const width = nodes.length > 0 ? CANVAS_PAD * 2 + (nodes.length - 1) * H_GAP : 0;
+  const width = nodes.length > 0 ? CANVAS_PAD * 2 + (nodes.length - 1) * gap : 0;
   const height = nodes.length > 0 ? CANVAS_PAD * 2 + maxDepth * V_GAP : 0;
 
   return { nodes, edges, width, height };

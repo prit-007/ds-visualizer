@@ -125,7 +125,7 @@ describe('buildInsertSteps', () => {
     ]);
 
     runAll(steps);
-    expect(activeCalls(ui)).toEqual([null, 50, 30, 20, null, 10]);
+    expect(activeCalls(ui)).toEqual([null, 50, 30, 20, null, 30, 10]);
     expect(highlightCalls(ui)).toEqual([
       [],
       [50],
@@ -157,7 +157,7 @@ describe('buildInsertSteps', () => {
       'Insertion complete, tree is balanced',
     ]);
     runAll(steps);
-    expect(activeCalls(ui)).toEqual([null, 30, 20, null, 25]);
+    expect(activeCalls(ui)).toEqual([null, 30, 20, null, 30, 25]);
   });
 
   test('narrates the right-right single rotation', () => {

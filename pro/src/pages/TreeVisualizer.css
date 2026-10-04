@@ -10,6 +10,13 @@
   overflow-x: auto;
 }
 
+.tree-canvas-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
 .tree-canvas {
   position: relative;
   flex-shrink: 0;

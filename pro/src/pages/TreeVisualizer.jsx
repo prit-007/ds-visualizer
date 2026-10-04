@@ -60,7 +60,26 @@ const TreeVisualizer = () => {
   
   // Refs
   const containerRef = useRef(null);
+  const canvasWrapRef = useRef(null);
+  const [wrapWidth, setWrapWidth] = useState(960);
   
+  // Measure the canvas wrapper so wide trees scale down instead of
+  // forcing horizontal scroll. ResizeObserver when available; window
+  // resize fallback (jsdom has neither measurement nor observer).
+  useEffect(() => {
+    const el = canvasWrapRef.current;
+    if (!el) return undefined;
+    const update = () => setWrapWidth(el.clientWidth || 960);
+    update();
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(update);
+      ro.observe(el);
+      return () => ro.disconnect();
+    }
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
   // Clear error after 3 seconds
   useEffect(() => {
     if (error) {
@@ -475,6 +494,8 @@ const TreeVisualizer = () => {
 
   // Absolute layout for the coordinate canvas (empty when treeRoot is null)
   const layout = layoutTree(treeRoot);
+  // Fit the whole tree into the visible width — scale down when needed.
+  const fitScale = Math.min(1, (wrapWidth - 8) / Math.max(layout.width, 1));
 
   const edgeState = (edge) => {
     if (edge.childValue === removingNodeValue) return "tree-edge-removing";
@@ -520,8 +541,17 @@ const TreeVisualizer = () => {
             <div className="tree-container">
               {treeRoot ? (
                 <div
+                  className="tree-canvas-wrap"
+                  style={{ height: `${Math.max(layout.height * fitScale, 120)}px` }}
+                >
+                <div
                   className="tree-canvas"
-                  style={{ width: `${layout.width}px`, height: `${layout.height}px` }}
+                  style={{
+                    width: `${layout.width}px`,
+                    height: `${layout.height}px`,
+                    transform: `scale(${fitScale})`,
+                    transformOrigin: 'top center',
+                  }}
                 >
                   <svg
                     className="tree-edges"
@@ -553,6 +583,7 @@ const TreeVisualizer = () => {
                       />
                     </div>
                   ))}
+                </div>
                 </div>
               ) : (
                 <div className="empty-state">Tree is empty. Insert some values to begin.</div>
