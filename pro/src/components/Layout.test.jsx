@@ -149,6 +149,52 @@ describe('mobile drawer keyboard support', () => {
   });
 });
 
+describe('mobile shell', () => {
+  const originalWidth = window.innerWidth;
+
+  afterEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: originalWidth, configurable: true });
+  });
+
+  test('the navigation toggle lives in the always-visible header', () => {
+    renderLayoutAt('/array');
+    const header = document.querySelector('header');
+    expect(header).not.toBeNull();
+    const toggle = within(header).getByRole('button', { name: 'Toggle navigation' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  test('phones start with the drawer collapsed so content is visible', () => {
+    Object.defineProperty(window, 'innerWidth', { value: 390, configurable: true });
+    renderLayout();
+    expect(document.querySelector('.fixed.inset-0.z-30')).toBeNull();
+    const sidebar = document.querySelector('.sidebar');
+    expect(sidebar.className).toContain('-translate-x-full');
+  });
+
+  test('navigating on a phone closes the drawer automatically', () => {
+    Object.defineProperty(window, 'innerWidth', { value: 390, configurable: true });
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<div>Home page</div>} />
+            <Route path="array" element={<div>Array page</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // open the drawer from the header toggle
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle navigation' }));
+    expect(document.querySelector('.fixed.inset-0.z-30')).not.toBeNull();
+
+    // navigate to a different route → drawer auto-closes on phones
+    fireEvent.click(screen.getByRole('link', { name: /Arrays/ }));
+    expect(document.querySelector('.fixed.inset-0.z-30')).toBeNull();
+  });
+});
+
 describe('dark mode', () => {
   beforeEach(() => {
     localStorage.clear();

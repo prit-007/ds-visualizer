@@ -67,6 +67,11 @@ describe('player containment + responsive contracts', () => {
     expect(indexCss).toMatch(/\.player-controls\s*\{[^}]*flex-wrap: wrap/);
   });
 
+  test('the visualizer grid stacks on tablets (<=1024px)', () => {
+    const tablet = indexCss.slice(indexCss.indexOf('@media (max-width: 1024px)'));
+    expect(tablet).toMatch(/\.visualizer-grid\s*\{[^}]*grid-template-columns: 1fr/);
+  });
+
   test('mobile rules shrink the array canvas and stack the player rows', () => {
     const mobile = indexCss.slice(indexCss.indexOf('@media (max-width: 768px)'));
     expect(mobile).toMatch(/\.player-scrub\s*\{[^}]*flex: 1 1 100%/);

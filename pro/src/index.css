@@ -1126,6 +1126,13 @@ h3 {
 }
 
 /* Mobile: tighter page padding, stacked inputs, wrapping tabs/toggles */
+/* Tablets and below: stack the visualizer grid so controls stay usable */
+@media (max-width: 1024px) {
+  .visualizer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .array-visualizer-container,
   .linked-list-visualizer-container,

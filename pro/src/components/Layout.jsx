@@ -5,7 +5,11 @@ import { Menu, Home, ChevronRight, ChevronDown, Database, Code, BookOpen, BarCha
 import GuidedTour from './GuidedTour';
 
 const Layout = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // Drawer starts open on desktop; on phones start collapsed so content
+  // is visible immediately (the toggle lives in the always-visible header).
+  const [isSidebarOpen, setIsSidebarOpen] = useState(
+    () => typeof window === 'undefined' || window.innerWidth >= 768
+  );
   const [expandedCategories, setExpandedCategories] = useState({
     dataStructures: true,
     algorithms: false,
@@ -21,9 +25,11 @@ const Layout = () => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 
-  // Route change: scroll the content pane back to the top.
+  // Route change: scroll the content pane back to the top; on phones the
+  // drawer closes so the destination page is visible immediately.
   useEffect(() => {
     if (workspaceRef.current) workspaceRef.current.scrollTop = 0;
+    if (window.innerWidth < 768) setIsSidebarOpen(false);
   }, [location.pathname]);
 
   // Escape closes the mobile drawer.
@@ -111,15 +117,8 @@ const Layout = () => {
         }`}
       >
         {/* Logo Section */}
-        <div className="p-4 flex items-center justify-between border-b border-indigo-100 dark:border-gray-700 shrink-0">
+        <div className="p-4 flex items-center border-b border-indigo-100 dark:border-gray-700 shrink-0">
           {isSidebarOpen && <span className="text-xl font-extrabold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">AlgoViz</span>}
-          <button
-            onClick={toggleSidebar}
-            aria-label="Toggle navigation"
-            className="p-1 rounded-md hover:bg-indigo-100 dark:hover:bg-gray-700 text-indigo-600 dark:text-indigo-300 ml-auto"
-          >
-            <Menu size={20} />
-          </button>
         </div>
 
         {/* Navigation Links */}
@@ -336,16 +335,26 @@ const Layout = () => {
 
       {/* Main Content — header fixed, workspace scrolls inside the viewport */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <header className="bg-white dark:bg-gray-900 shadow-sm h-16 shrink-0 flex items-center px-6 gap-4">
-          <h1 className="flex-1 text-lg sm:text-2xl font-extrabold text-center bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent truncate">
-            AlgoViz - Data Structures &amp; Algorithms Visualizer
+        <header className="bg-white dark:bg-gray-900 shadow-sm h-14 sm:h-16 shrink-0 flex items-center px-3 sm:px-6 gap-2 sm:gap-4">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label="Toggle navigation"
+            aria-expanded={isSidebarOpen}
+            className="p-2 rounded-md hover:bg-indigo-100 dark:hover:bg-gray-700 text-indigo-600 dark:text-indigo-300 shrink-0"
+          >
+            <Menu size={22} />
+          </button>
+          <h1 className="flex-1 min-w-0 text-base sm:text-2xl font-extrabold text-center bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent truncate">
+            <span className="sm:hidden">AlgoViz</span>
+            <span className="hidden sm:inline">AlgoViz - Data Structures &amp; Algorithms Visualizer</span>
           </h1>
           <button
             type="button"
             onClick={() => setIsDark((d) => !d)}
             aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
             aria-pressed={isDark}
-            className="theme-toggle p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-gray-700 text-indigo-600 dark:text-indigo-300 transition-colors duration-fast"
+            className="theme-toggle p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-gray-700 text-indigo-600 dark:text-indigo-300 transition-colors duration-fast shrink-0"
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </button>
