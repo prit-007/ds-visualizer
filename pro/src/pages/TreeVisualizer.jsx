@@ -614,7 +614,12 @@ const TreeVisualizer = () => {
             )}
           </div>
 
-          <div className="operation-inputs">
+          <form className="operation-inputs" onSubmit={(e) => {
+            e.preventDefault();
+            if (activeTab === "insert") handleInsert();
+            else if (activeTab === "delete") handleDelete();
+            else handleSearch();
+          }}>
             <div className="input-group">
               <label>Value:</label>
               <input
@@ -627,14 +632,8 @@ const TreeVisualizer = () => {
             </div>
             
             <button
+              type="submit"
               className="btn btn-primary btn-full operation-button"
-              onClick={
-                activeTab === "insert" 
-                  ? handleInsert 
-                  : activeTab === "delete" 
-                    ? handleDelete 
-                    : handleSearch
-              }
               disabled={isAnimating}
             >
               {activeTab === "insert" 
@@ -643,7 +642,7 @@ const TreeVisualizer = () => {
                   ? "Delete Node" 
                   : "Search Node"}
             </button>
-          </div>
+          </form>
           
           {/* Traversals + algorithms, unified */}
           <div className="algo-panel">
@@ -674,7 +673,13 @@ const TreeVisualizer = () => {
               ))}
             </div>
             {algo === "lca" && (
-              <div className="algo-inputs">
+              <form
+                className="algo-inputs"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleRunAlgo();
+                }}
+              >
                 <div className="input-group">
                   <label>Value A:</label>
                   <input
@@ -695,27 +700,35 @@ const TreeVisualizer = () => {
                     disabled={isAnimating}
                   />
                 </div>
-              </div>
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-full operation-button algo-run"
+                  disabled={isAnimating || !tree.root}
+                >
+                  Find LCA
+                </button>
+              </form>
             )}
-            <button
-              className="btn btn-primary btn-full operation-button algo-run"
-              onClick={handleRunAlgo}
-              disabled={isAnimating || !tree.root}
-            >
-              {algo === "bfs"
-                ? "Run BFS"
-                : algo === "dfs"
-                  ? "Run DFS"
-                  : algo === "inorder"
-                    ? "Run In-order"
-                    : algo === "postorder"
-                      ? "Run Post-order"
-                      : algo === "validate"
-                        ? "Run Validation"
-                        : algo === "mirror"
-                          ? "Mirror Tree"
-                          : "Find LCA"}
-            </button>
+            {algo !== "lca" && (
+              <button
+                type="button"
+                className="btn btn-primary btn-full operation-button algo-run"
+                onClick={handleRunAlgo}
+                disabled={isAnimating || !tree.root}
+              >
+                {algo === "bfs"
+                  ? "Run BFS"
+                  : algo === "dfs"
+                    ? "Run DFS"
+                    : algo === "inorder"
+                      ? "Run In-order"
+                      : algo === "postorder"
+                        ? "Run Post-order"
+                        : algo === "validate"
+                          ? "Run Validation"
+                          : "Mirror Tree"}
+              </button>
+            )}
           </div>
 
           {/* Complexity info */}

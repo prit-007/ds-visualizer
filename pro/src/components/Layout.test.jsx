@@ -136,6 +136,19 @@ describe('navigation UX', () => {
   });
 });
 
+describe('mobile drawer keyboard support', () => {
+  test('Escape closes the sidebar drawer', () => {
+    renderLayout();
+    expect(document.querySelector('.fixed.inset-0.z-30')).not.toBeNull();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(document.querySelector('.fixed.inset-0.z-30')).toBeNull();
+    const sidebar = document.querySelector('.sidebar');
+    expect(sidebar.className).toContain('-translate-x-full');
+  });
+});
+
 describe('dark mode', () => {
   beforeEach(() => {
     localStorage.clear();

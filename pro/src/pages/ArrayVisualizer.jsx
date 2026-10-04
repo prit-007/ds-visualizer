@@ -285,7 +285,12 @@ const ArrayVisualizer = ({ initialArray }) => {
             ]}
           />
 
-          <div className="operation-inputs">
+          <form className="operation-inputs" onSubmit={(e) => {
+            e.preventDefault();
+            if (activeTab === "add") handleAddElement();
+            else if (activeTab === "insert") handleInsertElement();
+            else handleRemoveElement();
+          }}>
             {(activeTab === "add" || activeTab === "insert") && (
               <div className="input-group">
                 <label>Value:</label>
@@ -319,14 +324,8 @@ const ArrayVisualizer = ({ initialArray }) => {
             )}
             
             <button
+              type="submit"
               className="operation-button"
-              onClick={
-                activeTab === "add" 
-                  ? handleAddElement 
-                  : activeTab === "insert" 
-                    ? handleInsertElement 
-                    : handleRemoveElement
-              }
               disabled={isAnimating}
             >
               {activeTab === "add" 
@@ -335,7 +334,7 @@ const ArrayVisualizer = ({ initialArray }) => {
                   ? "Insert at Position" 
                   : "Remove Element"}
             </button>
-          </div>
+          </form>
           
           {/* Complexity info */}
           <ComplexityInfo

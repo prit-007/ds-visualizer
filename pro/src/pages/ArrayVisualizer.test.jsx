@@ -115,6 +115,28 @@ describe('empty array (user removed every element one by one)', () => {
   });
 });
 
+describe('keyboard submit (Enter)', () => {
+  test('submitting the operation form runs the active operation', () => {
+    const { container } = render(<ArrayVisualizer initialArray={[]} />);
+    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+      target: { value: '5' },
+    });
+    const form = container.querySelector('form.operation-inputs');
+    expect(form).not.toBeNull();
+    fireEvent.submit(form);
+    // onComplete fires under fake timers in run-driven suites; here we
+    // assert the player started (steps rendered) rather than the final state
+    expect(container.querySelector('.code-pane')).not.toBeNull();
+  });
+
+  test('the operation button is a submit button inside the form', () => {
+    const { container } = render(<ArrayVisualizer />);
+    const button = screen.getByRole('button', { name: 'Add to End' });
+    expect(button).toHaveAttribute('type', 'submit');
+    expect(container.querySelector('form.operation-inputs')).toContainElement(button);
+  });
+});
+
 describe('case presets', () => {
   test('worst loads 12 elements, average 3, random 8 in-range values', () => {
     const { container } = render(<ArrayVisualizer initialArray={[1]} />);

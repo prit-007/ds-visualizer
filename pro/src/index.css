@@ -1107,3 +1107,48 @@ h3 {
 .dark .run-history-diff-b {
   color: #34d399;
 }
+
+/* Mobile: tighter page padding, stacked inputs, wrapping tabs/toggles */
+@media (max-width: 768px) {
+  .array-visualizer-container,
+  .linked-list-visualizer-container,
+  .stack-queue-page,
+  .hash-table-page,
+  .graph-page,
+  .sorting-page,
+  .visualizer-container {
+    padding: 1rem;
+  }
+
+  .visualizer-grid {
+    gap: 1rem;
+  }
+
+  .tab-container {
+    flex-wrap: wrap;
+  }
+
+  .tab-button {
+    flex: 1 1 40%;
+    min-width: 40%;
+  }
+
+  .structure-toggle,
+  .list-type-toggle,
+  .algo-toggle {
+    flex-wrap: wrap;
+  }
+
+  .preset-row {
+    gap: 0.35rem;
+  }
+
+  .operation-button {
+    min-height: 44px;
+  }
+
+  .input-group input {
+    min-height: 44px;
+    font-size: 16px; /* prevents iOS zoom-on-focus */
+  }
+}

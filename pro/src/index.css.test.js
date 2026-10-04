@@ -24,3 +24,12 @@ describe('global accessibility styles', () => {
     expect(indexCss).toContain('.dark .steps-container');
   });
 });
+
+describe('mobile media query', () => {
+  test('ships responsive rules for paddings, tabs and touch targets', () => {
+    expect(indexCss).toMatch(/@media \(max-width: 768px\)/);
+    expect(indexCss).toMatch(/\.tab-container\s*\{[^}]*flex-wrap: wrap/);
+    expect(indexCss).toMatch(/\.operation-button\s*\{[^}]*min-height: 44px/);
+    expect(indexCss).toMatch(/\.input-group input\s*\{[^}]*font-size: 16px/);
+  });
+});

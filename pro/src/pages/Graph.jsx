@@ -413,7 +413,12 @@ const Graph = ({ initialNodes, initialEdges }) => {
             ]}
           />
 
-          <div className="operation-inputs">
+          <form className="operation-inputs" onSubmit={(e) => {
+            e.preventDefault();
+            if (activeTab === "addNode") handleAddNode();
+            else if (activeTab === "addEdge") handleAddEdge();
+            else handleTraversal(activeTab);
+          }}>
             {activeTab === "addNode" && (
               <div className="input-group">
                 <label>Node value:</label>
@@ -466,14 +471,8 @@ const Graph = ({ initialNodes, initialEdges }) => {
             )}
 
             <button
+              type="submit"
               className="operation-button"
-              onClick={
-                activeTab === "addNode"
-                  ? handleAddNode
-                  : activeTab === "addEdge"
-                    ? handleAddEdge
-                    : () => handleTraversal(activeTab)
-              }
               disabled={isAnimating}
             >
               {activeTab === "addNode"
@@ -484,7 +483,7 @@ const Graph = ({ initialNodes, initialEdges }) => {
                     ? "Run BFS"
                     : "Run DFS"}
             </button>
-          </div>
+          </form>
 
           <ComplexityInfo
             operationName={complexityInfo.operationName}

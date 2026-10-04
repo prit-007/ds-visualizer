@@ -26,6 +26,15 @@ const Layout = () => {
     if (workspaceRef.current) workspaceRef.current.scrollTop = 0;
   }, [location.pathname]);
 
+  // Escape closes the mobile drawer.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') setIsSidebarOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const toggleCategory = (category) => {
@@ -307,7 +316,7 @@ const Layout = () => {
       {/* Main Content — header fixed, workspace scrolls inside the viewport */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <header className="bg-white dark:bg-gray-900 shadow-sm h-16 shrink-0 flex items-center px-6 gap-4">
-          <h1 className="flex-1 text-2xl font-extrabold text-center bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent truncate">
+          <h1 className="flex-1 text-lg sm:text-2xl font-extrabold text-center bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent truncate">
             AlgoViz - Data Structures &amp; Algorithms Visualizer
           </h1>
           <button
@@ -321,7 +330,7 @@ const Layout = () => {
           </button>
         </header>
 
-        <main className="workspace flex-1 overflow-y-auto min-h-0 p-6" ref={workspaceRef}>
+        <main className="workspace flex-1 overflow-y-auto min-h-0 p-4 md:p-6" ref={workspaceRef}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname}

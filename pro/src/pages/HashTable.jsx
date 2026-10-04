@@ -340,7 +340,12 @@ const HashTable = ({ initialKeys }) => {
             ]}
           />
 
-          <div className="operation-inputs">
+          <form className="operation-inputs" onSubmit={(e) => {
+            e.preventDefault();
+            if (activeTab === "insert") handleInsert();
+            else if (activeTab === "search") handleSearch();
+            else handleDelete();
+          }}>
             <div className="input-group">
               <label>Key:</label>
               <input
@@ -353,14 +358,8 @@ const HashTable = ({ initialKeys }) => {
             </div>
 
             <button
+              type="submit"
               className="operation-button"
-              onClick={
-                activeTab === "insert"
-                  ? handleInsert
-                  : activeTab === "search"
-                    ? handleSearch
-                    : handleDelete
-              }
               disabled={isAnimating}
             >
               {activeTab === "insert"
@@ -369,7 +368,7 @@ const HashTable = ({ initialKeys }) => {
                   ? "Search Key"
                   : "Delete Key"}
             </button>
-          </div>
+          </form>
 
           <ComplexityInfo
             operationName={complexityInfo.operationName}

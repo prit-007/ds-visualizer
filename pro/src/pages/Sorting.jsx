@@ -322,7 +322,10 @@ const Sorting = ({ initialArray }) => {
             ]}
           />
 
-          <div className="operation-inputs">
+          <form className="operation-inputs" onSubmit={(e) => {
+            e.preventDefault();
+            handleLoadArray();
+          }}>
             <div className="input-group">
               <label>Array:</label>
               <input
@@ -335,21 +338,22 @@ const Sorting = ({ initialArray }) => {
             </div>
 
             <button
+              type="submit"
               className="operation-button secondary"
-              onClick={handleLoadArray}
               disabled={isAnimating}
             >
               Load Array
             </button>
 
             <button
+              type="button"
               className="operation-button"
               onClick={handleRunSort}
               disabled={isAnimating}
             >
               {`Run ${ALGORITHM_NAME[activeTab]} Sort`}
             </button>
-          </div>
+          </form>
 
           <ComplexityInfo
             operationName={complexityInfo.operationName}

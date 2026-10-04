@@ -153,6 +153,21 @@ describe('sorting runs', () => {
   });
 });
 
+describe('keyboard submit (Enter)', () => {
+  test('submitting the load-array form loads the parsed values', () => {
+    const { container } = render(<Sorting initialArray={[2, 1]} />);
+    fireEvent.change(screen.getByPlaceholderText('e.g. 5, 3, 8, 1'), {
+      target: { value: '9, 7, 1' },
+    });
+    const form = container.querySelector('form.operation-inputs');
+    fireEvent.submit(form);
+    const values = [...container.querySelectorAll('.memory-value')].map((n) =>
+      Number(n.textContent)
+    );
+    expect(values).toEqual([9, 7, 1]);
+  });
+});
+
 describe('case presets', () => {
   beforeEach(() => {
     clearRuns();

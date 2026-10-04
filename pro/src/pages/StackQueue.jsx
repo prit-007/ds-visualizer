@@ -701,7 +701,10 @@ const StackQueue = ({ initialItems }) => {
             />
           )}
 
-          <div className="operation-inputs">
+          <form className="operation-inputs" onSubmit={(e) => {
+            e.preventDefault();
+            handleOperation();
+          }}>
             {showValueInput && (
               <div className="input-group">
                 <label>Value:</label>
@@ -716,13 +719,13 @@ const StackQueue = ({ initialItems }) => {
             )}
 
             <button
+              type="submit"
               className="operation-button"
-              onClick={handleOperation}
               disabled={isAnimating}
             >
               {operationButtonLabel()}
             </button>
-          </div>
+          </form>
 
           <ComplexityInfo
             operationName={complexityInfo.operationName}

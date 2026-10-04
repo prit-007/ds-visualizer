@@ -499,7 +499,12 @@ const LinkedListVisualizer = ({ initialNodes }) => {
             ]}
           />
 
-          <div className="operation-inputs">
+          <form className="operation-inputs" onSubmit={(e) => {
+            e.preventDefault();
+            if (activeTab === "add") handleAddNode();
+            else if (activeTab === "insert") handleInsertNode();
+            else handleRemoveNode();
+          }}>
             {(activeTab === "add" || activeTab === "insert") && (
               <div className="input-group">
                 <label>Value:</label>
@@ -533,23 +538,17 @@ const LinkedListVisualizer = ({ initialNodes }) => {
             )}
             
             <button
+              type="submit"
               className="operation-button"
-              onClick={
-                activeTab === "add" 
-                  ? handleAddNode 
-                  : activeTab === "insert" 
-                    ? handleInsertNode 
-                    : handleRemoveNode
-              }
               disabled={isAnimating}
-            >
+              >
               {activeTab === "add" 
                 ? "Add to End" 
                 : activeTab === "insert" 
                   ? "Insert at Position" 
                   : "Remove Node"}
             </button>
-          </div>
+          </form>
 
           <ComplexityInfo
             operationName={
