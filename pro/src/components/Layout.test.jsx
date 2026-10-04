@@ -175,3 +175,39 @@ describe('dark mode', () => {
     expect(screen.getByRole('button', { name: 'Switch to light theme' })).toBeInTheDocument();
   });
 });
+
+describe('sidebar usefulness (open + collapsed)', () => {
+  test('clicking a collapsed category re-opens the rail and expands it', () => {
+    renderLayout();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle navigation' }));
+    // submenu links unmount when collapsed
+    expect(screen.queryByRole('link', { name: 'Trees' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Data Structures' }));
+
+    // rail re-opened + section expanded in one click
+    expect(screen.getByRole('link', { name: 'Trees' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Data Structures' })
+    ).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  test('the category containing the active route is highlighted', () => {
+    renderLayoutAt('/array');
+
+    const dataStructures = screen.getByRole('button', { name: 'Data Structures' });
+    expect(dataStructures.className).toContain('font-semibold');
+
+    const algorithms = screen.getByRole('button', { name: 'Algorithms' });
+    expect(algorithms.className).not.toContain('font-semibold');
+  });
+
+  test('collapsed rail keeps aria-labels on icon-only links', () => {
+    renderLayout();
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle navigation' }));
+
+    expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Data Structures' })).toBeInTheDocument();
+  });
+});

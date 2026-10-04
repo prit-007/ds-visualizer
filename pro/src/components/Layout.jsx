@@ -38,11 +38,27 @@ const Layout = () => {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const toggleCategory = (category) => {
+    // Collapsed rail: one click re-opens the sidebar and expands the section
+    if (!isSidebarOpen) {
+      setIsSidebarOpen(true);
+      setExpandedCategories((prev) => ({ ...prev, [category]: true }));
+      return;
+    }
     setExpandedCategories({
       ...expandedCategories,
       [category]: !expandedCategories[category]
     });
   };
+
+  // Active-section marker: highlight a category when any child route is live
+  const categoryActive = (paths) => paths.some((path) => isActivePath(path));
+
+  const categoryClass = (active) =>
+    `w-full flex items-center justify-between px-4 py-2 text-left rounded-xl transition-colors duration-150 ${
+      active
+        ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/50 dark:text-indigo-100 font-semibold'
+        : 'text-indigo-700 dark:text-indigo-200 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-800'
+    }`;
 
   const isActivePath = (path) => location.pathname === path;
 
@@ -115,6 +131,7 @@ const Layout = () => {
                   to="/"
                   className={navLinkClass('/')}
                   aria-current={isActivePath('/') ? 'page' : undefined}
+                  aria-label="Home"
                   title={!isSidebarOpen ? 'Home' : undefined}
                 >
                   <Home size={20} />
@@ -126,9 +143,10 @@ const Layout = () => {
               <li>
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between px-4 py-2 text-left text-indigo-700 dark:text-indigo-200 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-800 rounded-xl transition-colors duration-150"
+                  className={categoryClass(categoryActive(['/array', '/linked-list', '/stack-queue', '/tree', '/graph', '/hash-table']))}
                   onClick={() => toggleCategory('dataStructures')}
                   aria-expanded={expandedCategories.dataStructures}
+                  aria-label="Data Structures"
                 >
                   <div className="flex items-center">
                     <Database size={20} />
@@ -181,9 +199,10 @@ const Layout = () => {
               <li>
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between px-4 py-2 text-left text-indigo-700 dark:text-indigo-200 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-800 rounded-xl transition-colors duration-150"
+                  className={categoryClass(categoryActive(['/sorting', '/searching', '/graph-algo', '/dynamic-programming', '/greedy']))}
                   onClick={() => toggleCategory('algorithms')}
                   aria-expanded={expandedCategories.algorithms}
+                  aria-label="Algorithms"
                 >
                   <div className="flex items-center">
                     <Code size={20} />
@@ -231,9 +250,10 @@ const Layout = () => {
               <li>
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between px-4 py-2 text-left text-indigo-700 dark:text-indigo-200 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-800 rounded-xl transition-colors duration-150"
+                  className={categoryClass(categoryActive(['/lessons', '/curriculum', '/complexity', '/challenges']))}
                   onClick={() => toggleCategory('tutorials')}
                   aria-expanded={expandedCategories.tutorials}
+                  aria-label="Tutorials"
                 >
                   <div className="flex items-center">
                     <BookOpen size={20} />
@@ -277,6 +297,7 @@ const Layout = () => {
                   to="/visualizer"
                   className={navLinkClass('/visualizer')}
                   aria-current={isActivePath('/visualizer') ? 'page' : undefined}
+                  aria-label="Visualizer"
                   title={!isSidebarOpen ? 'Visualizer' : undefined}
                 >
                   <BarChart2 size={20} />
@@ -297,13 +318,13 @@ const Layout = () => {
               </a>
             </li>
             <li>
-              <Link to="/settings" className={navLinkClass('/settings')} aria-current={isActivePath('/settings') ? 'page' : undefined} title={!isSidebarOpen ? 'Settings' : undefined}>
+              <Link to="/settings" className={navLinkClass('/settings')} aria-current={isActivePath('/settings') ? 'page' : undefined} aria-label="Settings" title={!isSidebarOpen ? 'Settings' : undefined}>
                 <Settings size={20} />
                 {isSidebarOpen && <span className="ml-3 font-medium">Settings</span>}
               </Link>
             </li>
             <li>
-              <Link to="/help" className={navLinkClass('/help')} aria-current={isActivePath('/help') ? 'page' : undefined} title={!isSidebarOpen ? 'Help' : undefined}>
+              <Link to="/help" className={navLinkClass('/help')} aria-current={isActivePath('/help') ? 'page' : undefined} aria-label="Help" title={!isSidebarOpen ? 'Help' : undefined}>
                 <HelpCircle size={20} />
                 {isSidebarOpen && <span className="ml-3 font-medium">Help</span>}
               </Link>

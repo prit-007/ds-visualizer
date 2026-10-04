@@ -254,6 +254,9 @@ h3 {
   padding: 1.5rem;
   margin-top: 2rem;
   border: 1px solid #bae6fd;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .steps-container {
@@ -300,8 +303,11 @@ h3 {
 .player-controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 1rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .player-btn {
@@ -330,14 +336,18 @@ h3 {
 }
 
 .player-scrub {
-  flex: 1;
+  flex: 1 1 8rem;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   accent-color: #0284c7;
 }
 
 .player-counter {
   font-size: 0.75rem;
   color: #64748b;
-  min-width: 3.5rem;
+  min-width: 0;
+  white-space: nowrap;
   text-align: right;
 }
 
@@ -689,6 +699,12 @@ h3 {
   --surface-color: #1e293b;
   --text-primary: #f1f5f9;
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  /* Cohesive dark palette — panels, inputs and muted text share tokens */
+  --panel-color: #0f172a;
+  --panel-border: #1e293b;
+  --input-bg: #1e293b;
+  --input-border: #334155;
+  --muted-color: #94a3b8;
 }
 
 .dark body {
@@ -708,7 +724,8 @@ h3 {
 
 .dark .visualization-area,
 .dark .controls-area {
-  background-color: #1e293b;
+  background-color: var(--panel-color);
+  border: 1px solid var(--panel-border);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
 }
 
@@ -729,8 +746,8 @@ h3 {
 
 .dark .memory-representation,
 .dark .info-panel {
-  background-color: #0f172a;
-  border-color: #0369a1;
+  background-color: var(--panel-color);
+  border-color: var(--panel-border);
 }
 
 .dark .memory-pointer {
@@ -753,8 +770,8 @@ h3 {
 }
 
 .dark .steps-container {
-  background-color: #0f172a;
-  border-color: #334155;
+  background-color: var(--panel-color);
+  border-color: var(--input-border);
 }
 
 .dark .current-step {
@@ -845,9 +862,9 @@ h3 {
 }
 
 .dark .input-group input {
-  background-color: #1e293b;
-  border-color: #475569;
-  color: #f1f5f9;
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-primary);
 }
 
 .dark .input-group input:disabled {
@@ -861,7 +878,7 @@ h3 {
 }
 
 .dark .complexity-explanation {
-  color: #94a3b8;
+  color: var(--muted-color);
 }
 .view-toggle {
   display: inline-flex;
@@ -1145,6 +1162,40 @@ h3 {
 
   .operation-button {
     min-height: 44px;
+  }
+
+  /* Player: seeker drops to its own row; nothing escapes the container */
+  .player-scrub {
+    flex: 1 1 100%;
+    order: 10;
+  }
+
+  .player-counter {
+    min-width: 0;
+  }
+
+  .steps-container {
+    padding: 0.75rem;
+  }
+
+  .code-pane {
+    max-height: 220px;
+    font-size: 0.85rem;
+  }
+
+  /* Array canvas: tighter multiline wrap on small screens */
+  .array-bracket {
+    font-size: 3rem;
+  }
+
+  .array-elements {
+    gap: 0.5rem;
+  }
+
+  .array-element {
+    width: 52px;
+    height: 52px;
+    font-size: 1.1rem;
   }
 
   .input-group input {

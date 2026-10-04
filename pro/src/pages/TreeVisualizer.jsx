@@ -83,6 +83,7 @@ const TreeVisualizer = () => {
   const containerRef = useRef(null);
   const canvasWrapRef = useRef(null);
   const [wrapWidth, setWrapWidth] = useState(960);
+  const [viewportH, setViewportH] = useState(900);
   
   // Measure the canvas wrapper so wide trees scale down instead of
   // forcing horizontal scroll. ResizeObserver when available; window
@@ -90,7 +91,10 @@ const TreeVisualizer = () => {
   useEffect(() => {
     const el = canvasWrapRef.current;
     if (!el) return undefined;
-    const update = () => setWrapWidth(el.clientWidth || 960);
+    const update = () => {
+      setWrapWidth(el.clientWidth || 960);
+      setViewportH(window.innerHeight || 900);
+    };
     update();
     if (typeof ResizeObserver !== 'undefined') {
       const ro = new ResizeObserver(update);
@@ -678,8 +682,11 @@ const TreeVisualizer = () => {
 
   // Absolute layout for the coordinate canvas (empty when treeRoot is null)
   const layout = isBTree ? layoutBTree(btree.root) : layoutTree(treeRoot);
-  // Fit the whole tree into the visible width — scale down when needed.
-  const fitScale = Math.min(1, (wrapWidth - 8) / Math.max(layout.width, 1));
+  // Fit the whole tree into the visible width AND height — scale down when
+  // needed so the canvas never forces scrolling on any device.
+  const widthFit = (wrapWidth - 8) / Math.max(layout.width, 1);
+  const heightFit = (Math.max(220, viewportH - 300) - 16) / Math.max(layout.height, 1);
+  const fitScale = Math.min(1, widthFit, heightFit);
 
   const edgeState = (edge) => {
     if (edge.childValue === removingNodeValue) return "tree-edge-removing";

@@ -58,3 +58,31 @@ describe('dark mode coverage sweep', () => {
     expect(indexCss).toMatch(/\.dark\s*\{[^}]*--primary-color:\s*#38bdf8/);
   });
 });
+
+describe('player containment + responsive contracts', () => {
+  test('the seeker cannot escape its container', () => {
+    expect(indexCss).toMatch(/\.operation-visualizer\s*\{[^}]*overflow-x: hidden/);
+    expect(indexCss).toMatch(/\.operation-visualizer\s*\{[^}]*min-width: 0/);
+    expect(indexCss).toMatch(/\.player-scrub\s*\{[^}]*min-width: 0/);
+    expect(indexCss).toMatch(/\.player-controls\s*\{[^}]*flex-wrap: wrap/);
+  });
+
+  test('mobile rules shrink the array canvas and stack the player rows', () => {
+    const mobile = indexCss.slice(indexCss.indexOf('@media (max-width: 768px)'));
+    expect(mobile).toMatch(/\.player-scrub\s*\{[^}]*flex: 1 1 100%/);
+    expect(mobile).toMatch(/\.array-element\s*\{[^}]*width: 52px/);
+    expect(mobile).toMatch(/\.array-bracket\s*\{[^}]*font-size: 3rem/);
+    expect(mobile).toMatch(/\.code-pane\s*\{[^}]*max-height: 220px/);
+  });
+});
+
+describe('dark theme tokens', () => {
+  test('cohesive dark palette tokens exist and surfaces use them', () => {
+    expect(indexCss).toMatch(/\.dark\s*\{[^}]*--panel-color:\s*#0f172a/);
+    expect(indexCss).toMatch(/\.dark\s*\{[^}]*--input-bg:\s*#1e293b/);
+    expect(indexCss).toMatch(/\.dark\s*\{[^}]*--muted-color:\s*#94a3b8/);
+    expect(indexCss).toMatch(/\.dark \.visualization-area[^}]*var\(--panel-color\)/);
+    expect(indexCss).toMatch(/\.dark \.input-group input[^}]*var\(--input-bg\)/);
+    expect(indexCss).toMatch(/\.dark \.steps-container[^}]*var\(--panel-color\)/);
+  });
+});
