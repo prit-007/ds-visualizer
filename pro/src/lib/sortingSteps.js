@@ -4,6 +4,9 @@
 // replay steps 0..k when scrubbing. `line` is the 1-based line into
 // SORTING_PSEUDOCODE; `vars` feeds the variable watch. Builders simulate
 // the sort on a copy and narrate compare/swap/sorted-boundary events.
+// Each step also carries a build-time snapshot of the working array via
+// `ui.setDisplayArray` so the page can animate element positions (swaps
+// actually move) instead of only highlighting.
 
 const clearUi = (ui) => {
   ui.setComparePair?.(null);
@@ -15,19 +18,24 @@ export const buildBubbleSteps = (items, ui) => {
   const arr = [...items];
   const n = arr.length;
   const sorted = [];
+  const snapshot = () => [...arr];
   const steps = [
     {
       description: `Starting bubble sort on ${n} elements`,
       kind: 'move',
       line: 1,
       vars: { n },
-      action: () => clearUi(ui),
+      action: () => {
+        clearUi(ui);
+        ui.setDisplayArray?.([...items]);
+      },
     },
   ];
 
   for (let pass = 1; pass <= n - 1; pass++) {
     const endIdx = n - pass;
     if (endIdx <= 0) break;
+    const passHeaderSnap = snapshot();
     steps.push({
       description: `Pass ${pass}: bubbling the largest unsorted value to the end`,
       kind: 'compare',
@@ -36,6 +44,7 @@ export const buildBubbleSteps = (items, ui) => {
       action: () => {
         ui.setComparePair?.(null);
         ui.setSwapPair?.(null);
+        ui.setDisplayArray?.(passHeaderSnap);
       },
     });
 
@@ -43,6 +52,7 @@ export const buildBubbleSteps = (items, ui) => {
     for (let i = 0; i < endIdx; i++) {
       const a = arr[i];
       const b = arr[i + 1];
+      const cmpSnap = snapshot();
       steps.push({
         description: `Comparing positions ${i} and ${i + 1} (${a} vs ${b})`,
         kind: 'compare',
@@ -51,9 +61,13 @@ export const buildBubbleSteps = (items, ui) => {
         action: () => {
           ui.setComparePair?.([i, i + 1]);
           ui.setSwapPair?.(null);
+          ui.setDisplayArray?.(cmpSnap);
         },
       });
       if (a > b) {
+        arr[i] = b;
+        arr[i + 1] = a;
+        const swapSnap = snapshot();
         steps.push({
           description: `Swapping ${a} and ${b}`,
           kind: 'move',
@@ -62,12 +76,12 @@ export const buildBubbleSteps = (items, ui) => {
           action: () => {
             ui.setComparePair?.(null);
             ui.setSwapPair?.([i, i + 1]);
+            ui.setDisplayArray?.(swapSnap);
           },
         });
-        arr[i] = b;
-        arr[i + 1] = a;
         passSwaps += 1;
       } else {
+        const noSwapSnap = snapshot();
         steps.push({
           description: `${a} ≤ ${b} — no swap needed`,
           kind: 'compare',
@@ -75,6 +89,7 @@ export const buildBubbleSteps = (items, ui) => {
           vars: { i },
           action: () => {
             ui.setComparePair?.(null);
+            ui.setDisplayArray?.(noSwapSnap);
           },
         });
       }
@@ -82,6 +97,7 @@ export const buildBubbleSteps = (items, ui) => {
 
     sorted.unshift(endIdx);
     const bubbleSortedSnapshot = [...sorted];
+    const passDoneSnap = snapshot();
     steps.push({
       description: `Pass ${pass} complete — ${arr[endIdx]} is sorted at position ${endIdx}`,
       kind: 'found',
@@ -90,10 +106,12 @@ export const buildBubbleSteps = (items, ui) => {
       action: () => {
         ui.setSwapPair?.(null);
         ui.setSortedIndexes?.(bubbleSortedSnapshot);
+        ui.setDisplayArray?.(passDoneSnap);
       },
     });
 
     if (passSwaps === 0) {
+      const earlySnap = snapshot();
       steps.push({
         description: `No swaps in pass ${pass} — the array is already sorted`,
         kind: 'found',
@@ -101,12 +119,14 @@ export const buildBubbleSteps = (items, ui) => {
         vars: { pass },
         action: () => {
           ui.setSortedIndexes?.(arr.map((_, idx) => idx));
+          ui.setDisplayArray?.(earlySnap);
         },
       });
       break;
     }
   }
 
+  const finalSnap = snapshot();
   steps.push({
     description: `Array is sorted: ${arr.join(', ')}`,
     kind: 'found',
@@ -115,6 +135,7 @@ export const buildBubbleSteps = (items, ui) => {
     action: () => {
       clearUi(ui);
       ui.setSortedIndexes?.(arr.map((_, idx) => idx));
+      ui.setDisplayArray?.(finalSnap);
     },
   });
 
@@ -125,18 +146,23 @@ export const buildSelectionSteps = (items, ui) => {
   const arr = [...items];
   const n = arr.length;
   const sorted = [];
+  const snapshot = () => [...arr];
   const steps = [
     {
       description: `Starting selection sort on ${n} elements`,
       kind: 'move',
       line: 1,
       vars: { n },
-      action: () => clearUi(ui),
+      action: () => {
+        clearUi(ui);
+        ui.setDisplayArray?.([...items]);
+      },
     },
   ];
 
   for (let pass = 1; pass <= n - 1; pass++) {
     const from = pass - 1;
+    const passHeaderSnap = snapshot();
     steps.push({
       description: `Pass ${pass}: selecting the minimum of positions ${from}..${n - 1}`,
       kind: 'compare',
@@ -145,10 +171,12 @@ export const buildSelectionSteps = (items, ui) => {
       action: () => {
         ui.setComparePair?.(null);
         ui.setSwapPair?.(null);
+        ui.setDisplayArray?.(passHeaderSnap);
       },
     });
 
     let min = from;
+    const assumeSnap = snapshot();
     steps.push({
       description: `Assuming position ${min} (${arr[min]}) is the minimum`,
       kind: 'compare',
@@ -156,6 +184,7 @@ export const buildSelectionSteps = (items, ui) => {
       vars: { min, value: arr[min] },
       action: () => {
         ui.setActiveIndex?.(min);
+        ui.setDisplayArray?.(assumeSnap);
       },
     });
 
@@ -163,6 +192,7 @@ export const buildSelectionSteps = (items, ui) => {
       const stepJ = j;
       const stepMinIndex = min;
       const stepMinVal = arr[min];
+      const cmpSnap = snapshot();
       steps.push({
         description: `Comparing ${arr[j]} with minimum ${arr[min]} (position ${j})`,
         kind: 'compare',
@@ -170,12 +200,14 @@ export const buildSelectionSteps = (items, ui) => {
         vars: { j, a: arr[j], min: arr[min] },
         action: () => {
           ui.setComparePair?.([stepJ, stepMinIndex]);
+          ui.setDisplayArray?.(cmpSnap);
         },
       });
       if (arr[j] < arr[min]) {
         min = j;
         const stepNewMin = stepJ;
         const stepNewVal = arr[j];
+        const newMinSnap = snapshot();
         steps.push({
           description: `New minimum: ${stepNewVal} at position ${stepNewMin}`,
           kind: 'compare',
@@ -184,9 +216,11 @@ export const buildSelectionSteps = (items, ui) => {
           action: () => {
             ui.setActiveIndex?.(stepNewMin);
             ui.setComparePair?.(null);
+            ui.setDisplayArray?.(newMinSnap);
           },
         });
       } else {
+        const unchangedSnap = snapshot();
         steps.push({
           description: `${arr[j]} ≥ ${stepMinVal} — minimum unchanged`,
           kind: 'compare',
@@ -194,6 +228,7 @@ export const buildSelectionSteps = (items, ui) => {
           vars: { j, a: arr[j], min: stepMinVal },
           action: () => {
             ui.setComparePair?.(null);
+            ui.setDisplayArray?.(unchangedSnap);
           },
         });
       }
@@ -207,6 +242,7 @@ export const buildSelectionSteps = (items, ui) => {
       const tmp = arr[from];
       arr[from] = arr[min];
       arr[min] = tmp;
+      const swapSnap = snapshot();
       steps.push({
         description: `Swapping positions ${swapFrom} and ${swapTo} (${leftVal} ↔ ${rightVal})`,
         kind: 'move',
@@ -215,12 +251,14 @@ export const buildSelectionSteps = (items, ui) => {
         action: () => {
           ui.setComparePair?.(null);
           ui.setSwapPair?.([swapFrom, swapTo]);
+          ui.setDisplayArray?.(swapSnap);
         },
       });
     }
 
     sorted.push(from);
     const selectionSortedSnapshot = [...sorted];
+    const passDoneSnap = snapshot();
     steps.push({
       description:
         from === 0
@@ -232,10 +270,12 @@ export const buildSelectionSteps = (items, ui) => {
       action: () => {
         ui.setSwapPair?.(null);
         ui.setSortedIndexes?.(selectionSortedSnapshot);
+        ui.setDisplayArray?.(passDoneSnap);
       },
     });
   }
 
+  const finalSnap = snapshot();
   steps.push({
     description: `Array is sorted: ${arr.join(', ')}`,
     kind: 'found',
@@ -244,6 +284,7 @@ export const buildSelectionSteps = (items, ui) => {
     action: () => {
       clearUi(ui);
       ui.setSortedIndexes?.(arr.map((_, idx) => idx));
+      ui.setDisplayArray?.(finalSnap);
     },
   });
 
@@ -253,18 +294,23 @@ export const buildSelectionSteps = (items, ui) => {
 export const buildInsertionSteps = (items, ui) => {
   const arr = [...items];
   const n = arr.length;
+  const snapshot = () => [...arr];
   const steps = [
     {
       description: `Starting insertion sort on ${n} elements`,
       kind: 'move',
       line: 1,
       vars: { n },
-      action: () => clearUi(ui),
+      action: () => {
+        clearUi(ui);
+        ui.setDisplayArray?.([...items]);
+      },
     },
   ];
 
   for (let i = 1; i <= n - 1; i++) {
     const key = arr[i];
+    const passHeaderSnap = snapshot();
     steps.push({
       description: `Pass ${i}: inserting position ${i} into the sorted prefix`,
       kind: 'compare',
@@ -273,8 +319,10 @@ export const buildInsertionSteps = (items, ui) => {
       action: () => {
         ui.setComparePair?.(null);
         ui.setSwapPair?.(null);
+        ui.setDisplayArray?.(passHeaderSnap);
       },
     });
+    const takeKeySnap = snapshot();
     steps.push({
       description: `Taking key ${key} from position ${i}`,
       kind: 'move',
@@ -282,14 +330,15 @@ export const buildInsertionSteps = (items, ui) => {
       vars: { key, i },
       action: () => {
         ui.setActiveIndex?.(i);
+        ui.setDisplayArray?.(takeKeySnap);
       },
     });
 
     let j = i - 1;
-    let shifted = false;
     while (j >= 0) {
       const stepJ = j;
       const stepOther = arr[j];
+      const cmpSnap = snapshot();
       steps.push({
         description: `Comparing key ${key} with ${stepOther} at position ${stepJ}`,
         kind: 'compare',
@@ -297,10 +346,12 @@ export const buildInsertionSteps = (items, ui) => {
         vars: { j: stepJ, a: stepOther, key },
         action: () => {
           ui.setComparePair?.([stepJ, stepJ + 1]);
+          ui.setDisplayArray?.(cmpSnap);
         },
       });
       if (stepOther > key) {
         arr[stepJ + 1] = stepOther;
+        const shiftSnap = snapshot();
         steps.push({
           description: `Shifting ${stepOther} right to position ${stepJ + 1}`,
           kind: 'move',
@@ -309,11 +360,12 @@ export const buildInsertionSteps = (items, ui) => {
           action: () => {
             ui.setComparePair?.(null);
             ui.setSwapPair?.([stepJ, stepJ + 1]);
+            ui.setDisplayArray?.(shiftSnap);
           },
         });
         j -= 1;
-        shifted = true;
       } else {
+        const keyStaysSnap = snapshot();
         steps.push({
           description: `${key} ≥ ${stepOther} — key stays in place`,
           kind: 'compare',
@@ -321,6 +373,7 @@ export const buildInsertionSteps = (items, ui) => {
           vars: { j: stepJ, key },
           action: () => {
             ui.setComparePair?.(null);
+            ui.setDisplayArray?.(keyStaysSnap);
           },
         });
         break;
@@ -329,6 +382,7 @@ export const buildInsertionSteps = (items, ui) => {
 
     const placePos = j + 1;
     arr[placePos] = key;
+    const placeSnap = snapshot();
     steps.push({
       description: `Placing key ${key} at position ${placePos}`,
       kind: 'move',
@@ -337,14 +391,12 @@ export const buildInsertionSteps = (items, ui) => {
       action: () => {
         ui.setActiveIndex?.(placePos);
         ui.setSwapPair?.(null);
+        ui.setDisplayArray?.(placeSnap);
       },
     });
-
-    if (!shifted && j + 1 === i) {
-      // key never moved — sorted prefix grew in place
-    }
   }
 
+  const finalSnap = snapshot();
   steps.push({
     description: `Array is sorted: ${arr.join(', ')}`,
     kind: 'found',
@@ -353,6 +405,7 @@ export const buildInsertionSteps = (items, ui) => {
     action: () => {
       clearUi(ui);
       ui.setSortedIndexes?.(arr.map((_, idx) => idx));
+      ui.setDisplayArray?.(finalSnap);
     },
   });
 

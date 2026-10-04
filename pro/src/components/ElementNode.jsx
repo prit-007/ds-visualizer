@@ -11,7 +11,8 @@ const ElementNode = ({
   isRemoving = false,
   isSorted = false,
   className = "",
-  showIndex = true
+  showIndex = true,
+  layout = false
 }) => {
   const elementRef = useRef(null);
   
@@ -38,6 +39,7 @@ const ElementNode = ({
   return (
     <motion.div
       ref={elementRef}
+      layout={layout}
       initial={{ scale: 0, opacity: 0 }}
       animate={{ 
         scale: isRemoving ? 0 : 1, 

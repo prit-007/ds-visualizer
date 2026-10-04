@@ -109,6 +109,24 @@ describe('sorting runs', () => {
     expect(values).toEqual([1, 2]);
   });
 
+  test('bubble swap actually moves the smaller element left during playback', () => {
+    const { container } = render(<Sorting initialArray={[2, 1]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Run Bubble Sort' }));
+
+    // steps: 1 start, 2 pass header, 3 compare, 4 swap
+    for (let i = 0; i < 4; i += 1) {
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+    }
+
+    // display items reorder on the swap step — values now read 1, 2 in the canvas
+    const values = [...container.querySelectorAll('.sorting-element .element-value')].map(
+      (n) => n.textContent
+    );
+    expect(values).toEqual(['1', '2']);
+  });
+
   test('loading a malformed array is refused with a guided error', () => {
     render(<Sorting initialArray={[2, 1]} />);
     fireEvent.change(screen.getByPlaceholderText('e.g. 5, 3, 8, 1'), {

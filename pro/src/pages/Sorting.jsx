@@ -72,6 +72,11 @@ const Sorting = ({ initialArray }) => {
     }
     return initialArray ?? [...DEFAULT_ARRAY];
   });
+  // Animated canvas state: stable per-element ids so framer-motion `layout`
+  // can move nodes when a swap step reorders the display array.
+  const [displayItems, setDisplayItems] = useState(() =>
+    (initialArray ?? [...DEFAULT_ARRAY]).map((v, i) => ({ id: i, value: v }))
+  );
   const [arrayInput, setArrayInput] = useState("");
   const [activeTab, setActiveTab] = useState("bubble");
   const [comparePair, setComparePair] = useState(null);
@@ -105,15 +110,38 @@ const Sorting = ({ initialArray }) => {
     setSortedIndexes([]);
   };
 
+  // Rebuild displayItems for a new value list, reusing ids where values
+  // match so framer-motion animates position changes instead of remounting.
+  const syncFromValues = (values) => {
+    setDisplayItems((prev) => {
+      const used = new Set();
+      return values.map((v) => {
+        const match = prev.find((it) => it.value === v && !used.has(it.id));
+        if (match) {
+          used.add(match.id);
+          return match;
+        }
+        return { id: `n-${v}-${Math.random().toString(36).slice(2, 7)}`, value: v };
+      });
+    });
+  };
+
   const applyPreset = (values) => {
     setArray([...values]);
+    syncFromValues(values);
     clearHighlights();
     setError(null);
     setRun(null);
     setArrayInput("");
   };
 
-  const ui = { setComparePair, setSwapPair, setActiveIndex, setSortedIndexes };
+  const ui = {
+    setComparePair,
+    setSwapPair,
+    setActiveIndex,
+    setSortedIndexes,
+    setDisplayArray: syncFromValues,
+  };
 
   const handleLoadArray = () => {
     const parts = arrayInput.split(/[,\s]+/).filter((p) => p.length > 0);
@@ -142,6 +170,7 @@ const Sorting = ({ initialArray }) => {
       steps,
       () => {
         setArray(sorted);
+        syncFromValues(sorted);
         clearHighlights();
         setArrayInput("");
       },
@@ -190,11 +219,12 @@ const Sorting = ({ initialArray }) => {
             ) : (
               <div className="sorting-canvas">
                 <AnimatePresence mode="popLayout">
-                  {array.map((value, index) => (
+                  {displayItems.map((item, index) => (
                     <ElementNode
-                      key={`${index}-${value}`}
-                      value={value}
+                      key={item.id}
+                      value={item.value}
                       index={index}
+                      layout
                       isActive={
                         activeIndex === index ||
                         (comparePair !== null &&

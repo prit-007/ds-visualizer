@@ -474,6 +474,28 @@ export const SORTING_PSEUDOCODE = {
 };
 
 export const TREE_ALGO_PSEUDOCODE = {
+  bfs: [
+    'procedure bfs(root)',
+    '  queue ← [root]',
+    '  while queue ≠ ∅ do',
+    '    u ← dequeue(queue)',
+    '    visit u',
+    '    if u.left ≠ null then enqueue(queue, u.left)',
+    '    if u.right ≠ null then enqueue(queue, u.right)',
+    '  return visit order',
+    'end procedure',
+  ],
+  dfs: [
+    'procedure dfs(root)',
+    '  stack ← [root]',
+    '  while stack ≠ ∅ do',
+    '    u ← pop(stack)',
+    '    visit u',
+    '    if u.right ≠ null then push(stack, u.right)',
+    '    if u.left ≠ null then push(stack, u.left)',
+    '  return visit order',
+    'end procedure',
+  ],
   validate: [
     'procedure validateBST(node, lo, hi)',
     '  if node = null then return true',

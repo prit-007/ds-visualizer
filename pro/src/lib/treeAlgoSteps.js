@@ -139,6 +139,172 @@ export const buildMirrorSteps = (root, ui) => {
   return steps;
 };
 
+export const buildBFSSteps = (root, ui) => {
+  const steps = [
+    {
+      description: 'Starting BFS (level-order, uses a queue)',
+      kind: 'move',
+      line: 1,
+      action: () => {
+        ui.setActiveNodeValue?.(null);
+        ui.setHighlightedNodes?.([]);
+        ui.setTraversalResult?.([]);
+      },
+    },
+  ];
+
+  const visits = [];
+  if (!root) {
+    steps.push({
+      description: 'BFS complete — visit order: ',
+      kind: 'found',
+      line: 8,
+      vars: { order: [] },
+      action: () => {},
+    });
+    return steps;
+  }
+
+  const queue = [root];
+  while (queue.length > 0) {
+    const node = queue.shift();
+    visits.push(node.value);
+    const snapshot = [...visits];
+    steps.push({
+      description: `Visit node ${node.value}`,
+      kind: 'found',
+      line: 5,
+      vars: { node: node.value },
+      action: () => {
+        ui.setActiveNodeValue?.(node.value);
+        ui.setHighlightedNodes?.([node.value]);
+        ui.setTraversalResult?.(snapshot);
+      },
+    });
+    if (node.left) {
+      steps.push({
+        description: `Enqueue left child ${node.left.value} of ${node.value}`,
+        kind: 'move',
+        line: 6,
+        vars: { parent: node.value, child: node.left.value },
+        action: () => {
+          ui.setHighlightedNodes?.([node.left.value]);
+        },
+      });
+      queue.push(node.left);
+    }
+    if (node.right) {
+      steps.push({
+        description: `Enqueue right child ${node.right.value} of ${node.value}`,
+        kind: 'move',
+        line: 7,
+        vars: { parent: node.value, child: node.right.value },
+        action: () => {
+          ui.setHighlightedNodes?.([node.right.value]);
+        },
+      });
+      queue.push(node.right);
+    }
+  }
+
+  steps.push({
+    description: `BFS complete — visit order: ${visits.join(', ')}`,
+    kind: 'found',
+    line: 8,
+    vars: { order: [...visits] },
+    action: () => {
+      ui.setActiveNodeValue?.(null);
+      ui.setHighlightedNodes?.([]);
+      ui.setTraversalResult?.([...visits]);
+    },
+  });
+
+  return steps;
+};
+
+export const buildDFSTreeSteps = (root, ui) => {
+  const steps = [
+    {
+      description: 'Starting DFS (pre-order, uses a stack)',
+      kind: 'move',
+      line: 1,
+      action: () => {
+        ui.setActiveNodeValue?.(null);
+        ui.setHighlightedNodes?.([]);
+        ui.setTraversalResult?.([]);
+      },
+    },
+  ];
+
+  const visits = [];
+  if (!root) {
+    steps.push({
+      description: 'DFS complete — visit order: ',
+      kind: 'found',
+      line: 8,
+      vars: { order: [] },
+      action: () => {},
+    });
+    return steps;
+  }
+
+  const stack = [root];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    visits.push(node.value);
+    const snapshot = [...visits];
+    steps.push({
+      description: `Visit node ${node.value}`,
+      kind: 'found',
+      line: 5,
+      vars: { node: node.value },
+      action: () => {
+        ui.setActiveNodeValue?.(node.value);
+        ui.setHighlightedNodes?.([node.value]);
+        ui.setTraversalResult?.(snapshot);
+      },
+    });
+    if (node.right) {
+      steps.push({
+        description: `Push right child ${node.right.value} of ${node.value} onto the stack`,
+        kind: 'move',
+        line: 7,
+        vars: { parent: node.value, child: node.right.value },
+        action: () => {
+          ui.setHighlightedNodes?.([node.right.value]);
+        },
+      });
+      stack.push(node.right);
+    }
+    if (node.left) {
+      steps.push({
+        description: `Push left child ${node.left.value} of ${node.value} onto the stack`,
+        kind: 'move',
+        line: 6,
+        vars: { parent: node.value, child: node.left.value },
+        action: () => {
+          ui.setHighlightedNodes?.([node.left.value]);
+        },
+      });
+      stack.push(node.left);
+    }
+  }
+
+  steps.push({
+    description: `DFS complete — visit order: ${visits.join(', ')}`,
+    kind: 'found',
+    line: 8,
+    vars: { order: [...visits] },
+    action: () => {
+      ui.setActiveNodeValue?.(null);
+      ui.setHighlightedNodes?.([]);
+      ui.setTraversalResult?.([...visits]);
+    },
+  });
+
+  return steps;
+};
+
 export const buildLCASteps = (root, a, b, ui) => {
   const steps = [
     {

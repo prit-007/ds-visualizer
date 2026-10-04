@@ -2,12 +2,15 @@ import {
   buildValidateBSTSteps,
   buildMirrorSteps,
   buildLCASteps,
+  buildBFSSteps,
+  buildDFSTreeSteps,
 } from './treeAlgoSteps';
 import { TREE_ALGO_PSEUDOCODE } from './pseudocode';
 
 const makeUi = () => ({
   setActiveNodeValue: vi.fn(),
   setHighlightedNodes: vi.fn(),
+  setTraversalResult: vi.fn(),
 });
 
 const node = (value, left = null, right = null) => ({ value, left, right });
@@ -185,5 +188,85 @@ describe('every step has a non-empty description', () => {
     ].forEach((steps) =>
       steps.forEach((s) => expect(s.description.length).toBeGreaterThan(0))
     );
+  });
+});
+
+describe('buildBFSSteps', () => {
+  test('walks level-by-level with queue narration', () => {
+    const ui = makeUi();
+    const steps = buildBFSSteps(node(20, node(10), node(30)), ui);
+
+    expect(descriptions(steps)).toEqual([
+      'Starting BFS (level-order, uses a queue)',
+      'Visit node 20',
+      'Enqueue left child 10 of 20',
+      'Enqueue right child 30 of 20',
+      'Visit node 10',
+      'Visit node 30',
+      'BFS complete — visit order: 20, 10, 30',
+    ]);
+
+    expect(kinds(steps)).toEqual([
+      'move',
+      'found',
+      'move',
+      'move',
+      'found',
+      'found',
+      'found',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([1, 5, 6, 7, 5, 5, 8]);
+    expect(steps[steps.length - 1].vars).toEqual({ order: [20, 10, 30] });
+
+    runAll(steps);
+    expect(ui.setTraversalResult).toHaveBeenCalled();
+  });
+
+  test('an empty tree still finishes with an empty order', () => {
+    const steps = buildBFSSteps(null, makeUi());
+    expect(descriptions(steps)).toEqual([
+      'Starting BFS (level-order, uses a queue)',
+      'BFS complete — visit order: ',
+    ]);
+  });
+});
+
+describe('buildDFSTreeSteps', () => {
+  test('walks depth-first with stack narration (pre-order)', () => {
+    const ui = makeUi();
+    const steps = buildDFSTreeSteps(node(20, node(10), node(30)), ui);
+
+    expect(descriptions(steps)).toEqual([
+      'Starting DFS (pre-order, uses a stack)',
+      'Visit node 20',
+      'Push right child 30 of 20 onto the stack',
+      'Push left child 10 of 20 onto the stack',
+      'Visit node 10',
+      'Visit node 30',
+      'DFS complete — visit order: 20, 10, 30',
+    ]);
+
+    expect(kinds(steps)).toEqual([
+      'move',
+      'found',
+      'move',
+      'move',
+      'found',
+      'found',
+      'found',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([1, 5, 7, 6, 5, 5, 8]);
+    expect(steps[steps.length - 1].vars).toEqual({ order: [20, 10, 30] });
+  });
+
+  test('descends left-first on a deeper tree', () => {
+    //      20
+    //     /  \
+    //   10    30
+    //   /
+    //  5
+    const steps = buildDFSTreeSteps(node(20, node(10, node(5)), node(30)), makeUi());
+    const text = descriptions(steps).join('\n');
+    expect(text).toContain('DFS complete — visit order: 20, 10, 5, 30');
   });
 });
