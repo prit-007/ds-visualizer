@@ -411,3 +411,423 @@ export const buildInsertionSteps = (items, ui) => {
 
   return steps;
 };
+
+export const buildMergeSteps = (items, ui) => {
+  const n = items.length;
+  const snapshot = () => [...display];
+  const display = [...items];
+  const steps = [
+    {
+      description: `Starting merge sort on ${n} elements`,
+      kind: 'move',
+      line: 1,
+      vars: { n },
+      action: () => {
+        clearUi(ui);
+        ui.setDisplayArray?.([...items]);
+      },
+    },
+  ];
+
+  const mergeSort = (arr, lo, hi) => {
+    if (arr.length <= 1) return arr;
+    const mid = Math.floor(arr.length / 2);
+    const splitSnap = snapshot();
+    steps.push({
+      description: `Splitting [${arr.join(', ')}] into [${arr.slice(0, mid).join(', ')}] and [${arr.slice(mid).join(', ')}]`,
+      kind: 'compare',
+      line: 3,
+      vars: { range: [lo, hi - 1], mid },
+      action: () => {
+        ui.setDisplayArray?.(splitSnap);
+      },
+    });
+    const left = mergeSort(arr.slice(0, mid), lo, lo + mid);
+    const right = mergeSort(arr.slice(mid), lo + mid, hi);
+
+    const mergeHeaderSnap = snapshot();
+    steps.push({
+      description: `Merging [${left.join(', ')}] and [${right.join(', ')}]`,
+      kind: 'compare',
+      line: 6,
+      vars: { left: [...left], right: [...right] },
+      action: () => {
+        ui.setDisplayArray?.(mergeHeaderSnap);
+      },
+    });
+
+    const result = [];
+    let i = 0;
+    let j = 0;
+    let out = lo;
+    while (i < left.length && j < right.length) {
+      const stepI = i;
+      const stepJ = j;
+      const cmpSnap = snapshot();
+      const takeVal = left[stepI] <= right[stepJ] ? left[stepI] : right[stepJ];
+      steps.push({
+        description: `Comparing heads ${left[stepI]} and ${right[stepJ]} → take ${takeVal}`,
+        kind: 'compare',
+        line: 7,
+        vars: { a: left[stepI], b: right[stepJ], take: takeVal },
+        action: () => {
+          ui.setComparePair?.([lo + stepI, lo + mid + stepJ]);
+          ui.setDisplayArray?.(cmpSnap);
+        },
+      });
+      if (left[stepI] <= right[stepJ]) {
+        const takenVal = left[stepI];
+        result.push(takenVal);
+        display[out] = takenVal;
+        const placedAt = out;
+        out += 1;
+        i += 1;
+        const takeSnap = snapshot();
+        steps.push({
+          description: `Taking ${takenVal} from the left run`,
+          kind: 'move',
+          line: 7,
+          vars: { value: takenVal },
+          action: () => {
+            ui.setComparePair?.(null);
+            ui.setSwapPair?.([placedAt, placedAt]);
+            ui.setDisplayArray?.(takeSnap);
+          },
+        });
+      } else {
+        const takenVal = right[stepJ];
+        result.push(takenVal);
+        display[out] = takenVal;
+        const placedAt = out;
+        out += 1;
+        j += 1;
+        const takeSnap = snapshot();
+        steps.push({
+          description: `Taking ${takenVal} from the right run`,
+          kind: 'move',
+          line: 7,
+          vars: { value: takenVal },
+          action: () => {
+            ui.setComparePair?.(null);
+            ui.setSwapPair?.([placedAt, placedAt]);
+            ui.setDisplayArray?.(takeSnap);
+          },
+        });
+      }
+    }
+    while (i < left.length) {
+      const takenVal = left[i];
+      result.push(takenVal);
+      display[out] = takenVal;
+      out += 1;
+      i += 1;
+      const takeSnap = snapshot();
+      steps.push({
+        description: `Taking ${takenVal} (leftover)`,
+        kind: 'move',
+        line: 8,
+        vars: { value: takenVal },
+        action: () => {
+          ui.setDisplayArray?.(takeSnap);
+        },
+      });
+    }
+    while (j < right.length) {
+      const takenVal = right[j];
+      result.push(takenVal);
+      display[out] = takenVal;
+      out += 1;
+      j += 1;
+      const takeSnap = snapshot();
+      steps.push({
+        description: `Taking ${takenVal} (leftover)`,
+        kind: 'move',
+        line: 8,
+        vars: { value: takenVal },
+        action: () => {
+          ui.setDisplayArray?.(takeSnap);
+        },
+      });
+    }
+
+    for (let k = 0; k < result.length; k += 1) {
+      display[lo + k] = result[k];
+    }
+    const runSnap = snapshot();
+    steps.push({
+      description: `Merged run: ${result.join(', ')}`,
+      kind: 'found',
+      line: 9,
+      vars: { run: [...result] },
+      action: () => {
+        ui.setSwapPair?.(null);
+        ui.setDisplayArray?.(runSnap);
+      },
+    });
+    return result;
+  };
+
+  const sortedArr = mergeSort([...items], 0, n);
+  const finalSnap = [...sortedArr];
+  steps.push({
+    description: `Merge sort complete: ${sortedArr.join(', ')}`,
+    kind: 'found',
+    line: 10,
+    vars: { sorted: [...sortedArr] },
+    action: () => {
+      clearUi(ui);
+      ui.setSortedIndexes?.(sortedArr.map((_, idx) => idx));
+      ui.setDisplayArray?.(finalSnap);
+    },
+  });
+
+  return steps;
+};
+
+export const buildQuickSteps = (items, ui) => {
+  const n = items.length;
+  const display = [...items];
+  const snapshot = () => [...display];
+  const steps = [
+    {
+      description: `Starting quick sort on ${n} elements`,
+      kind: 'move',
+      line: 1,
+      vars: { n },
+      action: () => {
+        clearUi(ui);
+        ui.setDisplayArray?.([...items]);
+      },
+    },
+  ];
+
+  const quickSort = (lo, hi) => {
+    if (lo >= hi) {
+      if (lo === hi) {
+        const singleSnap = snapshot();
+        steps.push({
+          description: `Single element [${display[lo]}] at position ${lo} is in place`,
+          kind: 'found',
+          line: 6,
+          vars: { pos: lo, value: display[lo] },
+          action: () => {
+            ui.setSortedIndexes?.((prev) => prev);
+            ui.setDisplayArray?.(singleSnap);
+          },
+        });
+      }
+      return;
+    }
+
+    const pivot = display[hi];
+    const pivotSnap = snapshot();
+    steps.push({
+      description: `Choosing pivot ${pivot} (last element of [${lo}..${hi}])`,
+      kind: 'compare',
+      line: 3,
+      vars: { pivot, lo, hi },
+      action: () => {
+        ui.setActiveIndex?.(hi);
+        ui.setDisplayArray?.(pivotSnap);
+      },
+    });
+
+    let store = lo;
+    for (let k = lo; k < hi; k += 1) {
+      const value = display[k];
+      const cmpSnap = snapshot();
+      steps.push({
+        description:
+          value <= pivot
+            ? `Comparing ${value} with pivot ${pivot} → left partition`
+            : `Comparing ${value} with pivot ${pivot} → right partition`,
+        kind: 'compare',
+        line: 3,
+        vars: { value, pivot, k },
+        action: () => {
+          ui.setComparePair?.([k, hi]);
+          ui.setDisplayArray?.(cmpSnap);
+        },
+      });
+      if (value <= pivot) {
+        if (store !== k) {
+          const tmp = display[store];
+          display[store] = value;
+          display[k] = tmp;
+          const toPos = store;
+          const fromPos = k;
+          const swapSnap = snapshot();
+          steps.push({
+            description: `Swapping ${value} and ${tmp} to grow the left partition`,
+            kind: 'move',
+            line: 3,
+            vars: { from: fromPos, to: toPos },
+            action: () => {
+              ui.setSwapPair?.([fromPos, toPos]);
+              ui.setDisplayArray?.(swapSnap);
+            },
+          });
+        }
+        store += 1;
+      }
+    }
+
+    if (store !== hi) {
+      const tmp = display[store];
+      display[store] = pivot;
+      display[hi] = tmp;
+    }
+    const placeSnap = snapshot();
+    steps.push({
+      description: `Placing pivot ${pivot} at position ${store}`,
+      kind: 'move',
+      line: 3,
+      vars: { pos: store, pivot },
+      action: () => {
+        ui.setActiveIndex?.(store);
+        ui.setSwapPair?.(null);
+        ui.setDisplayArray?.(placeSnap);
+      },
+    });
+
+    const recurseSnap = snapshot();
+    const leftSlice = display.slice(lo, store);
+    const rightSlice = display.slice(store + 1, hi + 1);
+    steps.push({
+      description: `Recursing on left [${leftSlice.join(', ')}] and right [${rightSlice.join(', ')}]`,
+      kind: 'compare',
+      line: 5,
+      vars: { lo, hi, p: store },
+      action: () => {
+        ui.setDisplayArray?.(recurseSnap);
+      },
+    });
+
+    quickSort(lo, store - 1);
+    quickSort(store + 1, hi);
+  };
+
+  quickSort(0, n - 1);
+  const finalSnap = [...display];
+  steps.push({
+    description: `Quick sort complete: ${display.join(', ')}`,
+    kind: 'found',
+    line: 7,
+    vars: { sorted: [...display] },
+    action: () => {
+      clearUi(ui);
+      ui.setSortedIndexes?.(display.map((_, idx) => idx));
+      ui.setDisplayArray?.(finalSnap);
+    },
+  });
+
+  return steps;
+};
+
+export const buildHeapSteps = (items, ui) => {
+  const n = items.length;
+  const heap = [...items];
+  const snapshot = () => [...heap];
+  const steps = [
+    {
+      description: `Starting heap sort on ${n} elements`,
+      kind: 'move',
+      line: 1,
+      vars: { n },
+      action: () => {
+        clearUi(ui);
+        ui.setDisplayArray?.([...items]);
+      },
+    },
+  ];
+
+  const siftDown = (start, end) => {
+    let root = start;
+    for (;;) {
+      const left = 2 * root + 1;
+      const right = 2 * root + 2;
+      let largest = root;
+      if (left <= end && heap[left] > heap[largest]) largest = left;
+      if (right <= end && heap[right] > heap[largest]) largest = right;
+      if (largest === root) return;
+      const parentVal = heap[root];
+      const childVal = heap[largest];
+      const fromIdx = root;
+      const toIdx = largest;
+      const tmp = heap[root];
+      heap[root] = heap[largest];
+      heap[largest] = tmp;
+      const swapSnap = snapshot();
+      steps.push({
+        description: `Sifting: swapping parent ${parentVal} with child ${childVal}`,
+        kind: 'move',
+        line: 4,
+        vars: { parent: parentVal, child: childVal, root: fromIdx, largest: toIdx },
+        action: () => {
+          ui.setSwapPair?.([fromIdx, toIdx]);
+          ui.setDisplayArray?.(swapSnap);
+        },
+      });
+      root = largest;
+    }
+  };
+
+  const buildSnap = snapshot();
+  steps.push({
+    description: 'Building max-heap',
+    kind: 'compare',
+    line: 3,
+    vars: { n },
+    action: () => {
+      ui.setDisplayArray?.(buildSnap);
+    },
+  });
+  for (let start = Math.floor(n / 2) - 1; start >= 0; start -= 1) {
+    siftDown(start, n - 1);
+  }
+
+  for (let end = n - 1; end > 0; end -= 1) {
+    const rootVal = heap[0];
+    const lastVal = heap[end];
+    const tmp = heap[0];
+    heap[0] = heap[end];
+    heap[end] = tmp;
+    const extractSnap = snapshot();
+    steps.push({
+      description: `Extracting max: swapping root ${rootVal} with last ${lastVal}`,
+      kind: 'move',
+      line: 6,
+      vars: { root: rootVal, last: lastVal },
+      action: () => {
+        ui.setSwapPair?.([0, end]);
+        ui.setDisplayArray?.(extractSnap);
+      },
+    });
+    const heapifySnap = snapshot();
+    steps.push({
+      description: `Heapifying the remaining heap [0..${end - 1}]`,
+      kind: 'compare',
+      line: 7,
+      vars: { end },
+      action: () => {
+        ui.setDisplayArray?.(heapifySnap);
+      },
+    });
+    siftDown(0, end - 1);
+  }
+
+  const finalSnap = [...heap];
+  steps.push({
+    description: `Heap sort complete: ${heap.join(', ')}`,
+    kind: 'found',
+    line: 9,
+    vars: { sorted: [...heap] },
+    action: () => {
+      clearUi(ui);
+      ui.setSortedIndexes?.(heap.map((_, idx) => idx));
+      ui.setDisplayArray?.(finalSnap);
+    },
+  });
+
+  return steps;
+};

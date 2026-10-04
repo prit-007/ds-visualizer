@@ -288,3 +288,63 @@ describe('Sorting.css contract', () => {
     expect(css).toMatch(/\.dark\s+\.sorting-canvas/);
   });
 });
+
+describe('merge, quick and heap sorts', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+    window.location.hash = '';
+  });
+
+  test('merge sort orders a small array and records the run', () => {
+    render(<Sorting initialArray={[2, 1]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Merge' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Merge Sort' }));
+    finishRun();
+
+    expect(listRuns('sorting')[0].label).toBe('Merge sort');
+    const values = [...document.querySelectorAll('.memory-value')].map((n) =>
+      Number(n.textContent)
+    );
+    expect(values).toEqual([1, 2]);
+  });
+
+  test('quick sort orders a small array and shows its pseudocode', () => {
+    const { container } = render(<Sorting initialArray={[2, 1]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Quick' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Quick Sort' }));
+    finishRun();
+
+    expect(listRuns('sorting')[0].label).toBe('Quick sort');
+    const pane = container.querySelector('.code-pane');
+    expect(pane.querySelectorAll('.code-line')).toHaveLength(
+      SORTING_PSEUDOCODE.quick.length
+    );
+  });
+
+  test('heap sort orders a small array', () => {
+    render(<Sorting initialArray={[3, 1, 2]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Heap' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Heap Sort' }));
+    finishRun();
+
+    expect(listRuns('sorting')[0].label).toBe('Heap sort');
+    const values = [...document.querySelectorAll('.memory-value')].map((n) =>
+      Number(n.textContent)
+    );
+    expect(values).toEqual([1, 2, 3]);
+  });
+
+  test('all six algorithms are offered as tabs', () => {
+    render(<Sorting />);
+    ['Bubble', 'Selection', 'Insertion', 'Merge', 'Quick', 'Heap'].forEach((label) => {
+      expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
+    });
+  });
+});

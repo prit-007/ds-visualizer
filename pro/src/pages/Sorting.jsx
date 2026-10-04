@@ -4,6 +4,9 @@ import {
   buildBubbleSteps,
   buildSelectionSteps,
   buildInsertionSteps,
+  buildMergeSteps,
+  buildQuickSteps,
+  buildHeapSteps,
 } from "../lib/sortingSteps";
 import { SORTING_PSEUDOCODE } from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
@@ -27,18 +30,27 @@ const TABS = [
   { id: "bubble", label: "Bubble" },
   { id: "selection", label: "Selection" },
   { id: "insertion", label: "Insertion" },
+  { id: "merge", label: "Merge" },
+  { id: "quick", label: "Quick" },
+  { id: "heap", label: "Heap" },
 ];
 
 const BUILDERS = {
   bubble: buildBubbleSteps,
   selection: buildSelectionSteps,
   insertion: buildInsertionSteps,
+  merge: buildMergeSteps,
+  quick: buildQuickSteps,
+  heap: buildHeapSteps,
 };
 
 const ALGORITHM_NAME = {
   bubble: "Bubble",
   selection: "Selection",
   insertion: "Insertion",
+  merge: "Merge",
+  quick: "Quick",
+  heap: "Heap",
 };
 
 const COMPLEXITY = {
@@ -59,6 +71,24 @@ const COMPLEXITY = {
     complexity: "O(n²)",
     explanation:
       "Insertion sort grows a sorted prefix one element at a time, shifting larger elements right. Fast on nearly-sorted input, quadratic in the worst case.",
+  },
+  merge: {
+    operationName: "Merge Sort",
+    complexity: "O(n log n)",
+    explanation:
+      "Merge sort splits the array in half recursively, then merges the sorted halves. Every level touches all n elements and there are log n levels.",
+  },
+  quick: {
+    operationName: "Quick Sort",
+    complexity: "O(n log n) avg",
+    explanation:
+      "Quick sort partitions around a pivot, then recurses on both sides. Average O(n log n); worst case O(n²) on already-sorted input with a bad pivot.",
+  },
+  heap: {
+    operationName: "Heap Sort",
+    complexity: "O(n log n)",
+    explanation:
+      "Heap sort builds a max-heap in place, then repeatedly extracts the maximum into the end of the array. Consistent O(n log n) with no extra memory.",
   },
 };
 

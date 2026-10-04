@@ -524,3 +524,39 @@ export const TREE_ALGO_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+SORTING_PSEUDOCODE.merge = [
+  'procedure mergeSort(array)',
+  '  if length(array) ≤ 1 then return array',
+  '  mid ← length(array) ÷ 2',
+  '  left ← mergeSort(array[0..mid-1])',
+  '  right ← mergeSort(array[mid..end])',
+  '  for each comparison during merge(left, right):',
+  '    append the smaller head to the result',
+  '  append any remaining elements',
+  '  return merged array',
+  'end procedure',
+];
+
+SORTING_PSEUDOCODE.quick = [
+  'procedure quickSort(array, lo, hi)',
+  '  if lo ≥ hi then return array',
+  '  pivot ← array[hi]',
+  '  partition: move elements ≤ pivot left of the pivot',
+  '  p ← final pivot position',
+  '  recurse on [lo..p-1] and [p+1..hi]',
+  '  return array',
+  'end procedure',
+];
+
+SORTING_PSEUDOCODE.heap = [
+  'procedure heapSort(array)',
+  '  n ← length(array)',
+  '  build max-heap',
+  '  sift-down: swap parent with larger child until heap property holds',
+  '  for end ← n-1 downto 1 do',
+  '    swap(array[0], array[end])  ▸ extract max',
+  '    sift-down(0, end-1)         ▸ restore heap',
+  '  return array',
+  'end procedure',
+];

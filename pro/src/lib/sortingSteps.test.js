@@ -2,6 +2,9 @@ import {
   buildBubbleSteps,
   buildSelectionSteps,
   buildInsertionSteps,
+  buildMergeSteps,
+  buildQuickSteps,
+  buildHeapSteps,
 } from './sortingSteps';
 import { SORTING_PSEUDOCODE } from './pseudocode';
 
@@ -161,5 +164,103 @@ describe('pseudocode lines and variable watch', () => {
     steps.forEach((s) =>
       expect(s.line).toBeLessThanOrEqual(SORTING_PSEUDOCODE.insertion.length)
     );
+  });
+});
+
+describe('buildMergeSteps', () => {
+  test('splits, compares heads and merges [2,1] into [1,2]', () => {
+    const ui = makeUi();
+    const steps = buildMergeSteps([2, 1], ui);
+
+    expect(descriptions(steps)).toEqual([
+      'Starting merge sort on 2 elements',
+      'Splitting [2, 1] into [2] and [1]',
+      'Merging [2] and [1]',
+      'Comparing heads 2 and 1 → take 1',
+      'Taking 1 from the right run',
+      'Taking 2 (leftover)',
+      'Merged run: 1, 2',
+      'Merge sort complete: 1, 2',
+    ]);
+
+    expect(kinds(steps)).toEqual([
+      'move',
+      'compare',
+      'compare',
+      'compare',
+      'move',
+      'move',
+      'found',
+      'found',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([1, 3, 6, 7, 7, 8, 9, 10]);
+    expect(steps[steps.length - 1].vars).toEqual({ sorted: [1, 2] });
+  });
+
+  test('multi-level merges on a three-element array end sorted', () => {
+    const steps = buildMergeSteps([3, 1, 2], makeUi());
+    const last = steps[steps.length - 1];
+    expect(last.description).toBe('Merge sort complete: 1, 2, 3');
+    expect(last.vars).toEqual({ sorted: [1, 2, 3] });
+  });
+});
+
+describe('buildQuickSteps', () => {
+  test('partitions around the last-element pivot', () => {
+    const ui = makeUi();
+    const steps = buildQuickSteps([2, 1], ui);
+
+    expect(descriptions(steps)).toEqual([
+      'Starting quick sort on 2 elements',
+      'Choosing pivot 1 (last element of [0..1])',
+      'Comparing 2 with pivot 1 → right partition',
+      'Placing pivot 1 at position 0',
+      'Recursing on left [] and right [2]',
+      'Single element [2] at position 1 is in place',
+      'Quick sort complete: 1, 2',
+    ]);
+
+    expect(kinds(steps)).toEqual(['move', 'compare', 'compare', 'move', 'compare', 'found', 'found']);
+    expect(steps.map((s) => s.line)).toEqual([1, 3, 3, 3, 5, 6, 7]);
+    expect(steps[steps.length - 1].vars).toEqual({ sorted: [1, 2] });
+  });
+});
+
+describe('buildHeapSteps', () => {
+  test('builds a max-heap then extracts the maximum', () => {
+    const ui = makeUi();
+    const steps = buildHeapSteps([2, 1], ui);
+
+    const text = descriptions(steps).join('\n');
+    expect(text).toContain('Starting heap sort on 2 elements');
+    expect(text).toContain('Building max-heap');
+    expect(text).toContain('Extracting max');
+    expect(descriptions(steps)[steps.length - 1]).toBe('Heap sort complete: 1, 2');
+    expect(steps[steps.length - 1].vars).toEqual({ sorted: [1, 2] });
+  });
+
+  test('a larger array ends sorted', () => {
+    const steps = buildHeapSteps([3, 1, 2], makeUi());
+    const last = steps[steps.length - 1];
+    expect(last.description).toBe('Heap sort complete: 1, 2, 3');
+    expect(last.vars).toEqual({ sorted: [1, 2, 3] });
+  });
+});
+
+describe('pseudocode lines for merge/quick/heap', () => {
+  test('every step maps into its listing', () => {
+    const ui = makeUi();
+    const sets = [
+      [buildMergeSteps([2, 1], ui), SORTING_PSEUDOCODE.merge],
+      [buildQuickSteps([2, 1], ui), SORTING_PSEUDOCODE.quick],
+      [buildHeapSteps([2, 1], ui), SORTING_PSEUDOCODE.heap],
+    ];
+    sets.forEach(([steps, listing]) => {
+      steps.forEach((s) => {
+        expect(Number.isInteger(s.line)).toBe(true);
+        expect(s.line).toBeGreaterThanOrEqual(1);
+        expect(s.line).toBeLessThanOrEqual(listing.length);
+      });
+    });
   });
 });
