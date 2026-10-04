@@ -2,7 +2,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import TreeVisualizer from './TreeVisualizer';
-import { TREE_PSEUDOCODE } from '../lib/pseudocode';
+import { TREE_PSEUDOCODE, TREE_ALGO_PSEUDOCODE } from '../lib/pseudocode';
 import { clearRuns, listRuns, recordRun } from '../lib/timeTravel';
 
 // Vite rewrites inline `new URL(x, import.meta.url)` against the dev-server
@@ -230,59 +230,87 @@ describe('tree canvas rendering', () => {
   });
 });
 
-describe('traversal controls', () => {
+describe('traversals & algorithms panel', () => {
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  test('offers all four traversals including level-order', () => {
+  test('offers BFS, DFS, in-order, post-order and the algorithms', () => {
     render(<TreeVisualizer />);
-    expect(screen.getByRole('button', { name: 'Pre-order' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'BFS' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'DFS' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'In-order' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Post-order' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Level-order' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Validate BST' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mirror' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'LCA' })).toBeInTheDocument();
   });
 
-  test('level-order run plays queue steps, marks its button and shows breadth-first chips', () => {
+  test('BFS run plays queue steps and shows breadth-first chips', () => {
     vi.useFakeTimers();
     const { container } = render(<TreeVisualizer />);
     insertValue(20);
     insertValue(10);
     insertValue(30);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Level-order' }));
-
-    const button = screen.getByRole('button', { name: 'Level-order' });
-    expect(button).toHaveClass('active');
-    expect(screen.getByRole('button', { name: 'In-order' })).not.toHaveClass('active');
+    fireEvent.click(screen.getByRole('button', { name: 'BFS' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run BFS' }));
 
     const pane = container.querySelector('.code-pane');
     expect(pane.querySelectorAll('.code-line')).toHaveLength(
-      TREE_PSEUDOCODE['traversal-levelOrder'].length
+      TREE_ALGO_PSEUDOCODE.bfs.length
     );
 
-    // start + visit 20 + enqueue 10 + enqueue 30 + visit 10 + visit 30 + final
+    // start + visit 20 + enqueue 10 + enqueue 30 + visit 10 + visit 30 + finale
     advance(6);
-    expect(screen.getByText('levelOrder Traversal Result')).toBeInTheDocument();
+    expect(screen.getByText(/Traversal Result/)).toBeInTheDocument();
     const chips = [...container.querySelectorAll('.traversal-item')].map(
       (chip) => chip.textContent
     );
     expect(chips).toEqual(['20 → ', '10 → ', '30']);
   });
 
-  test('css styles the traversal group, pills, result chips and dark mode', () => {
+  test('DFS run plays stack steps and records the traversal', () => {
+    vi.useFakeTimers();
+    render(<TreeVisualizer />);
+    insertValue(20);
+    insertValue(10);
+    insertValue(30);
+
+    fireEvent.click(screen.getByRole('button', { name: 'DFS' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run DFS' }));
+    finishRun();
+
+    const runs = listRuns('tree');
+    expect(runs[runs.length - 1].label).toBe('DFS traversal');
+  });
+
+  test('in-order still uses the classic traversal narration', () => {
+    vi.useFakeTimers();
+    const { container } = render(<TreeVisualizer />);
+    insertValue(20);
+    insertValue(10);
+    insertValue(30);
+
+    fireEvent.click(screen.getByRole('button', { name: 'In-order' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run In-order' }));
+
+    const pane = container.querySelector('.code-pane');
+    expect(pane.querySelectorAll('.code-line')).toHaveLength(
+      TREE_PSEUDOCODE['traversal-inOrder'].length
+    );
+  });
+
+  test('css styles the algo panel, chips and dark mode', () => {
     const css = readFileSync(
       fileURLToPath(new URL('./TreeVisualizer.css', moduleUrl)),
       'utf8'
     );
-    expect(css).toMatch(/\.traversal-section/);
-    expect(css).toMatch(/\.traversal-buttons/);
-    expect(css).toMatch(/\.traversal-btn \{/);
-    expect(css).toMatch(/\.traversal-btn\.active/);
-    expect(css).toMatch(/\.traversal-btn:disabled/);
+    expect(css).toMatch(/\.algo-panel/);
+    expect(css).toMatch(/\.algo-toggle/);
     expect(css).toMatch(/\.traversal-result/);
     expect(css).toMatch(/\.traversal-item/);
-    expect(css).toMatch(/\.dark \.traversal/);
+    expect(css).toMatch(/\.dark \.algo-panel/);
   });
 });
 
@@ -502,8 +530,9 @@ describe('tree algorithms', () => {
 
   test('empty tree refuses algorithms with a guided error', () => {
     render(<TreeVisualizer />);
-    // tree starts empty — algo toggle disabled; check via disabled state
-    expect(screen.getByRole('button', { name: 'Run Validation' })).toBeDisabled();
+    // tree starts empty — algo toggles and run button are disabled
+    expect(screen.getByRole('button', { name: 'BFS' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Run BFS' })).toBeDisabled();
   });
 
   test('css styles the algo panel and dark mode', () => {

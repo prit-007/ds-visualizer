@@ -16,7 +16,7 @@ import { sortedSequence, uniqueRandomValues } from "../lib/presets";
 import "./TreeVisualizer.css";
 import { AVLTree } from "../lib/avl";
 import { buildInsertSteps, buildDeleteSteps, buildSearchSteps, buildTraversalSteps } from "../lib/treeSteps";
-import { buildValidateBSTSteps, buildMirrorSteps, buildLCASteps } from "../lib/treeAlgoSteps";
+import { buildValidateBSTSteps, buildMirrorSteps, buildLCASteps, buildBFSSteps, buildDFSTreeSteps } from "../lib/treeAlgoSteps";
 import { TREE_PSEUDOCODE, TREE_ALGO_PSEUDOCODE } from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import { layoutTree } from "../lib/treeLayout";
@@ -53,7 +53,7 @@ const TreeVisualizer = () => {
   const [error, setError] = useState(null);
   const [showTraversalAnimation, setShowTraversalAnimation] = useState(false);
   const [rotations, setRotations] = useState(true);
-  const [algo, setAlgo] = useState("validate");
+  const [algo, setAlgo] = useState("bfs");
   const [lcaA, setLcaA] = useState("");
   const [lcaB, setLcaB] = useState("");
   const [view, setView] = useState("story");
@@ -259,32 +259,75 @@ const TreeVisualizer = () => {
     );
   };
   
-  const handleTraversal = (type) => {
-    setTraversalType(type);
-
-    const steps = buildTraversalSteps(tree.root, type, {
-      setActiveNodeValue,
-      setHighlightedNodes,
-      setTraversalResult,
-    });
-
-    setPseudocodeKey(`traversal-${type}`);
-    // Show traversal animation panel
-    setShowTraversalAnimation(true);
-
-    // Run the animation
-    startRun(
-      steps,
-      withCleanup(() => {
-        setShowTraversalAnimation(false);
-      }),
-      {
-        before: tree.preOrder(tree.root),
-        after: tree.preOrder(tree.root),
-        label: `${type} traversal`,
-        meta: { rotations: tree.rotations },
+  const handleRunAlgo = () => {
+    if (!tree.root && algo !== "validate") {
+      // validate on an empty tree is trivially valid; others need nodes
+      if (algo === "mirror" || algo === "lca" || algo === "bfs" || algo === "dfs" || algo === "inorder" || algo === "postorder") {
+        setError("Tree is empty — insert a node first");
+        return;
       }
-    );
+    }
+
+    if (algo === "bfs" || algo === "dfs") {
+      const steps =
+        algo === "bfs"
+          ? buildBFSSteps(tree.root, { setActiveNodeValue, setHighlightedNodes, setTraversalResult })
+          : buildDFSTreeSteps(tree.root, { setActiveNodeValue, setHighlightedNodes, setTraversalResult });
+      setPseudocodeKey(algo);
+      setTraversalType(algo === "bfs" ? "levelOrder" : "preOrder");
+      setShowTraversalAnimation(true);
+      startRun(
+        steps,
+        withCleanup(() => {
+          setShowTraversalAnimation(false);
+        }),
+        {
+          before: tree.preOrder(tree.root),
+          after: tree.preOrder(tree.root),
+          label: algo === "bfs" ? "BFS traversal" : "DFS traversal",
+          meta: { rotations: tree.rotations, algo },
+        }
+      );
+      return;
+    }
+
+    if (algo === "inorder" || algo === "postorder") {
+      const type = algo === "inorder" ? "inOrder" : "postOrder";
+      setTraversalType(type);
+      const steps = buildTraversalSteps(tree.root, type, {
+        setActiveNodeValue,
+        setHighlightedNodes,
+        setTraversalResult,
+      });
+      setPseudocodeKey(`traversal-${type}`);
+      setShowTraversalAnimation(true);
+      startRun(
+        steps,
+        withCleanup(() => {
+          setShowTraversalAnimation(false);
+        }),
+        {
+          before: tree.preOrder(tree.root),
+          after: tree.preOrder(tree.root),
+          label: `${type} traversal`,
+          meta: { rotations: tree.rotations, algo },
+        }
+      );
+      return;
+    }
+
+    if (algo === "validate") {
+      handleValidate();
+      return;
+    }
+    if (algo === "mirror") {
+      handleMirror();
+      return;
+    }
+    if (algo === "lca") {
+      handleLCA();
+      return;
+    }
   };
 
   const algoUi = { setActiveNodeValue, setHighlightedNodes };
@@ -503,6 +546,8 @@ const TreeVisualizer = () => {
               onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
               pseudocode={
+                pseudocodeKey === "bfs" ||
+                pseudocodeKey === "dfs" ||
                 pseudocodeKey === "validate" ||
                 pseudocodeKey === "mirror" ||
                 pseudocodeKey === "lca"
@@ -600,46 +645,11 @@ const TreeVisualizer = () => {
             </button>
           </div>
           
-          {/* Traversal section */}
-          <div className="traversal-section">
-            <h3>Tree Traversals</h3>
-            <div className="traversal-buttons">
-              <button 
-                className={`btn traversal-btn${showTraversalAnimation && traversalType === "preOrder" ? " active" : ""}`}
-                onClick={() => handleTraversal("preOrder")}
-                disabled={isAnimating || !tree.root}
-              >
-                Pre-order
-              </button>
-              <button 
-                className={`btn traversal-btn${showTraversalAnimation && traversalType === "inOrder" ? " active" : ""}`}
-                onClick={() => handleTraversal("inOrder")}
-                disabled={isAnimating || !tree.root}
-              >
-                In-order
-              </button>
-              <button 
-                className={`btn traversal-btn${showTraversalAnimation && traversalType === "postOrder" ? " active" : ""}`}
-                onClick={() => handleTraversal("postOrder")}
-                disabled={isAnimating || !tree.root}
-              >
-                Post-order
-              </button>
-              <button 
-                className={`btn traversal-btn${showTraversalAnimation && traversalType === "levelOrder" ? " active" : ""}`}
-                onClick={() => handleTraversal("levelOrder")}
-                disabled={isAnimating || !tree.root}
-              >
-                Level-order
-              </button>
-            </div>
-          </div>
-
-          {/* Tree algorithms */}
+          {/* Traversals + algorithms, unified */}
           <div className="algo-panel">
-            <h3>Tree Algorithms</h3>
+            <h3>Traversals &amp; Algorithms</h3>
             <div className="algo-toggle" role="group" aria-label="Algorithm">
-              {["validate", "mirror", "lca"].map((a) => (
+              {["bfs", "dfs", "inorder", "postorder", "validate", "mirror", "lca"].map((a) => (
                 <button
                   key={a}
                   type="button"
@@ -647,7 +657,19 @@ const TreeVisualizer = () => {
                   disabled={isAnimating || !tree.root}
                   onClick={() => setAlgo(a)}
                 >
-                  {a === "validate" ? "Validate BST" : a === "mirror" ? "Mirror" : "LCA"}
+                  {a === "bfs"
+                    ? "BFS"
+                    : a === "dfs"
+                      ? "DFS"
+                      : a === "inorder"
+                        ? "In-order"
+                        : a === "postorder"
+                          ? "Post-order"
+                          : a === "validate"
+                            ? "Validate BST"
+                            : a === "mirror"
+                              ? "Mirror"
+                              : "LCA"}
                 </button>
               ))}
             </div>
@@ -677,20 +699,22 @@ const TreeVisualizer = () => {
             )}
             <button
               className="btn btn-primary btn-full operation-button algo-run"
-              onClick={
-                algo === "validate"
-                  ? handleValidate
-                  : algo === "mirror"
-                    ? handleMirror
-                    : handleLCA
-              }
+              onClick={handleRunAlgo}
               disabled={isAnimating || !tree.root}
             >
-              {algo === "validate"
-                ? "Run Validation"
-                : algo === "mirror"
-                  ? "Mirror Tree"
-                  : "Find LCA"}
+              {algo === "bfs"
+                ? "Run BFS"
+                : algo === "dfs"
+                  ? "Run DFS"
+                  : algo === "inorder"
+                    ? "Run In-order"
+                    : algo === "postorder"
+                      ? "Run Post-order"
+                      : algo === "validate"
+                        ? "Run Validation"
+                        : algo === "mirror"
+                          ? "Mirror Tree"
+                          : "Find LCA"}
             </button>
           </div>
 
