@@ -235,3 +235,48 @@ export const HASH_TABLE_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+export const GRAPH_PSEUDOCODE = {
+  addNode: [
+    'procedure graphAddNode(graph, value)',
+    '  graph.nodes ← graph.nodes ∪ {value}',
+    '  n ← n + 1',
+    'end procedure',
+  ],
+  addEdge: [
+    'procedure graphAddEdge(graph, u, v)',
+    '  assert u ∈ nodes ∧ v ∈ nodes',
+    '  assert (u, v) ∉ edges ∧ u ≠ v',
+    '  edges ← edges ∪ {(u, v)}',
+    '  e ← e + 1',
+    'end procedure',
+  ],
+  bfs: [
+    'procedure graphBFS(graph, start)',
+    '  queue ← [start]',
+    '  visited ← ∅',
+    '  while queue ≠ ∅ do',
+    '    u ← dequeue(queue)',
+    '    visit u',
+    '    for each neighbor v of u do',
+    '      if v ∉ visited then',
+    '        visited ← visited ∪ {v}',
+    '        enqueue(queue, v)',
+    '  return visit order',
+    'end procedure',
+  ],
+  dfs: [
+    'procedure graphDFS(graph, start)',
+    '  visited ← ∅',
+    '  order ← []',
+    '  procedure visit(u)',
+    '    visited ← visited ∪ {u}',
+    '    order ← order ∪ [u]',
+    '    for each neighbor v of u do',
+    '      if v ∈ visited then skip v',
+    '      else visit(v)',
+    '  visit(start)',
+    '  return order',
+    'end procedure',
+  ],
+};

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { buildShareUrl } from "../lib/share";
 
-const ShareButton = ({ structure, values }) => {
+const ShareButton = ({ structure, values, extra }) => {
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
-    const scenario = { v: 1, structure, values };
+    const scenario = { v: 1, structure, values, ...(extra ?? {}) };
     const url = buildShareUrl(scenario);
     window.location.hash = url.split("#")[1];
     try {

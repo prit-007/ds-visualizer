@@ -1,0 +1,67 @@
+.graph-canvas {
+  position: relative;
+  margin: 1.5rem auto;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.graph-edges-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.graph-edge {
+  stroke: #94a3b8;
+  stroke-width: 2;
+}
+
+.graph-edge.active {
+  stroke: #0284c7;
+  stroke-width: 3;
+}
+
+.graph-node-slot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.graph-node {
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  border: 2px solid #0284c7;
+  background-color: white;
+  color: #1e293b;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.graph-node.active {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(2, 132, 199, 0.5);
+}
+
+.dark .graph-canvas {
+  background: transparent;
+}
+
+.dark .graph-edge {
+  stroke: #475569;
+}
+
+.dark .graph-edge.active {
+  stroke: #38bdf8;
+}
+
+.dark .graph-node {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border-color: #0369a1;
+}

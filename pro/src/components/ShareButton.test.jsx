@@ -41,6 +41,20 @@ describe('ShareButton', () => {
     });
   });
 
+  test('extra fields ride along in the scenario payload', () => {
+    render(
+      <ShareButton structure="graph" values={[1, 2]} extra={{ edges: [[1, 2]] }} />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Share' }));
+
+    expect(readScenario(window.location.hash)).toMatchObject({
+      structure: 'graph',
+      values: [1, 2],
+      edges: [[1, 2]],
+    });
+  });
+
   test('css contract: share styles live in index.css', () => {
     const css = readFileSync(fileURLToPath(new URL('../index.css', moduleUrl)), 'utf8');
 
