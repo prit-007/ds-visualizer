@@ -437,3 +437,38 @@ export const CIRCULAR_QUEUE_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+export const SORTING_PSEUDOCODE = {
+  bubble: [
+    'procedure bubbleSort(array)',
+    '  n ← length(array)',
+    '  for pass ← 1 to n - 1 do',
+    '    for i ← 0 to n - pass - 1 do',
+    '      if array[i] > array[i + 1] then swap(array[i], array[i + 1])',
+    '    array[n - pass] is now sorted',
+    '  if no swaps happened then return early',
+    '  return sorted array',
+  ],
+  selection: [
+    'procedure selectionSort(array)',
+    '  n ← length(array)',
+    '  for pass ← 1 to n - 1 do',
+    '    min ← pass - 1',
+    '    for j ← pass to n - 1 do',
+    '      if array[j] < array[min] then min ← j',
+    '    swap(array[pass - 1], array[min])',
+    '  return sorted array',
+  ],
+  insertion: [
+    'procedure insertionSort(array)',
+    '  n ← length(array)',
+    '  for i ← 1 to n - 1 do',
+    '    key ← array[i]',
+    '    j ← i - 1',
+    '    while j ≥ 0 and array[j] > key do',
+    '      array[j + 1] ← array[j]',
+    '      j ← j - 1',
+    '    array[j + 1] ← key',
+    '  return sorted array',
+  ],
+};

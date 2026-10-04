@@ -9,6 +9,7 @@ const ElementNode = ({
   isActive = false, 
   isHighlighted = false, 
   isRemoving = false,
+  isSorted = false,
   className = "",
   showIndex = true
 }) => {
@@ -41,12 +42,16 @@ const ElementNode = ({
       animate={{ 
         scale: isRemoving ? 0 : 1, 
         opacity: isRemoving ? 0 : 1,
-        backgroundColor: isHighlighted ? "var(--primary-color)" : "var(--surface-color)",
+        backgroundColor: isHighlighted
+          ? "var(--primary-color)"
+          : isSorted
+            ? "var(--sorted-color, #dcfce7)"
+            : "var(--surface-color)",
         color: isHighlighted ? "white" : "var(--text-primary)"
       }}
       exit={{ scale: 0, opacity: 0 }}
       transition={{ type: "spring", damping: 12 }}
-      className={`element-node ${isActive ? 'active' : ''} ${isHighlighted ? 'highlighted' : ''} ${className}`}
+      className={`element-node ${isActive ? 'active' : ''} ${isHighlighted ? 'highlighted' : ''} ${isSorted ? 'sorted' : ''} ${className}`}
     >
       <span className="element-value">{value}</span>
       {showIndex && <span className="element-index">{index}</span>}

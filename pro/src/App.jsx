@@ -14,6 +14,7 @@ import Challenges from './pages/Challenges';
 import StackQueue from './pages/StackQueue';
 import HashTable from './pages/HashTable';
 import Graph from './pages/Graph';
+import Sorting from './pages/Sorting';
 import ComingSoon from './pages/ComingSoon';
 
 const App = () => {
@@ -34,7 +35,7 @@ const App = () => {
           <Route path='/stack-queue' element={<StackQueue />} />
           <Route path='/graph' element={<Graph />} />
           <Route path='/hash-table' element={<HashTable />} />
-          <Route path='/sorting' element={<ComingSoon title="Sorting Visualizer" />} />
+          <Route path='/sorting' element={<Sorting />} />
           <Route path='/searching' element={<ComingSoon title="Searching Algorithms" />} />
           <Route path='/graph-algo' element={<ComingSoon title="Graph Algorithms" />} />
           <Route path='/dynamic-programming' element={<ComingSoon title="Dynamic Programming" />} />
