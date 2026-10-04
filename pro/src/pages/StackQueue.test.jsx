@@ -593,3 +593,19 @@ describe('StackQueue.css ring contract', () => {
     expect(css).toMatch(/\.dark\s+\.ring-slot/);
   });
 });
+
+
+describe('reset & clear', () => {
+  beforeEach(() => {
+    clearRuns();
+  });
+
+  test('clear empties the structure; reset restores the demo state', () => {
+    render(<StackQueue />);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(screen.getByText('Stack is empty — push an element to get started.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(screen.getAllByText('10').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('30').length).toBeGreaterThan(0);
+  });
+});

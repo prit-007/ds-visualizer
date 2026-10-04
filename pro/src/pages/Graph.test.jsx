@@ -347,3 +347,18 @@ describe('Graph.css contract', () => {
     expect(css).toMatch(/\.dark\s+\.graph-edge/);
   });
 });
+
+
+describe('reset & clear', () => {
+  beforeEach(() => {
+    clearRuns();
+  });
+
+  test('clear empties the structure; reset restores the demo state', () => {
+    render(<Graph />);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(screen.getByText('Graph is empty — add a node to get started.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(screen.getAllByText('4').length).toBeGreaterThan(0);
+  });
+});

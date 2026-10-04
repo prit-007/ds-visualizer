@@ -186,6 +186,14 @@ const ArrayVisualizer = ({ initialArray }) => {
     );
   };
 
+  const handleReset = () => {
+    applyPreset(initialArray ?? [10, 20, 30, 40, 50]);
+  };
+
+  const handleClear = () => {
+    applyPreset([]);
+  };
+
   const handleForkRun = (run) => {
     if (run.structure === "array") applyPreset([...run.before]);
   };
@@ -209,6 +217,26 @@ const ArrayVisualizer = ({ initialArray }) => {
           <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
 
           <ShareButton structure="array" values={array} />
+
+          <div className="data-actions">
+            <button
+              type="button"
+              className="data-action-btn"
+              onClick={handleReset}
+              disabled={isAnimating}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="data-action-btn danger"
+              onClick={handleClear}
+              disabled={isAnimating}
+            >
+              Clear
+            </button>
+          </div>
+
 
           {view === "story" ? (
             <div className="array-container">

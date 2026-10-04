@@ -415,6 +415,14 @@ const TreeVisualizer = () => {
     );
   };
 
+  const handleReset = () => {
+    applyPreset([50, 25, 75, 10, 30, 60, 90]);
+  };
+
+  const handleClear = () => {
+    applyPreset([]);
+  };
+
   const handleForkRun = (run) => {
     if (run.structure === "tree") applyPreset([...run.before]);
   };
@@ -487,6 +495,26 @@ const TreeVisualizer = () => {
           <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
 
           <ShareButton structure="tree" values={tree.preOrder(treeRoot)} />
+
+          <div className="data-actions">
+            <button
+              type="button"
+              className="data-action-btn"
+              onClick={handleReset}
+              disabled={isAnimating}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="data-action-btn danger"
+              onClick={handleClear}
+              disabled={isAnimating}
+            >
+              Clear
+            </button>
+          </div>
+
 
           {view === "story" ? (
             <div className="tree-container">

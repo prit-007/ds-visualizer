@@ -217,6 +217,22 @@ const HashTable = ({ initialKeys }) => {
     );
   };
 
+  const handleReset = () => {
+    setBuckets(rebuildBuckets(initialKeys ?? [2, 14, 25, 36]));
+    clearHighlights();
+    setError(null);
+    setRun(null);
+    setKeyInput("");
+  };
+
+  const handleClear = () => {
+    setBuckets(rebuildBuckets([]));
+    clearHighlights();
+    setError(null);
+    setRun(null);
+    setKeyInput("");
+  };
+
   const handleForkRun = (runEntry) => {
     if (runEntry.structure === "hash-table") applyPreset([...runEntry.before]);
   };
@@ -249,6 +265,26 @@ const HashTable = ({ initialKeys }) => {
           <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
 
           <ShareButton structure="hash-table" values={flattenKeys(buckets)} />
+
+          <div className="data-actions">
+            <button
+              type="button"
+              className="data-action-btn"
+              onClick={handleReset}
+              disabled={isAnimating}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="data-action-btn danger"
+              onClick={handleClear}
+              disabled={isAnimating}
+            >
+              Clear
+            </button>
+          </div>
+
 
           {view === "story" ? (
             count === 0 ? (

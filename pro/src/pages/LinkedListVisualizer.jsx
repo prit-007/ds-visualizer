@@ -366,6 +366,14 @@ const LinkedListVisualizer = ({ initialNodes }) => {
     );
   };
 
+  const handleReset = () => {
+    applyPreset((initialNodes ?? [10, 20, 30, 40]).map((n) => n.value ?? n));
+  };
+
+  const handleClear = () => {
+    applyPreset([]);
+  };
+
   const handleForkRun = (run) => {
     if (run.structure === "linked-list") applyPreset([...run.before]);
   };
@@ -408,6 +416,26 @@ const LinkedListVisualizer = ({ initialNodes }) => {
             values={nodes.map((node) => node.value)}
             extra={{ listType }}
           />
+
+          <div className="data-actions">
+            <button
+              type="button"
+              className="data-action-btn"
+              onClick={handleReset}
+              disabled={isAnimating}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="data-action-btn danger"
+              onClick={handleClear}
+              disabled={isAnimating}
+            >
+              Clear
+            </button>
+          </div>
+
 
           {view === "story" ? (
             <div className="linked-list-display">

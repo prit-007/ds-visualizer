@@ -333,3 +333,19 @@ describe('HashTable.css contract', () => {
     expect(css).toMatch(/\.dark\s+\.hash-bucket/);
   });
 });
+
+
+describe('reset & clear', () => {
+  beforeEach(() => {
+    clearRuns();
+  });
+
+  test('clear empties the structure; reset restores the demo state', () => {
+    render(<HashTable />);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(screen.getByText('Hash table is empty — insert a key to get started.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(screen.getAllByText('14').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('36').length).toBeGreaterThan(0);
+  });
+});

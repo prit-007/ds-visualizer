@@ -448,6 +448,26 @@ const StackQueue = ({ initialItems }) => {
     setValue("");
   };
 
+  const handleReset = () => {
+    setStructure("stack");
+    setActiveTab("push");
+    setItems(initialItems ?? [10, 20, 30]);
+    setCircular(emptyRing());
+    clearHighlights();
+    setError(null);
+    setRun(null);
+    setValue("");
+  };
+
+  const handleClear = () => {
+    setItems([]);
+    setCircular(emptyRing());
+    clearHighlights();
+    setError(null);
+    setRun(null);
+    setValue("");
+  };
+
   const handleForkRun = (runEntry) => {
     if (runEntry.structure !== "stack-queue") return;
     if (runEntry.meta?.mode === "circular" && runEntry.before) {
@@ -596,6 +616,26 @@ const StackQueue = ({ initialItems }) => {
             values={items}
             extra={{ mode: structure }}
           />
+
+          <div className="data-actions">
+            <button
+              type="button"
+              className="data-action-btn"
+              onClick={handleReset}
+              disabled={isAnimating}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="data-action-btn danger"
+              onClick={handleClear}
+              disabled={isAnimating}
+            >
+              Clear
+            </button>
+          </div>
+
 
           {view === "story" ? (
             isCircular ? (

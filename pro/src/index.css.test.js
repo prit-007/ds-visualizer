@@ -33,3 +33,12 @@ describe('mobile media query', () => {
     expect(indexCss).toMatch(/\.input-group input\s*\{[^}]*font-size: 16px/);
   });
 });
+
+describe('data-actions toolbar', () => {
+  test('styles reset/clear buttons including dark mode', () => {
+    expect(indexCss).toMatch(/\.data-actions\s*\{/);
+    expect(indexCss).toMatch(/\.data-action-btn\s*\{/);
+    expect(indexCss).toMatch(/\.data-action-btn\.danger/);
+    expect(indexCss).toMatch(/\.dark \.data-action-btn/);
+  });
+});

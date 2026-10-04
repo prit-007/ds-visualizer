@@ -212,6 +212,14 @@ const Sorting = ({ initialArray }) => {
     );
   };
 
+  const handleReset = () => {
+    applyPreset(initialArray ?? [...DEFAULT_ARRAY]);
+  };
+
+  const handleClear = () => {
+    applyPreset([]);
+  };
+
   const handleForkRun = (runEntry) => {
     if (runEntry.structure === "sorting") applyPreset([...runEntry.before]);
   };
@@ -238,6 +246,26 @@ const Sorting = ({ initialArray }) => {
           <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
 
           <ShareButton structure="sorting" values={array} />
+
+          <div className="data-actions">
+            <button
+              type="button"
+              className="data-action-btn"
+              onClick={handleReset}
+              disabled={isAnimating}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="data-action-btn danger"
+              onClick={handleClear}
+              disabled={isAnimating}
+            >
+              Clear
+            </button>
+          </div>
+
 
           {view === "story" ? (
             array.length === 0 ? (

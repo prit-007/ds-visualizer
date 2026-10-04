@@ -308,3 +308,19 @@ describe('run history', () => {
     ).toEqual(['7']);
   });
 });
+
+
+describe('reset & clear', () => {
+  beforeEach(() => {
+    clearRuns();
+  });
+
+  test('clear empties the structure; reset restores the demo state', () => {
+    render(<ArrayVisualizer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(screen.getByText('Array is empty — add an element to get started.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(screen.getAllByText('10').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('50').length).toBeGreaterThan(0);
+  });
+});

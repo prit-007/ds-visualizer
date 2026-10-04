@@ -464,3 +464,19 @@ describe('list type toggle', () => {
     expect(screen.getAllByText('40').length).toBeGreaterThan(0);
   });
 });
+
+
+describe('reset & clear', () => {
+  beforeEach(() => {
+    clearRuns();
+  });
+
+  test('clear empties the structure; reset restores the demo state', () => {
+    render(<LinkedListVisualizer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(screen.getByText('Linked list is empty — add a node to get started.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(screen.getAllByText('10').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('40').length).toBeGreaterThan(0);
+  });
+});

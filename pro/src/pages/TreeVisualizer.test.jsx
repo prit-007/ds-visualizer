@@ -546,3 +546,19 @@ describe('tree algorithms', () => {
     expect(css).toMatch(/\.dark \.algo-panel/);
   });
 });
+
+
+describe('reset & clear', () => {
+  beforeEach(() => {
+    clearRuns();
+  });
+
+  test('clear empties the structure; reset restores the demo state', () => {
+    render(<TreeVisualizer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(screen.getByText('Tree is empty. Insert some values to begin.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(screen.getAllByText('50').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('25').length).toBeGreaterThan(0);
+  });
+});

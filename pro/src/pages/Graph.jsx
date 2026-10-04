@@ -275,6 +275,30 @@ const Graph = ({ initialNodes, initialEdges }) => {
     );
   };
 
+  const handleReset = () => {
+    setNodes([...(initialNodes ?? DEMO_NODES)]);
+    setEdges((initialEdges ?? DEMO_EDGES).map((e) => [...e]));
+    clearHighlights();
+    setError(null);
+    setRun(null);
+    setNodeInput("");
+    setFromInput("");
+    setToInput("");
+    setStartInput("");
+  };
+
+  const handleClear = () => {
+    setNodes([]);
+    setEdges([]);
+    clearHighlights();
+    setError(null);
+    setRun(null);
+    setNodeInput("");
+    setFromInput("");
+    setToInput("");
+    setStartInput("");
+  };
+
   const handleForkRun = (runEntry) => {
     if (runEntry.structure === "graph" && runEntry.before) {
       applyPreset({
@@ -309,6 +333,26 @@ const Graph = ({ initialNodes, initialEdges }) => {
           <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
 
           <ShareButton structure="graph" values={nodes} extra={{ edges }} />
+
+          <div className="data-actions">
+            <button
+              type="button"
+              className="data-action-btn"
+              onClick={handleReset}
+              disabled={isAnimating}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="data-action-btn danger"
+              onClick={handleClear}
+              disabled={isAnimating}
+            >
+              Clear
+            </button>
+          </div>
+
 
           {view === "story" ? (
             nodes.length === 0 ? (

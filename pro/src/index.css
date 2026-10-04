@@ -1152,3 +1152,59 @@ h3 {
     font-size: 16px; /* prevents iOS zoom-on-focus */
   }
 }
+
+/* Reset / Clear toolbar */
+.data-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.data-action-btn {
+  padding: 0.35rem 0.9rem;
+  border-radius: 9999px;
+  border: 1px solid #cbd5e1;
+  background-color: white;
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.data-action-btn:hover:not(:disabled) {
+  background-color: #f1f5f9;
+}
+
+.data-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.data-action-btn.danger {
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.data-action-btn.danger:hover:not(:disabled) {
+  background-color: #fef2f2;
+}
+
+.dark .data-action-btn {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border-color: #475569;
+}
+
+.dark .data-action-btn:hover:not(:disabled) {
+  background-color: #334155;
+}
+
+.dark .data-action-btn.danger {
+  border-color: #b91c1c;
+  color: #fca5a5;
+}
+
+.dark .data-action-btn.danger:hover:not(:disabled) {
+  background-color: #450a0a;
+}
