@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import StackQueue from './StackQueue';
 import { STACK_PSEUDOCODE, QUEUE_PSEUDOCODE } from '../lib/pseudocode';
-import { clearRuns, listRuns } from '../lib/timeTravel';
+import { clearRuns, listRuns, recordRun } from '../lib/timeTravel';
 
 vi.mock('gsap', () => ({
   gsap: { to: vi.fn(), set: vi.fn(), timeline: vi.fn() },
@@ -387,5 +387,209 @@ describe('StackQueue.css contract', () => {
     expect(css).toMatch(/\.stack-queue-element\s*\{/);
     expect(css).toMatch(/\.dark\s+\.structure-toggle/);
     expect(css).toMatch(/\.dark\s+\.stack-queue-container/);
+  });
+});
+
+describe('deque mode', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+    window.location.hash = '';
+  });
+
+  test('switching to Deque swaps to four end-op tabs', () => {
+    render(<StackQueue initialItems={[10, 20]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Deque' }));
+    expect(screen.getByRole('button', { name: 'Deque' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: 'Push Front' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pop Rear' })).toBeInTheDocument();
+  });
+
+  test('push front shifts every element right', () => {
+    render(<StackQueue initialItems={[10, 20]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Deque' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Push Front' })); // tab
+    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+      target: { value: '5' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Push at Front' }));
+    finishRun();
+
+    const runs = listRuns('stack-queue');
+    expect(runs[0].label).toBe('Push front 5');
+    expect(runs[0].after).toEqual([5, 10, 20]);
+    const values = [...document.querySelectorAll('.memory-value')].map((n) =>
+      Number(n.textContent)
+    );
+    expect(values).toEqual([5, 10, 20]);
+  });
+
+  test('pop front removes the head and shifts the tail left', () => {
+    render(<StackQueue initialItems={[10, 20, 30]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Deque' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pop Front' })); // tab
+    fireEvent.click(screen.getByRole('button', { name: 'Pop at Front' }));
+    finishRun();
+
+    const runs = listRuns('stack-queue');
+    expect(runs[0].label).toBe('Pop front 10');
+    expect(runs[0].after).toEqual([20, 30]);
+  });
+
+  test('push rear appends like enqueue', () => {
+    render(<StackQueue initialItems={[10]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Deque' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Push Rear' })); // tab
+    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+      target: { value: '99' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Push at Rear' }));
+    finishRun();
+
+    expect(listRuns('stack-queue')[0].label).toBe('Push rear 99');
+    expect(listRuns('stack-queue')[0].after).toEqual([10, 99]);
+  });
+
+  test('pop rear removes the tail', () => {
+    render(<StackQueue initialItems={[10, 20, 30]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Deque' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pop Rear' })); // tab
+    fireEvent.click(screen.getByRole('button', { name: 'Pop at Rear' }));
+    finishRun();
+
+    expect(listRuns('stack-queue')[0].label).toBe('Pop rear 30');
+    expect(listRuns('stack-queue')[0].after).toEqual([10, 20]);
+  });
+
+  test('empty deque refuses pop with a guided error', () => {
+    render(<StackQueue initialItems={[]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Deque' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Pop Front' })); // tab
+    fireEvent.click(screen.getByRole('button', { name: 'Pop at Front' }));
+    expect(
+      screen.getByText('Deque is empty — insert an element first')
+    ).toBeInTheDocument();
+  });
+});
+
+describe('circular queue mode', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+    window.location.hash = '';
+  });
+
+  test('renders six ring slots with front/rear badges', () => {
+    const { container } = render(<StackQueue initialItems={[10, 20]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Circular' }));
+
+    expect(container.querySelectorAll('.ring-slot')).toHaveLength(6);
+    expect(container.querySelector('.ring-slot.front')).not.toBeNull();
+    expect(container.querySelectorAll('.ring-value')).toHaveLength(6);
+    // two filled slots show values; the rest show the empty dash
+    const dashes = [...container.querySelectorAll('.ring-value')].filter(
+      (n) => n.textContent === '—'
+    );
+    expect(dashes).toHaveLength(4);
+    // properties panel shows capacity/front/filled
+    expect(screen.getByText('Capacity:')).toBeInTheDocument();
+    expect(screen.getByText('Filled:')).toBeInTheDocument();
+  });
+
+  test('ring enqueue writes at the rear and records the run', () => {
+    render(<StackQueue initialItems={[10, 20]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Circular' }));
+    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+      target: { value: '30' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enqueue into Ring' }));
+    finishRun();
+
+    const runs = listRuns('stack-queue');
+    expect(runs[0].label).toBe('Ring enqueue 30');
+    expect(runs[0].after.slots[2]).toBe(30);
+    expect(runs[0].after.count).toBe(3);
+  });
+
+  test('ring dequeue advances the front index', () => {
+    render(<StackQueue initialItems={[10, 20, 30]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Circular' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Dequeue' })); // tab
+    fireEvent.click(screen.getByRole('button', { name: 'Dequeue from Ring' }));
+    finishRun();
+
+    const runs = listRuns('stack-queue');
+    expect(runs[0].label).toBe('Ring dequeue 10');
+    expect(runs[0].after.front).toBe(1);
+    expect(runs[0].after.count).toBe(2);
+  });
+
+  test('filling the ring refuses further enqueues with a full error', () => {
+    render(<StackQueue initialItems={[1, 2, 3, 4, 5, 6]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Circular' }));
+    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+      target: { value: '7' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enqueue into Ring' }));
+    expect(
+      screen.getByText('Circular queue is full (capacity 6) — dequeue first')
+    ).toBeInTheDocument();
+  });
+
+  test('dequeue on an empty ring is refused', () => {
+    render(<StackQueue initialItems={[]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Circular' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Dequeue' })); // tab
+    fireEvent.click(screen.getByRole('button', { name: 'Dequeue from Ring' }));
+    expect(
+      screen.getByText('Circular queue is empty — enqueue an element first')
+    ).toBeInTheDocument();
+  });
+
+  test('fork restores a ring run state', () => {
+    recordRun({
+      structure: 'stack-queue',
+      label: 'Seeded ring run',
+      before: { slots: [7, null, null, null, null, null], front: 0, count: 1 },
+      after: { slots: [7, 8, null, null, null, null], front: 0, count: 2 },
+      steps: ['step one'],
+      counters: { compare: 1, move: 1, found: 0, error: 0, total: 2 },
+      meta: { mode: 'circular' },
+    });
+
+    const { container } = render(<StackQueue initialItems={[1]} />);
+    expect(screen.getByText('Seeded ring run')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fork' }));
+    expect(screen.getByRole('button', { name: 'Circular' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(container.querySelectorAll('.ring-slot')).toHaveLength(6);
+  });
+});
+
+describe('StackQueue.css ring contract', () => {
+  test('owns the ring slot styles and dark variants', () => {
+    expect(css).toMatch(/\.ring-slots\s*\{/);
+    expect(css).toMatch(/\.ring-slot\s*\{/);
+    expect(css).toMatch(/\.ring-slot\.front/);
+    expect(css).toMatch(/\.ring-badge/);
+    expect(css).toMatch(/\.dark\s+\.ring-slot/);
   });
 });

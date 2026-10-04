@@ -5,6 +5,13 @@ import {
   buildEnqueueSteps,
   buildDequeueSteps,
   buildQueuePeekSteps,
+  buildPushFrontSteps,
+  buildPopFrontSteps,
+  buildPushRearSteps,
+  buildPopRearSteps,
+  buildCircularEnqueueSteps,
+  buildCircularDequeueSteps,
+  buildCircularPeekSteps,
 } from './stackQueueSteps';
 import { STACK_PSEUDOCODE, QUEUE_PSEUDOCODE } from './pseudocode';
 
@@ -237,5 +244,155 @@ describe('pseudocode lines and variable watch', () => {
     steps.forEach((s) =>
       expect(s.line).toBeLessThanOrEqual(QUEUE_PSEUDOCODE.peek.length)
     );
+  });
+});
+
+describe('buildPushFrontSteps (deque)', () => {
+  test('shifts every element right then writes at the front', () => {
+    const ui = makeUi();
+    const steps = buildPushFrontSteps([10, 20], 5, ui);
+
+    expect(descriptions(steps)).toEqual([
+      'Creating a new element with value 5',
+      'Finding the front of the deque (index 0)',
+      'Shifting element at index 1 to index 2',
+      'Shifting element at index 0 to index 1',
+      'Pushing 5 at the front',
+      'Deque size is now 3',
+    ]);
+
+    runAll(steps);
+    expect(shiftingCalls(ui)).toEqual([[], [1], [0], []]);
+    expect(kinds(steps)).toEqual([
+      'neutral',
+      'compare',
+      'move',
+      'move',
+      'move',
+      'found',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([1, 2, 4, 4, 5, 6]);
+    expect(steps[5].vars).toEqual({ size: 3 });
+  });
+});
+
+describe('buildPopFrontSteps (deque)', () => {
+  test('reads the front then shifts the tail left', () => {
+    const ui = makeUi();
+    const steps = buildPopFrontSteps([10, 20, 30], ui);
+
+    expect(descriptions(steps)).toEqual([
+      'Finding the front of the deque (index 0)',
+      'Popping 10 from the front',
+      'Shifting element at index 1 to index 0',
+      'Shifting element at index 2 to index 1',
+      'Deque size is now 2',
+    ]);
+
+    runAll(steps);
+    expect(removingCalls(ui)).toEqual([null, 0, null]);
+    expect(shiftingCalls(ui)).toEqual([[], [1], [2], []]);
+    expect(steps.map((s) => s.line)).toEqual([2, 3, 5, 5, 6]);
+    expect(steps[4].vars).toEqual({ size: 2 });
+  });
+});
+
+describe('buildPushRearSteps (deque)', () => {
+  test('appends at the rear with deque wording', () => {
+    const steps = buildPushRearSteps([10, 20], 30, makeUi());
+
+    expect(descriptions(steps)).toEqual([
+      'Creating a new element with value 30',
+      'Finding the rear of the deque (index 1)',
+      'Pushing 30 at the rear',
+      'Deque size is now 3',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([1, 2, 3, 4]);
+    expect(steps[3].vars).toEqual({ size: 3 });
+  });
+});
+
+describe('buildPopRearSteps (deque)', () => {
+  test('removes the rear with deque wording', () => {
+    const steps = buildPopRearSteps([10, 20, 30], makeUi());
+
+    expect(descriptions(steps)).toEqual([
+      'Finding the rear of the deque (index 2)',
+      'Popping 30 from the rear',
+      'Deque size is now 2',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([2, 3, 4]);
+    expect(steps[2].vars).toEqual({ size: 2 });
+  });
+});
+
+describe('buildCircularEnqueueSteps', () => {
+  test('writes at the rear slot and advances the fill count', () => {
+    const ui = makeUi();
+    const state = { slots: [10, null, null, null], front: 0, count: 1, capacity: 4 };
+    const steps = buildCircularEnqueueSteps(state, 20, ui);
+
+    expect(descriptions(steps)).toEqual([
+      'Creating a new element with value 20',
+      'Rear slot is index 1 ((front 0 + count 1) mod 4)',
+      'Writing 20 at ring index 1',
+      'Circular queue now has 2 of 4 slots filled',
+    ]);
+
+    runAll(steps);
+    expect(steps.map((s) => s.line)).toEqual([1, 3, 4, 5]);
+    expect(steps[1].vars).toEqual({ front: 0, count: 1, capacity: 4, rear: 1 });
+    expect(steps[2].vars).toEqual({ rear: 1, value: 20 });
+    expect(steps[3].vars).toEqual({ count: 2, capacity: 4 });
+  });
+
+  test('wraps the rear index around the ring', () => {
+    const state = { slots: [10, 20, 30, null], front: 2, count: 2, capacity: 4 };
+    // front=2, count=2 → rear = (2+2) mod 4 = 0
+    const steps = buildCircularEnqueueSteps(state, 40, makeUi());
+    expect(steps[1].description).toBe(
+      'Rear slot is index 0 ((front 2 + count 2) mod 4)'
+    );
+  });
+});
+
+describe('buildCircularDequeueSteps', () => {
+  test('reads the front slot then advances the front index', () => {
+    const ui = makeUi();
+    const state = { slots: [10, 20, null, null], front: 0, count: 2, capacity: 4 };
+    const steps = buildCircularDequeueSteps(state, ui);
+
+    expect(descriptions(steps)).toEqual([
+      'Front slot is index 0',
+      'Dequeuing 10 from ring index 0',
+      'Front advances to 1 ((0 + 1) mod 4)',
+      'Circular queue now has 1 of 4 slots filled',
+    ]);
+
+    runAll(steps);
+    expect(steps.map((s) => s.line)).toEqual([3, 4, 5, 6]);
+    expect(steps[1].vars).toEqual({ front: 0, value: 10 });
+    expect(steps[2].vars).toEqual({ front: 0, capacity: 4, next: 1 });
+    expect(steps[3].vars).toEqual({ count: 1, capacity: 4 });
+  });
+
+  test('front wraps when dequeuing the last occupied slot', () => {
+    const state = { slots: [null, null, 30, null], front: 2, count: 1, capacity: 4 };
+    const steps = buildCircularDequeueSteps(state, makeUi());
+    expect(steps[2].description).toBe('Front advances to 3 ((2 + 1) mod 4)');
+  });
+});
+
+describe('buildCircularPeekSteps', () => {
+  test('reports the front value without mutating', () => {
+    const state = { slots: [null, 20, null, null], front: 1, count: 1, capacity: 4 };
+    const steps = buildCircularPeekSteps(state, makeUi());
+
+    expect(descriptions(steps)).toEqual([
+      'Front slot is index 1',
+      'Front of the circular queue is 20',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([3, 4]);
+    expect(steps[1].vars).toEqual({ value: 20 });
   });
 });

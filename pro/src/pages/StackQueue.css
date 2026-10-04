@@ -106,3 +106,97 @@
   background-color: #0369a1;
   color: white;
 }
+
+.ring-slots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem 0;
+  min-height: 100px;
+}
+
+.ring-slot {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 2px dashed #94a3b8;
+  background-color: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.ring-slot.front {
+  border-style: solid;
+  border-color: #0284c7;
+  background-color: #f0f9ff;
+}
+
+.ring-slot.rear {
+  border-style: solid;
+  border-color: #8b5cf6;
+}
+
+.ring-slot.active {
+  transform: scale(1.08);
+  box-shadow: 0 0 16px rgba(2, 132, 199, 0.45);
+}
+
+.ring-slot.removing {
+  opacity: 0.45;
+}
+
+.ring-index {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.ring-value {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1e293b;
+}
+
+.ring-badge {
+  position: absolute;
+  bottom: -10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 8px;
+  border-radius: 9999px;
+  background-color: #0284c7;
+  color: white;
+}
+
+.ring-badge.rear-badge {
+  background-color: #8b5cf6;
+}
+
+.dark .ring-slot {
+  background-color: #1e293b;
+  border-color: #475569;
+}
+
+.dark .ring-slot.front {
+  border-color: #38bdf8;
+  background-color: #0c4a6e;
+}
+
+.dark .ring-slot.rear {
+  border-color: #a78bfa;
+}
+
+.dark .ring-value {
+  color: #e2e8f0;
+}
+
+.dark .ring-index {
+  color: #94a3b8;
+}

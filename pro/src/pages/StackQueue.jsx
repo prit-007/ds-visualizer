@@ -7,8 +7,20 @@ import {
   buildEnqueueSteps,
   buildDequeueSteps,
   buildQueuePeekSteps,
+  buildPushFrontSteps,
+  buildPopFrontSteps,
+  buildPushRearSteps,
+  buildPopRearSteps,
+  buildCircularEnqueueSteps,
+  buildCircularDequeueSteps,
+  buildCircularPeekSteps,
 } from "../lib/stackQueueSteps";
-import { STACK_PSEUDOCODE, QUEUE_PSEUDOCODE } from "../lib/pseudocode";
+import {
+  STACK_PSEUDOCODE,
+  QUEUE_PSEUDOCODE,
+  DEQUE_PSEUDOCODE,
+  CIRCULAR_QUEUE_PSEUDOCODE,
+} from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import ElementNode from "../components/ElementNode";
 import OperationPlayer from "../components/OperationPlayer";
@@ -26,17 +38,45 @@ import CasePresets from "../components/CasePresets";
 import { randomValues, sortedSequence } from "../lib/presets";
 import "./StackQueue.css";
 
-const STACK_TABS = [
-  { id: "push", label: "Push" },
-  { id: "pop", label: "Pop" },
-  { id: "peek", label: "Peek" },
-];
+const CAPACITY = 6;
 
-const QUEUE_TABS = [
-  { id: "enqueue", label: "Enqueue" },
-  { id: "dequeue", label: "Dequeue" },
-  { id: "peek", label: "Peek" },
-];
+const TABS_BY_STRUCTURE = {
+  stack: [
+    { id: "push", label: "Push" },
+    { id: "pop", label: "Pop" },
+    { id: "peek", label: "Peek" },
+  ],
+  queue: [
+    { id: "enqueue", label: "Enqueue" },
+    { id: "dequeue", label: "Dequeue" },
+    { id: "peek", label: "Peek" },
+  ],
+  deque: [
+    { id: "push-front", label: "Push Front" },
+    { id: "push-rear", label: "Push Rear" },
+    { id: "pop-front", label: "Pop Front" },
+    { id: "pop-rear", label: "Pop Rear" },
+  ],
+  circular: [
+    { id: "enqueue", label: "Enqueue" },
+    { id: "dequeue", label: "Dequeue" },
+    { id: "peek", label: "Peek" },
+  ],
+};
+
+const FIRST_TAB = {
+  stack: "push",
+  queue: "enqueue",
+  deque: "push-front",
+  circular: "enqueue",
+};
+
+const STRUCTURE_LABEL = {
+  stack: "Stack",
+  queue: "Queue",
+  deque: "Deque",
+  circular: "Circular",
+};
 
 const COMPLEXITY = {
   push: { operationName: "Push (top)", complexity: "O(1)", explanation: "Pushing onto the top of a stack is constant time — the new element is appended at the end." },
@@ -44,7 +84,19 @@ const COMPLEXITY = {
   peek: { operationName: "Peek (top/front)", complexity: "O(1)", explanation: "Reading the top or front element is constant time — no elements are moved." },
   enqueue: { operationName: "Enqueue (rear)", complexity: "O(1)", explanation: "Enqueuing at the rear is constant time — the new element is appended at the end." },
   dequeue: { operationName: "Dequeue (front)", complexity: "O(n)", explanation: "With array backing, removing the front shifts every remaining element one index left, so the work grows with the queue size." },
+  "push-front": { operationName: "Push Front", complexity: "O(n)", explanation: "Writing at the front of an array-backed deque shifts every element one index right to make room." },
+  "push-rear": { operationName: "Push Rear", complexity: "O(1)", explanation: "Appending at the rear is constant time — the new element lands at the end." },
+  "pop-front": { operationName: "Pop Front", complexity: "O(n)", explanation: "Removing the front shifts every remaining element one index left — same cost as array-backed dequeue." },
+  "pop-rear": { operationName: "Pop Rear", complexity: "O(1)", explanation: "Removing the rear element is constant time — no shifting needed." },
 };
+
+const CIRCULAR_COMPLEXITY = {
+  enqueue: { operationName: "Ring Enqueue", complexity: "O(1)", explanation: "The rear slot is computed with modulo arithmetic — no shifting, just one write at (front + count) mod capacity." },
+  dequeue: { operationName: "Ring Dequeue", complexity: "O(1)", explanation: "The front slot is read and the front index advances by one modulo capacity — no shifting." },
+  peek: { operationName: "Ring Peek", complexity: "O(1)", explanation: "Reading the front slot is a direct index — constant time." },
+};
+
+const emptyRing = () => ({ slots: Array(CAPACITY).fill(null), front: 0, count: 0 });
 
 const StackQueue = ({ initialItems }) => {
   const [items, setItems] = useState(() => {
@@ -54,10 +106,21 @@ const StackQueue = ({ initialItems }) => {
     }
     return initialItems ?? [10, 20, 30];
   });
-  const [structure, setStructure] = useState("stack");
+  const [structure, setStructure] = useState(() => {
+    const scenario = readScenario();
+    if (scenario && scenario.structure === "stack-queue") {
+      if (scenario.mode === "deque" || scenario.mode === "circular" || scenario.mode === "queue") {
+        return scenario.mode;
+      }
+    }
+    return "stack";
+  });
+  const [circular, setCircular] = useState(emptyRing);
   const [value, setValue] = useState("");
   const [activeTab, setActiveTab] = useState("push");
   const [activeElementIndex, setActiveElementIndex] = useState(null);
+  const [activeSlot, setActiveSlot] = useState(null);
+  const [removingSlot, setRemovingSlot] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [run, setRun] = useState(null);
   const [error, setError] = useState(null);
@@ -74,8 +137,9 @@ const StackQueue = ({ initialItems }) => {
     }
   }, [error]);
 
-  const isStack = structure === "stack";
-  const emptyLabel = isStack ? "Stack" : "Queue";
+  const isCircular = structure === "circular";
+  const emptyLabel = STRUCTURE_LABEL[structure] ?? "Structure";
+  const tabs = TABS_BY_STRUCTURE[structure] ?? TABS_BY_STRUCTURE.stack;
 
   const startRun = (steps, onComplete, runMeta) => {
     setIsAnimating(true);
@@ -97,6 +161,8 @@ const StackQueue = ({ initialItems }) => {
     setActiveElementIndex(null);
     setRemovingElementIndex(null);
     setShiftingElements([]);
+    setActiveSlot(null);
+    setRemovingSlot(null);
   };
 
   const ui = {
@@ -105,12 +171,31 @@ const StackQueue = ({ initialItems }) => {
     setRemovingElementIndex,
   };
 
+  const ringUi = { setActiveSlot, setRemovingSlot };
+
+  const parseIntField = (raw, emptyMessage) => {
+    if (!raw.trim()) {
+      setError(emptyMessage);
+      return null;
+    }
+    const v = parseInt(raw);
+    if (isNaN(v)) {
+      setError("Please enter a valid number");
+      return null;
+    }
+    return v;
+  };
+
   const guardEmpty = () => {
     if (items.length === 0) {
       setError(
-        isStack
-          ? "Stack is empty — push an element first"
-          : "Queue is empty — enqueue an element first"
+        isCircular
+          ? "Circular queue is empty — enqueue an element first"
+          : structure === "stack"
+            ? "Stack is empty — push an element first"
+            : structure === "deque"
+              ? "Deque is empty — insert an element first"
+              : "Queue is empty — enqueue an element first"
       );
       return false;
     }
@@ -118,21 +203,21 @@ const StackQueue = ({ initialItems }) => {
   };
 
   const handlePushOrEnqueue = () => {
-    if (!value.trim()) {
-      setError("Please enter a value");
-      return;
-    }
+    const newValue = parseIntField(value, "Please enter a value");
+    if (newValue === null) return;
 
-    const newValue = parseInt(value);
-    if (isNaN(newValue)) {
-      setError("Please enter a valid number");
-      return;
-    }
-
-    const steps = isStack
-      ? buildPushSteps(items, newValue, ui)
+    const isPush = structure === "stack" || structure === "deque";
+    const steps = isPush
+      ? structure === "stack"
+        ? buildPushSteps(items, newValue, ui)
+        : buildPushRearSteps(items, newValue, ui)
       : buildEnqueueSteps(items, newValue, ui);
     const nextItems = [...items, newValue];
+    const label = isPush
+      ? structure === "stack"
+        ? `Push ${newValue}`
+        : `Push rear ${newValue}`
+      : `Enqueue ${newValue}`;
     startRun(
       steps,
       () => {
@@ -143,7 +228,30 @@ const StackQueue = ({ initialItems }) => {
       {
         before: [...items],
         after: nextItems,
-        label: `${isStack ? "Push" : "Enqueue"} ${newValue}`,
+        label,
+        meta: { mode: structure },
+      }
+    );
+  };
+
+  const handlePushFront = () => {
+    const newValue = parseIntField(value, "Please enter a value");
+    if (newValue === null) return;
+
+    const steps = buildPushFrontSteps(items, newValue, ui);
+    const nextItems = [newValue, ...items];
+    startRun(
+      steps,
+      () => {
+        setItems(nextItems);
+        setValue("");
+        clearHighlights();
+      },
+      {
+        before: [...items],
+        after: nextItems,
+        label: `Push front ${newValue}`,
+        meta: { mode: "deque" },
       }
     );
   };
@@ -151,9 +259,19 @@ const StackQueue = ({ initialItems }) => {
   const handlePopOrDequeue = () => {
     if (!guardEmpty()) return;
 
-    const steps = isStack ? buildPopSteps(items, ui) : buildDequeueSteps(items, ui);
-    const removed = isStack ? items[items.length - 1] : items[0];
-    const nextItems = isStack ? items.slice(0, -1) : items.slice(1);
+    const steps =
+      structure === "stack"
+        ? buildPopSteps(items, ui)
+        : structure === "deque"
+          ? buildPopRearSteps(items, ui)
+          : buildDequeueSteps(items, ui);
+    const removed = structure === "stack" || structure === "deque" ? items[items.length - 1] : items[0];
+    const nextItems = structure === "stack" || structure === "deque" ? items.slice(0, -1) : items.slice(1);
+    const label = structure === "stack"
+      ? `Pop ${removed}`
+      : structure === "deque"
+        ? `Pop rear ${removed}`
+        : `Dequeue ${removed}`;
     startRun(
       steps,
       () => {
@@ -164,7 +282,30 @@ const StackQueue = ({ initialItems }) => {
       {
         before: [...items],
         after: nextItems,
-        label: `${isStack ? "Pop" : "Dequeue"} ${removed}`,
+        label,
+        meta: { mode: structure },
+      }
+    );
+  };
+
+  const handlePopFront = () => {
+    if (!guardEmpty()) return;
+
+    const steps = buildPopFrontSteps(items, ui);
+    const removed = items[0];
+    const nextItems = items.slice(1);
+    startRun(
+      steps,
+      () => {
+        setItems(nextItems);
+        setValue("");
+        clearHighlights();
+      },
+      {
+        before: [...items],
+        after: nextItems,
+        label: `Pop front ${removed}`,
+        meta: { mode: "deque" },
       }
     );
   };
@@ -172,9 +313,34 @@ const StackQueue = ({ initialItems }) => {
   const handlePeek = () => {
     if (!guardEmpty()) return;
 
-    const steps = isStack
-      ? buildStackPeekSteps(items, ui)
-      : buildQueuePeekSteps(items, ui);
+    let steps;
+    if (structure === "stack") {
+      steps = buildStackPeekSteps(items, ui);
+    } else if (structure === "queue") {
+      steps = buildQueuePeekSteps(items, ui);
+    } else {
+      // Deque peek: highlight the rear without removing.
+      steps = [
+        {
+          description: `Finding the rear of the deque (index ${items.length - 1})`,
+          kind: "compare",
+          line: 2,
+          vars: { n: items.length },
+          action: () => {
+            setActiveElementIndex(items.length - 1);
+            setRemovingElementIndex?.(null);
+            setShiftingElements?.([]);
+          },
+        },
+        {
+          description: `Rear of the deque is ${items[items.length - 1]}`,
+          kind: "found",
+          line: 4,
+          vars: { rear: items[items.length - 1] },
+          action: () => {},
+        },
+      ];
+    }
     startRun(
       steps,
       () => {
@@ -183,7 +349,87 @@ const StackQueue = ({ initialItems }) => {
       {
         before: [...items],
         after: [...items],
-        label: isStack ? "Peek top" : "Peek front",
+        label: structure === "stack" ? "Peek top" : structure === "deque" ? "Peek rear" : "Peek front",
+        meta: { mode: structure },
+      }
+    );
+  };
+
+  const handleCircularEnqueue = () => {
+    const newValue = parseIntField(value, "Please enter a value");
+    if (newValue === null) return;
+    if (circular.count >= CAPACITY) {
+      setError(`Circular queue is full (capacity ${CAPACITY}) — dequeue first`);
+      return;
+    }
+
+    const steps = buildCircularEnqueueSteps(circular, newValue, ringUi);
+    const rear = (circular.front + circular.count) % CAPACITY;
+    const nextSlots = [...circular.slots];
+    nextSlots[rear] = newValue;
+    const nextState = { slots: nextSlots, front: circular.front, count: circular.count + 1 };
+    startRun(
+      steps,
+      () => {
+        setCircular(nextState);
+        setValue("");
+        clearHighlights();
+      },
+      {
+        before: { slots: [...circular.slots], front: circular.front, count: circular.count },
+        after: { slots: [...nextSlots], front: circular.front, count: circular.count + 1 },
+        label: `Ring enqueue ${newValue}`,
+        meta: { mode: "circular" },
+      }
+    );
+  };
+
+  const handleCircularDequeue = () => {
+    if (circular.count === 0) {
+      setError("Circular queue is empty — enqueue an element first");
+      return;
+    }
+
+    const steps = buildCircularDequeueSteps(circular, ringUi);
+    const front = circular.front;
+    const removed = circular.slots[front];
+    const nextSlots = [...circular.slots];
+    nextSlots[front] = null;
+    const nextFront = (front + 1) % CAPACITY;
+    const nextCount = circular.count - 1;
+    startRun(
+      steps,
+      () => {
+        setCircular({ slots: nextSlots, front: nextFront, count: nextCount });
+        setValue("");
+        clearHighlights();
+      },
+      {
+        before: { slots: [...circular.slots], front: circular.front, count: circular.count },
+        after: { slots: [...nextSlots], front: nextFront, count: nextCount },
+        label: `Ring dequeue ${removed}`,
+        meta: { mode: "circular" },
+      }
+    );
+  };
+
+  const handleCircularPeek = () => {
+    if (circular.count === 0) {
+      setError("Circular queue is empty — enqueue an element first");
+      return;
+    }
+
+    const steps = buildCircularPeekSteps(circular, ringUi);
+    startRun(
+      steps,
+      () => {
+        clearHighlights();
+      },
+      {
+        before: { slots: [...circular.slots], front: circular.front, count: circular.count },
+        after: { slots: [...circular.slots], front: circular.front, count: circular.count },
+        label: "Ring peek",
+        meta: { mode: "circular" },
       }
     );
   };
@@ -191,7 +437,11 @@ const StackQueue = ({ initialItems }) => {
   const handleStructureChange = (next) => {
     if (next === structure || isAnimating) return;
     setStructure(next);
-    setActiveTab(next === "stack" ? "push" : "enqueue");
+    setActiveTab(FIRST_TAB[next]);
+    if (next === "circular" && circular.count === 0 && items.length > 0) {
+      const seeded = items.slice(0, CAPACITY);
+      setCircular({ slots: [...seeded, ...Array(CAPACITY - seeded.length).fill(null)], front: 0, count: seeded.length });
+    }
     setError(null);
     setRun(null);
     clearHighlights();
@@ -199,17 +449,123 @@ const StackQueue = ({ initialItems }) => {
   };
 
   const handleForkRun = (runEntry) => {
-    if (runEntry.structure === "stack-queue") applyPreset([...runEntry.before]);
+    if (runEntry.structure !== "stack-queue") return;
+    if (runEntry.meta?.mode === "circular" && runEntry.before) {
+      setStructure("circular");
+      setActiveTab("enqueue");
+      setCircular({
+        slots: [...runEntry.before.slots],
+        front: runEntry.before.front,
+        count: runEntry.before.count,
+      });
+      clearHighlights();
+      setError(null);
+      setRun(null);
+      setValue("");
+    } else {
+      applyPreset([...runEntry.before]);
+    }
   };
 
-  const memoryBlocks = items.map((itemValue, index) => ({
-    address: `0x${(index * 4 + 100).toString(16).toUpperCase()}`,
-    value: itemValue,
-    isActive: activeElementIndex === index,
-    isShifting: shiftingElements.includes(index),
+  const handleOperation = () => {
+    if (isCircular) {
+      if (activeTab === "enqueue") handleCircularEnqueue();
+      else if (activeTab === "dequeue") handleCircularDequeue();
+      else handleCircularPeek();
+      return;
+    }
+    if (structure === "deque") {
+      if (activeTab === "push-front") handlePushFront();
+      else if (activeTab === "push-rear") handlePushOrEnqueue();
+      else if (activeTab === "pop-front") handlePopFront();
+      else handlePopOrDequeue();
+      return;
+    }
+    if (activeTab === "push" || activeTab === "enqueue") handlePushOrEnqueue();
+    else if (activeTab === "pop" || activeTab === "dequeue") handlePopOrDequeue();
+    else handlePeek();
+  };
+
+  const operationButtonLabel = () => {
+    if (isCircular) {
+      return activeTab === "enqueue"
+        ? "Enqueue into Ring"
+        : activeTab === "dequeue"
+          ? "Dequeue from Ring"
+          : "Peek Ring Front";
+    }
+    if (structure === "deque") {
+      return activeTab === "push-front"
+        ? "Push at Front"
+        : activeTab === "push-rear"
+          ? "Push at Rear"
+          : activeTab === "pop-front"
+            ? "Pop at Front"
+            : "Pop at Rear";
+    }
+    return activeTab === "push"
+      ? "Push onto Stack"
+      : activeTab === "pop"
+        ? "Pop from Stack"
+        : activeTab === "enqueue"
+          ? "Enqueue at Rear"
+          : activeTab === "dequeue"
+            ? "Dequeue at Front"
+            : structure === "stack"
+              ? "Peek Top"
+              : "Peek Front";
+  };
+
+  const pseudocodeFor = () => {
+    if (structure === "stack") return STACK_PSEUDOCODE[activeTab];
+    if (structure === "queue") return QUEUE_PSEUDOCODE[activeTab];
+    if (structure === "deque") return DEQUE_PSEUDOCODE[activeTab];
+    return CIRCULAR_QUEUE_PSEUDOCODE[activeTab];
+  };
+
+  const complexityInfo = (() => {
+    if (structure === "circular") {
+      return CIRCULAR_COMPLEXITY[activeTab] ?? CIRCULAR_COMPLEXITY.enqueue;
+    }
+    return COMPLEXITY[activeTab] ?? COMPLEXITY.push;
+  })();
+
+  const showValueInput =
+    (isCircular && activeTab === "enqueue") ||
+    (!isCircular &&
+      (activeTab === "push" ||
+        activeTab === "enqueue" ||
+        activeTab === "push-front" ||
+        activeTab === "push-rear"));
+
+  const ringSlots = circular.slots.map((slotValue, i) => ({
+    index: i,
+    value: slotValue,
+    isFront: i === circular.front && circular.count > 0,
+    isRear:
+      circular.count > 0 &&
+      i === (circular.front + circular.count) % CAPACITY &&
+      circular.count < CAPACITY,
+    isActive: activeSlot === i,
+    isRemoving: removingSlot === i,
   }));
 
-  const complexityInfo = COMPLEXITY[activeTab] ?? COMPLEXITY.push;
+  const memoryBlocks = isCircular
+    ? Array.from({ length: circular.count }, (_, k) => {
+        const slot = (circular.front + k) % CAPACITY;
+        return {
+          address: `0x${(k * 4 + 100).toString(16).toUpperCase()}`,
+          value: circular.slots[slot],
+          isActive: activeSlot === slot,
+          isShifting: false,
+        };
+      })
+    : items.map((itemValue, index) => ({
+        address: `0x${(index * 4 + 100).toString(16).toUpperCase()}`,
+        value: itemValue,
+        isActive: activeElementIndex === index,
+        isShifting: shiftingElements.includes(index),
+      }));
 
   return (
     <div className="stack-queue-page" ref={containerRef}>
@@ -220,33 +576,59 @@ const StackQueue = ({ initialItems }) => {
           <h2>Stack & Queue Visualization</h2>
 
           <div className="structure-toggle" role="group" aria-label="Structure">
-            <button
-              type="button"
-              aria-pressed={isStack}
-              onClick={() => handleStructureChange("stack")}
-              disabled={isAnimating}
-            >
-              Stack
-            </button>
-            <button
-              type="button"
-              aria-pressed={!isStack}
-              onClick={() => handleStructureChange("queue")}
-              disabled={isAnimating}
-            >
-              Queue
-            </button>
+            {["stack", "queue", "deque", "circular"].map((s) => (
+              <button
+                key={s}
+                type="button"
+                aria-pressed={structure === s}
+                onClick={() => handleStructureChange(s)}
+                disabled={isAnimating}
+              >
+                {STRUCTURE_LABEL[s]}
+              </button>
+            ))}
           </div>
 
           <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
 
-          <ShareButton structure="stack-queue" values={items} />
+          <ShareButton
+            structure="stack-queue"
+            values={items}
+            extra={{ mode: structure }}
+          />
 
           {view === "story" ? (
-            items.length === 0 ? (
+            isCircular ? (
+              <div className="stack-queue-container">
+                <div className="ring-slots">
+                  {ringSlots.map((slot) => (
+                    <div
+                      key={slot.index}
+                      className={`ring-slot${slot.isFront ? " front" : ""}${slot.isRear ? " rear" : ""}${slot.isActive ? " active" : ""}${slot.isRemoving ? " removing" : ""}`}
+                    >
+                      <span className="ring-index">{slot.index}</span>
+                      <span className="ring-value">{slot.value ?? "—"}</span>
+                      {slot.isFront && <span className="ring-badge">front</span>}
+                      {slot.isRear && <span className="ring-badge rear-badge">rear</span>}
+                    </div>
+                  ))}
+                </div>
+                {circular.count === 0 && (
+                  <p className="empty-state">
+                    Circular queue is empty — enqueue to get started.
+                  </p>
+                )}
+              </div>
+            ) : items.length === 0 ? (
               <div className="stack-queue-container">
                 <p className="empty-state">
-                  {emptyLabel} is empty — {isStack ? "push" : "enqueue"} an element to get started.
+                  {emptyLabel} is empty —{" "}
+                  {structure === "stack"
+                    ? "push"
+                    : structure === "deque"
+                      ? "insert at either end"
+                      : "enqueue"}{" "}
+                  an element to get started.
                 </p>
               </div>
             ) : (
@@ -270,7 +652,9 @@ const StackQueue = ({ initialItems }) => {
                 <div className="stack-queue-bracket" aria-hidden="true">]</div>
               </div>
             )
-          ) : items.length === 0 ? (
+          ) : isCircular && circular.count === 0 ? (
+            <p className="empty-state">No memory cells yet — enqueue an element to get started.</p>
+          ) : !isCircular && items.length === 0 ? (
             <p className="empty-state">No memory cells yet — add an element to get started.</p>
           ) : (
             <MemoryRepresentation blocks={memoryBlocks} />
@@ -281,15 +665,15 @@ const StackQueue = ({ initialItems }) => {
               steps={run.steps}
               onComplete={() => {
                 run.onComplete?.();
-                recordOperation(`stack-queue:${activeTab}`);
+                recordOperation(`stack-queue:${structure}:${activeTab}`);
               }}
               onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
-              pseudocode={(isStack ? STACK_PSEUDOCODE : QUEUE_PSEUDOCODE)[activeTab]}
+              pseudocode={pseudocodeFor()}
             />
           )}
 
-          {view === "story" && items.length > 0 && (
+          {view === "story" && ((isCircular && circular.count > 0) || (!isCircular && items.length > 0)) && (
             <MemoryRepresentation blocks={memoryBlocks} />
           )}
         </div>
@@ -300,23 +684,25 @@ const StackQueue = ({ initialItems }) => {
           <ErrorMessage message={error} />
 
           <TabNavigation
-            tabs={isStack ? STACK_TABS : QUEUE_TABS}
+            tabs={tabs}
             activeTab={activeTab}
             onTabChange={setActiveTab}
             disabled={isAnimating}
           />
 
-          <CasePresets
-            disabled={isAnimating}
-            presets={[
-              { label: "Worst case", onClick: () => applyPreset(sortedSequence(12)) },
-              { label: "Average case", onClick: () => applyPreset([5, 3, 8]) },
-              { label: "Random case", onClick: () => applyPreset(randomValues(8)) },
-            ]}
-          />
+          {!isCircular && (
+            <CasePresets
+              disabled={isAnimating}
+              presets={[
+                { label: "Worst case", onClick: () => applyPreset(sortedSequence(12)) },
+                { label: "Average case", onClick: () => applyPreset([5, 3, 8]) },
+                { label: "Random case", onClick: () => applyPreset(randomValues(8)) },
+              ]}
+            />
+          )}
 
           <div className="operation-inputs">
-            {(activeTab === "push" || activeTab === "enqueue") && (
+            {showValueInput && (
               <div className="input-group">
                 <label>Value:</label>
                 <input
@@ -331,26 +717,10 @@ const StackQueue = ({ initialItems }) => {
 
             <button
               className="operation-button"
-              onClick={
-                activeTab === "push" || activeTab === "enqueue"
-                  ? handlePushOrEnqueue
-                  : activeTab === "pop" || activeTab === "dequeue"
-                    ? handlePopOrDequeue
-                    : handlePeek
-              }
+              onClick={handleOperation}
               disabled={isAnimating}
             >
-              {activeTab === "push"
-                ? "Push onto Stack"
-                : activeTab === "pop"
-                  ? "Pop from Stack"
-                  : activeTab === "enqueue"
-                    ? "Enqueue at Rear"
-                    : activeTab === "dequeue"
-                      ? "Dequeue at Front"
-                      : isStack
-                        ? "Peek Top"
-                        : "Peek Front"}
+              {operationButtonLabel()}
             </button>
           </div>
 
@@ -362,10 +732,18 @@ const StackQueue = ({ initialItems }) => {
 
           <PropertyDisplay
             title="Stack & Queue Properties"
-            properties={[
-              { name: "Length", value: items.length },
-              { name: "Memory Size", value: `${items.length * 4} bytes` },
-            ]}
+            properties={
+              isCircular
+                ? [
+                    { name: "Capacity", value: CAPACITY },
+                    { name: "Front", value: circular.front },
+                    { name: "Filled", value: circular.count },
+                  ]
+                : [
+                    { name: "Length", value: items.length },
+                    { name: "Memory Size", value: `${items.length * 4} bytes` },
+                  ]
+            }
           />
         </div>
 

@@ -374,3 +374,66 @@ export const LINKED_LIST_CIRCULAR_PSEUDOCODE = {
     '  return head',
   ],
 };
+
+export const DEQUE_PSEUDOCODE = {
+  pushFront: [
+    'procedure dequePushFront(deque, value)',
+    '  n ← length(deque)',
+    '  for i ← n - 1 downto 0 do',
+    '    deque[i + 1] ← deque[i]',
+    '  deque[0] ← value',
+    '  n ← n + 1',
+    'end procedure',
+  ],
+  pushRear: [
+    'procedure dequePushRear(deque, value)',
+    '  n ← length(deque)',
+    '  deque[n] ← value',
+    '  n ← n + 1',
+    'end procedure',
+  ],
+  popFront: [
+    'procedure dequePopFront(deque)',
+    '  n ← length(deque)',
+    '  removed ← deque[0]',
+    '  for i ← 1 to n - 1 do',
+    '    deque[i - 1] ← deque[i]',
+    '  n ← n - 1',
+    '  return removed',
+    'end procedure',
+  ],
+  popRear: [
+    'procedure dequePopRear(deque)',
+    '  n ← length(deque)',
+    '  removed ← deque[n - 1]',
+    '  n ← n - 1',
+    '  return removed',
+    'end procedure',
+  ],
+};
+
+export const CIRCULAR_QUEUE_PSEUDOCODE = {
+  enqueue: [
+    'procedure circularEnqueue(ring, value)',
+    '  if count = capacity then error "full"',
+    '  rear ← (front + count) mod capacity',
+    '  ring[rear] ← value',
+    '  count ← count + 1',
+    'end procedure',
+  ],
+  dequeue: [
+    'procedure circularDequeue(ring)',
+    '  if count = 0 then error "empty"',
+    '  removed ← ring[front]',
+    '  front ← (front + 1) mod capacity',
+    '  count ← count - 1',
+    '  return removed',
+    'end procedure',
+  ],
+  peek: [
+    'procedure circularPeek(ring)',
+    '  if count = 0 then error "empty"',
+    '  return ring[front]',
+    'end procedure',
+  ],
+};
