@@ -282,3 +282,164 @@ describe('pseudocode lines and variable watch', () => {
     );
   });
 });
+
+describe('doubly linked list type', () => {
+  const nodes = (values) => values.map((value, i) => ({ id: `n${i}`, value }));
+
+  test('add narrates the prev-pointer update before relinking next', () => {
+    const ui = makeUi();
+    const steps = buildAddSteps(nodes([10, 20]), 30, ui, 'doubly');
+
+    expect(descriptions(steps)).toEqual([
+      'Creating a new node with value 30',
+      'Checking head node (position 0, value 10)',
+      "Following the 'next' pointer to position 1 (value 20)",
+      "Setting the 'prev' pointer of the new tail to the old tail (value 20)",
+      "Updating the 'next' pointer of the last node",
+      'Linked list now has 3 nodes',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([2, 6, 7, 8, 9, 10]);
+    expect(steps[steps.length - 1].vars).toEqual({ length: 3 });
+  });
+
+  test('insert at head notes the new prev is null', () => {
+    const steps = buildInsertSteps(nodes([10, 20]), 5, 0, makeUi(), 'doubly');
+    expect(descriptions(steps)).toEqual([
+      'Creating a new node with value 5',
+      'This will be the new head of the list',
+      "Setting the 'next' pointer of the new node to current head",
+      "The new head's 'prev' pointer is null",
+      'Inserting the new node at position 0',
+      'Linked list now has 3 nodes',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([2, 3, 4, 5, 6, 14]);
+  });
+
+  test('insert mid relinks prev of the following node', () => {
+    const steps = buildInsertSteps(nodes([10, 20, 30]), 99, 2, makeUi(), 'doubly');
+    expect(descriptions(steps)).toEqual([
+      'Creating a new node with value 99',
+      'Checking head node (position 0, value 10)',
+      "Following the 'next' pointer to position 1 (value 20)",
+      "Setting the 'prev' pointer of the new node to node at position 1",
+      "Updating the 'next' pointer of node at position 1",
+      'Inserting the new node at position 2',
+      "Setting the 'prev' pointer of the node after the insertion point (position 3) to the new node",
+      'Linked list now has 4 nodes',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([2, 8, 9, 10, 12, 12, 13, 14]);
+  });
+
+  test('remove at head nulls the new head prev', () => {
+    const steps = buildRemoveSteps(nodes([10, 20, 30]), 0, makeUi(), 'doubly');
+    expect(descriptions(steps)).toEqual([
+      'Starting removal of the head node (value 10)',
+      'Setting head to the second node',
+      "The new head's 'prev' pointer is null",
+      'Removing node at position 0 (value: 10)',
+      'Linked list now has 2 nodes',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([2, 3, 4, 5, 13]);
+  });
+
+  test('remove mid relinks the following prev pointer', () => {
+    const steps = buildRemoveSteps(nodes([10, 20, 30, 40]), 1, makeUi(), 'doubly');
+    expect(descriptions(steps)).toEqual([
+      'Starting removal of the node at position 1 (value 20)',
+      'Checking head node (position 0, value 10)',
+      "Advancing cur to position 0 (already there)",
+      "Updating the 'next' pointer to skip the node at position 1",
+      "Relinking the 'prev' pointer of the next node to node at position 0",
+      'Removing node at position 1 (value: 20)',
+      'Linked list now has 3 nodes',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([6, 7, 8, 10, 11, 12, 13]);
+  });
+
+  test('every step carries a non-empty description', () => {
+    const list = nodes([1, 2]);
+    [
+      buildAddSteps(list, 3, makeUi(), 'doubly'),
+      buildInsertSteps(list, 3, 1, makeUi(), 'doubly'),
+      buildRemoveSteps(list, 0, makeUi(), 'doubly'),
+    ].forEach((steps) =>
+      steps.forEach((s) => expect(s.description.length).toBeGreaterThan(0))
+    );
+  });
+});
+
+describe('circular linked list type', () => {
+  const nodes = (values) => values.map((value, i) => ({ id: `n${i}`, value }));
+
+  test('add to empty closes the self-loop', () => {
+    const steps = buildAddSteps([], 7, makeUi(), 'circular');
+    expect(descriptions(steps)).toEqual([
+      'Creating a new node with value 7',
+      'The list is empty, the new node becomes the head',
+      "Closing the loop: the new node's 'next' points to itself",
+      'Linked list now has 1 nodes',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([2, 4, 5, 11]);
+  });
+
+  test('add narrates closing the loop back to the head', () => {
+    const steps = buildAddSteps(nodes([10, 20]), 30, makeUi(), 'circular');
+    expect(descriptions(steps)).toEqual([
+      'Creating a new node with value 30',
+      'Checking head node (position 0, value 10)',
+      "Following the 'next' pointer to position 1 (value 20)",
+      "Closing the loop: the new node's 'next' points back to the head (value 10)",
+      "Updating the 'next' pointer of the last node",
+      'Linked list now has 3 nodes',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([2, 7, 8, 9, 10, 11]);
+  });
+
+  test('insert at head relinks the tail to keep the loop closed', () => {
+    const steps = buildInsertSteps(nodes([10, 20]), 5, 0, makeUi(), 'circular');
+    expect(descriptions(steps)).toEqual([
+      'Creating a new node with value 5',
+      'This will be the new head of the list',
+      "Setting the 'next' pointer of the new node to current head",
+      'Finding the tail to keep the loop closed',
+      "Updating the tail's 'next' to point at the new head",
+      'Inserting the new node at position 0',
+      'Linked list now has 3 nodes',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([2, 3, 4, 6, 7, 8, 14]);
+  });
+
+  test('remove at head keeps the loop closed via the tail', () => {
+    const steps = buildRemoveSteps(nodes([10, 20, 30]), 0, makeUi(), 'circular');
+    expect(descriptions(steps)).toEqual([
+      'Starting removal of the head node (value 10)',
+      'Setting head to the second node',
+      "The tail's 'next' now points to the new head — the loop stays closed",
+      'Removing node at position 0 (value: 10)',
+      'Linked list now has 2 nodes',
+    ]);
+    expect(steps.map((s) => s.line)).toEqual([3, 6, 7, 8, 14]);
+  });
+
+  test('removing the last remaining node drops the loop', () => {
+    const steps = buildRemoveSteps(nodes([10]), 0, makeUi(), 'circular');
+    expect(descriptions(steps)).toEqual([
+      'Starting removal of the head node (value 10)',
+      'Setting head to the second node',
+      'The list becomes empty — the circular loop is removed',
+      'Removing node at position 0 (value: 10)',
+      'Linked list now has 0 nodes',
+    ]);
+  });
+
+  test('every step carries a non-empty description', () => {
+    const list = nodes([1, 2]);
+    [
+      buildAddSteps(list, 3, makeUi(), 'circular'),
+      buildInsertSteps(list, 3, 1, makeUi(), 'circular'),
+      buildRemoveSteps(list, 0, makeUi(), 'circular'),
+    ].forEach((steps) =>
+      steps.forEach((s) => expect(s.description.length).toBeGreaterThan(0))
+    );
+  });
+});

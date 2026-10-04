@@ -230,3 +230,72 @@ h2 {
   background-color: #312e81;
   color: #a5b4fc;
 }
+
+.list-type-toggle {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.list-type-toggle button {
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  border: 2px solid #4f46e5;
+  background-color: white;
+  color: #4f46e5;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.list-type-toggle button[aria-pressed='true'] {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.list-type-toggle button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.prev-indicator {
+  font-size: 0.7rem;
+  color: #a5b4fc;
+  margin: 0 0.25rem;
+  white-space: nowrap;
+}
+
+.circular-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  border: 2px dashed #8b5cf6;
+  color: #6d28d9;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background-color: #f5f3ff;
+}
+
+.dark .list-type-toggle button {
+  background-color: #1e293b;
+  color: #a5b4fc;
+  border-color: #6366f1;
+}
+
+.dark .list-type-toggle button[aria-pressed='true'] {
+  background-color: #6366f1;
+  color: white;
+}
+
+.dark .prev-indicator {
+  color: #6366f1;
+}
+
+.dark .circular-wrap {
+  background-color: #1e293b;
+  color: #c4b5fd;
+  border-color: #7c3aed;
+}

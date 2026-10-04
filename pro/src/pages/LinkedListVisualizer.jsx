@@ -3,7 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
 import "./LinkedListVisualizer.css";
 import { buildAddSteps, buildInsertSteps, buildRemoveSteps } from "../lib/linkedListSteps";
-import { LINKED_LIST_PSEUDOCODE } from "../lib/pseudocode";
+import {
+  LINKED_LIST_PSEUDOCODE,
+  LINKED_LIST_DOUBLY_PSEUDOCODE,
+  LINKED_LIST_CIRCULAR_PSEUDOCODE,
+} from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import { prefersReducedMotion } from "../lib/motionPrefs";
 import OperationPlayer from "../components/OperationPlayer";
@@ -137,6 +141,17 @@ const LinkedListVisualizer = ({ initialNodes }) => {
     }
     return initialNodes ?? [10, 20, 30, 40].map(createNode);
   });
+  const [listType, setListType] = useState(() => {
+    const scenario = readScenario();
+    if (
+      scenario &&
+      scenario.structure === "linked-list" &&
+      (scenario.listType === "doubly" || scenario.listType === "circular")
+    ) {
+      return scenario.listType;
+    }
+    return "singly";
+  });
   const [value, setValue] = useState("");
   const [position, setPosition] = useState("");
   const [activeTab, setActiveTab] = useState("add");
@@ -169,16 +184,25 @@ const LinkedListVisualizer = ({ initialNodes }) => {
     }
     return addressMapRef.current.get(node);
   };
-  const memoryBlocks = nodes.map((node, index) => ({
-    address: addressOf(node),
-    value: node.value,
-    pointers: [
-      {
-        label: "next",
-        target: index + 1 < nodes.length ? addressOf(nodes[index + 1]) : null,
-      },
-    ],
-  }));
+  const memoryBlocks = nodes.map((node, index) => {
+    // Assign the node's own address first so first-seen order stays array order.
+    const address = addressOf(node);
+    const pointers = [];
+    if (listType === "doubly") {
+      pointers.push({
+        label: "prev",
+        target: index > 0 ? addressOf(nodes[index - 1]) : null,
+      });
+    }
+    const nextTarget =
+      index + 1 < nodes.length
+        ? addressOf(nodes[index + 1])
+        : listType === "circular" && nodes.length > 0
+          ? addressOf(nodes[0])
+          : null;
+    pointers.push({ label: "next", target: nextTarget });
+    return { address, value: node.value, pointers };
+  });
   
   useEffect(() => {
     if (error) {
@@ -224,7 +248,7 @@ const LinkedListVisualizer = ({ initialNodes }) => {
       setActiveNodeIndex,
       setActivePointerIndex,
       setRemovingNodeIndex,
-    });
+    }, listType);
     
     // Run the animation
     const nextNodes = [...nodes, newNode];
@@ -271,7 +295,7 @@ const LinkedListVisualizer = ({ initialNodes }) => {
       setActiveNodeIndex,
       setActivePointerIndex,
       setRemovingNodeIndex,
-    });
+    }, listType);
     
     // Run the animation
     const nextNodes = [...nodes.slice(0, pos), newNode, ...nodes.slice(pos)];
@@ -320,7 +344,7 @@ const LinkedListVisualizer = ({ initialNodes }) => {
       setActiveNodeIndex,
       setActivePointerIndex,
       setRemovingNodeIndex,
-    });
+    }, listType);
     
     // Run the animation
     const nextNodes = [...nodes.slice(0, pos), ...nodes.slice(pos + 1)];
@@ -355,9 +379,35 @@ const LinkedListVisualizer = ({ initialNodes }) => {
         <div className="visualization-area">
           <h2>Linked List Visualization</h2>
 
+          <div className="list-type-toggle" role="group" aria-label="List type">
+            {["singly", "doubly", "circular"].map((t) => (
+              <button
+                key={t}
+                type="button"
+                aria-pressed={listType === t}
+                disabled={isAnimating}
+                onClick={() => {
+                  if (t === listType || isAnimating) return;
+                  setListType(t);
+                  setError(null);
+                  setRun(null);
+                  setActiveNodeIndex(null);
+                  setActivePointerIndex(null);
+                  setRemovingNodeIndex(null);
+                }}
+              >
+                {t === "singly" ? "Singly" : t === "doubly" ? "Doubly" : "Circular"}
+              </button>
+            ))}
+          </div>
+
           <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
 
-          <ShareButton structure="linked-list" values={nodes.map((node) => node.value)} />
+          <ShareButton
+            structure="linked-list"
+            values={nodes.map((node) => node.value)}
+            extra={{ listType }}
+          />
 
           {view === "story" ? (
             <div className="linked-list-display">
@@ -376,11 +426,23 @@ const LinkedListVisualizer = ({ initialNodes }) => {
                       />
 
                       {index < nodes.length - 1 && (
-                        <LinkedListPointer isActive={activePointerIndex === index} />
+                        <React.Fragment>
+                          <LinkedListPointer isActive={activePointerIndex === index} />
+                          {listType === "doubly" && (
+                            <span className="prev-indicator" aria-hidden="true">
+                              ← prev
+                            </span>
+                          )}
+                        </React.Fragment>
                       )}
                     </React.Fragment>
                   ))}
                 </AnimatePresence>
+              )}
+              {nodes.length > 0 && listType === "circular" && (
+                <span className="circular-wrap" aria-label="Circular: tail points back to head">
+                  {nodes.length === 1 ? "↻ self-loop" : "↻ tail → head"}
+                </span>
               )}
             </div>
           ) : nodes.length === 0 ? (
@@ -394,11 +456,17 @@ const LinkedListVisualizer = ({ initialNodes }) => {
               steps={run.steps}
               onComplete={() => {
                 run.onComplete?.();
-                recordOperation(`linked-list:${activeTab}`);
+                recordOperation(`linked-list:${listType}:${activeTab}`);
               }}
               onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
-              pseudocode={LINKED_LIST_PSEUDOCODE[activeTab]}
+              pseudocode={
+                listType === "doubly"
+                  ? LINKED_LIST_DOUBLY_PSEUDOCODE[activeTab]
+                  : listType === "circular"
+                    ? LINKED_LIST_CIRCULAR_PSEUDOCODE[activeTab]
+                    : LINKED_LIST_PSEUDOCODE[activeTab]
+              }
             />
           )}
 
