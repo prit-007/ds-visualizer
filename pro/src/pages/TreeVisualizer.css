@@ -292,3 +292,55 @@
   background-color: #0369a1;
   color: white;
 }
+
+.btree-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 2px solid #0284c7;
+  background-color: white;
+  z-index: 1;
+  transition: all 0.25s ease;
+}
+
+.btree-node.active {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35);
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.btree-key {
+  min-width: 36px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  border-radius: 6px;
+  background-color: #f0f9ff;
+  color: #0c4a6e;
+  font-weight: 700;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+}
+
+.dark .btree-node {
+  background-color: #1e293b;
+  border-color: #0369a1;
+}
+
+.dark .btree-key {
+  background-color: #0c4a6e;
+  color: #7dd3fc;
+}
+
+.btree-node.highlighted {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+.dark .btree-node.highlighted {
+  border-color: #a78bfa;
+}

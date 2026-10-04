@@ -20,6 +20,10 @@ import { buildValidateBSTSteps, buildMirrorSteps, buildLCASteps, buildBFSSteps, 
 import { TREE_PSEUDOCODE, TREE_ALGO_PSEUDOCODE } from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import { layoutTree } from "../lib/treeLayout";
+import { BTree } from "../lib/btree";
+import { layoutBTree } from "../lib/btreeLayout";
+import { buildBTreeInsertSteps, buildBTreeSearchSteps, buildBTreeInOrderSteps } from "../lib/btreeSteps";
+import { B_TREE_PSEUDOCODE } from "../lib/pseudocode";
 
 // Cubic connector from parent bottom to child top (pure; used by the svg layer)
 const edgePath = ({ x1, y1, x2, y2 }) => {
@@ -53,10 +57,27 @@ const TreeVisualizer = () => {
   const [error, setError] = useState(null);
   const [showTraversalAnimation, setShowTraversalAnimation] = useState(false);
   const [rotations, setRotations] = useState(true);
+  const [structure, setStructure] = useState(() => {
+    const scenario = readScenario();
+    return scenario && scenario.treeType === "btree" ? "btree" : "binary";
+  });
+  const [btree] = useState(() => {
+    const instance = new BTree();
+    const scenario = readScenario();
+    if (scenario && scenario.treeType === "btree" && Array.isArray(scenario.values)) {
+      scenario.values.forEach((v) => instance.insert(v));
+    }
+    return instance;
+  });
+  const [btreeTick, setBtreeTick] = useState(0);
+  const [btreeInput, setBtreeInput] = useState("");
+  const [btreeActiveKeys, setBTreeActiveKeys] = useState(null);
+  const [btreeHighlightedKeys, setBTreeHighlightedKeys] = useState(null);
   const [algo, setAlgo] = useState("bfs");
   const [lcaA, setLcaA] = useState("");
   const [lcaB, setLcaB] = useState("");
   const [view, setView] = useState("story");
+  const isBTree = structure === "btree";
   
   // Refs
   const containerRef = useRef(null);
@@ -130,7 +151,39 @@ const TreeVisualizer = () => {
     collectMemoryBlocks(node.left);
     collectMemoryBlocks(node.right);
   };
-  collectMemoryBlocks(tree.root);
+  if (isBTree) {
+    const collectB = (node) => {
+      if (!node) return;
+      memoryBlocks.push({
+        address: addressOf(node),
+        value: node.keys.join("/"),
+        pointers: [],
+      });
+      node.children.forEach(collectB);
+    };
+    collectB(btree.root);
+  } else {
+    collectMemoryBlocks(tree.root);
+  }
+
+  const BTREE_DEMO = [8, 3, 10, 1, 6, 14, 4, 7, 13];
+
+  const rebuildBTree = (values) => {
+    btree.root = new BTree().root;
+    btree.size = 0;
+    values.forEach((v) => btree.insert(v));
+    setBtreeTick((t) => t + 1);
+  };
+
+  const clearBTreeHighlights = () => {
+    setBTreeActiveKeys(null);
+    setBTreeHighlightedKeys(null);
+  };
+
+  const btreeUi = {
+    setActiveNodeKeys: setBTreeActiveKeys,
+    setHighlightedNodeKeys: setBTreeHighlightedKeys,
+  };
 
   const applyPreset = (values) => {
     tree.root = null;
@@ -278,7 +331,93 @@ const TreeVisualizer = () => {
     );
   };
   
+  const handleBTreeInsert = () => {
+    if (!btreeInput.trim()) {
+      setError("Please enter a key");
+      return;
+    }
+    const v = parseInt(btreeInput);
+    if (isNaN(v)) {
+      setError("Please enter a valid integer key");
+      return;
+    }
+    const trace = [];
+    btree.insert(v, trace);
+    const steps = buildBTreeInsertSteps(btree.root, v, trace, btreeUi);
+    const before = btree.inOrder();
+    setPseudocodeKey("btree-insert");
+    startRun(
+      steps,
+      withCleanup(() => {
+        setBtreeTick((t) => t + 1);
+        setBtreeInput("");
+        clearBTreeHighlights();
+      }),
+      {
+        before: trace.some((e) => e.type === "duplicate") ? before : before.filter((k) => k !== v),
+        after: btree.inOrder(),
+        label: `B-tree insert ${v}`,
+        meta: { treeType: "btree" },
+      }
+    );
+  };
+
+  const handleBTreeSearch = () => {
+    if (!btreeInput.trim()) {
+      setError("Please enter a key");
+      return;
+    }
+    const v = parseInt(btreeInput);
+    if (isNaN(v)) {
+      setError("Please enter a valid integer key");
+      return;
+    }
+    const trace = [];
+    btree.search(v, trace);
+    const steps = buildBTreeSearchSteps(btree.root, v, trace, btreeUi);
+    setPseudocodeKey("btree-search");
+    startRun(
+      steps,
+      withCleanup(() => {
+        setBtreeInput("");
+        clearBTreeHighlights();
+      }),
+      {
+        before: btree.inOrder(),
+        after: btree.inOrder(),
+        label: `B-tree search ${v}`,
+        meta: { treeType: "btree" },
+      }
+    );
+  };
+
+  const handleBTreeInOrder = () => {
+    const steps = buildBTreeInOrderSteps(btree.root, btreeUi);
+    setPseudocodeKey("btree-inorder");
+    setTraversalType("inOrder");
+    setShowTraversalAnimation(true);
+    const order = btree.inOrder();
+    setTraversalResult(order);
+    startRun(
+      steps,
+      withCleanup(() => {
+        setShowTraversalAnimation(false);
+        clearBTreeHighlights();
+      }),
+      {
+        before: order,
+        after: order,
+        label: "B-tree in-order",
+        meta: { treeType: "btree" },
+      }
+    );
+  };
+
   const handleRunAlgo = () => {
+    if (isBTree) {
+      if (algo === "inorder") handleBTreeInOrder();
+      return;
+    }
     if (!tree.root && algo !== "validate") {
       // validate on an empty tree is trivially valid; others need nodes
       if (algo === "mirror" || algo === "lca" || algo === "bfs" || algo === "dfs" || algo === "inorder" || algo === "postorder") {
@@ -435,33 +574,78 @@ const TreeVisualizer = () => {
   };
 
   const handleReset = () => {
+    if (isBTree) {
+      rebuildBTree(BTREE_DEMO);
+      clearBTreeHighlights();
+      setError(null);
+      setRun(null);
+      setBtreeInput("");
+      return;
+    }
     applyPreset([50, 25, 75, 10, 30, 60, 90]);
   };
 
   const handleClear = () => {
+    if (isBTree) {
+      rebuildBTree([]);
+      clearBTreeHighlights();
+      setError(null);
+      setRun(null);
+      setBtreeInput("");
+      return;
+    }
     applyPreset([]);
   };
 
   const handleForkRun = (run) => {
-    if (run.structure === "tree") applyPreset([...run.before]);
+    if (run.structure !== "tree") return;
+    if (run.meta?.treeType === "btree") {
+      setStructure("btree");
+      rebuildBTree([...run.before]);
+      clearBTreeHighlights();
+      setError(null);
+      setRun(null);
+      setBtreeInput("");
+      return;
+    }
+    applyPreset([...run.before]);
   };
   
   // Calculate tree properties
-  const treeProperties = [
-    { name: "Node Count", value: tree.nodeCount },
-    { name: "Height", value: tree.getHeight(tree.root) },
-    { name: "Balanced", value: tree.isBalanced() ? "Yes" : "No" }
-  ];
+  const treeProperties = isBTree
+    ? [
+        { name: "Order", value: 3 },
+        { name: "Keys", value: btree.size },
+        { name: "Height", value: btree.height() },
+      ]
+    : [
+        { name: "Node Count", value: tree.nodeCount },
+        { name: "Height", value: tree.getHeight(tree.root) },
+        { name: "Balanced", value: tree.isBalanced() ? "Yes" : "No" },
+      ];
 
   // Define operation tabs
-  const operationTabs = [
-    { id: "insert", label: "Insert" },
-    { id: "delete", label: "Delete" },
-    { id: "search", label: "Search" }
-  ];
+  const operationTabs = isBTree
+    ? [
+        { id: "insertKey", label: "Insert" },
+        { id: "searchKey", label: "Search" },
+      ]
+    : [
+        { id: "insert", label: "Insert" },
+        { id: "delete", label: "Delete" },
+        { id: "search", label: "Search" },
+      ];
 
   // Get complexity explanation based on active tab
   const getComplexityInfo = () => {
+    if (isBTree) {
+      return {
+        operationName: activeTab === "insertKey" ? "B-tree Insert" : "B-tree Search",
+        complexity: "O(log n)",
+        explanation:
+          "Order-3 B-trees keep every node at most half full (except the root), so insert/search descend at most log₃(n) levels; leaf splits promote a median upward.",
+      };
+    }
     switch (activeTab) {
       case "insert":
         return {
@@ -493,7 +677,7 @@ const TreeVisualizer = () => {
   const complexityInfo = getComplexityInfo();
 
   // Absolute layout for the coordinate canvas (empty when treeRoot is null)
-  const layout = layoutTree(treeRoot);
+  const layout = isBTree ? layoutBTree(btree.root) : layoutTree(treeRoot);
   // Fit the whole tree into the visible width — scale down when needed.
   const fitScale = Math.min(1, (wrapWidth - 8) / Math.max(layout.width, 1));
 
@@ -515,7 +699,11 @@ const TreeVisualizer = () => {
 
           <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
 
-          <ShareButton structure="tree" values={tree.preOrder(treeRoot)} />
+          <ShareButton
+            structure="tree"
+            values={isBTree ? btree.inOrder() : tree.preOrder(treeRoot)}
+            extra={{ treeType: structure }}
+          />
 
           <div className="data-actions">
             <button
@@ -536,11 +724,46 @@ const TreeVisualizer = () => {
             </button>
           </div>
 
+          <div className="algo-toggle" role="group" aria-label="Tree structure">
+            <button
+              type="button"
+              aria-pressed={!isBTree}
+              disabled={isAnimating}
+              onClick={() => {
+                setStructure("binary");
+                setActiveTab("insert");
+                clearBTreeHighlights();
+                setError(null);
+                setRun(null);
+                setBtreeInput("");
+              }}
+            >
+              Binary
+            </button>
+            <button
+              type="button"
+              aria-pressed={isBTree}
+              disabled={isAnimating}
+              onClick={() => {
+                setStructure("btree");
+                setActiveTab("insertKey");
+                setAlgo("inorder");
+                setHighlightedNodes([]);
+                setActiveNodeValue(null);
+                setError(null);
+                setRun(null);
+                setValue("");
+              }}
+            >
+              B-Tree
+            </button>
+          </div>
 
           {view === "story" ? (
             <div className="tree-container">
-              {treeRoot ? (
+              {layout.nodes.length > 0 ? (
                 <div
+                  key={isBTree ? `btree-${btreeTick}` : "binary-canvas"}
                   className="tree-canvas-wrap"
                   style={{ height: `${Math.max(layout.height * fitScale, 120)}px` }}
                 >
@@ -553,36 +776,81 @@ const TreeVisualizer = () => {
                     transformOrigin: 'top center',
                   }}
                 >
-                  <svg
-                    className="tree-edges"
-                    width={layout.width}
-                    height={layout.height}
-                    aria-hidden="true"
-                  >
-                    {layout.edges.map((edge) => (
-                      <path
-                        key={`${edge.parentValue}-${edge.childValue}`}
-                        className={`tree-edge ${edgeState(edge)}`.trim()}
-                        d={edgePath(edge)}
-                      />
-                    ))}
-                  </svg>
-                  {layout.nodes.map((entry) => (
-                    <div
-                      key={entry.value}
-                      className="tree-node-slot"
-                      style={{ left: `${entry.x}px`, top: `${entry.y}px` }}
-                    >
-                      <ElementNode
-                        value={entry.value}
-                        index={`h:${entry.height} bf:${entry.balance}`}
-                        isActive={entry.value === activeNodeValue}
-                        isHighlighted={highlightedNodes.includes(entry.value)}
-                        isRemoving={entry.value === removingNodeValue}
-                        className="tree-node"
-                      />
-                    </div>
-                  ))}
+                  {isBTree ? (
+                    <>
+                      <svg
+                        className="tree-edges"
+                        width={layout.width}
+                        height={layout.height}
+                        aria-hidden="true"
+                      >
+                        {layout.edges.map((edge, i) => (
+                          <line
+                            key={`e-${i}-${edge.fromKeys.join()}-${edge.toKeys.join()}`}
+                            className="tree-edge"
+                            x1={edge.x1}
+                            y1={edge.y1}
+                            x2={edge.x2}
+                            y2={edge.y2}
+                          />
+                        ))}
+                      </svg>
+                      {layout.nodes.map((entry) => {
+                        const sameAs = (target) =>
+                          target &&
+                          entry.keys.length === target.length &&
+                          entry.keys.every((k, i) => k === target[i]);
+                        const active = sameAs(btreeActiveKeys);
+                        const highlighted = !active && sameAs(btreeHighlightedKeys);
+                        return (
+                          <div
+                            key={`b-${entry.keys.join("-")}-${entry.depth}-${entry.x}`}
+                            className={`btree-node${active ? " active" : ""}${highlighted ? " highlighted" : ""}`}
+                            style={{ left: `${entry.x}px`, top: `${entry.y}px` }}
+                          >
+                            {entry.keys.map((k, ki) => (
+                              <span key={`${k}-${ki}`} className="btree-key">
+                                {k}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="tree-edges"
+                        width={layout.width}
+                        height={layout.height}
+                        aria-hidden="true"
+                      >
+                        {layout.edges.map((edge) => (
+                          <path
+                            key={`${edge.parentValue}-${edge.childValue}`}
+                            className={`tree-edge ${edgeState(edge)}`.trim()}
+                            d={edgePath(edge)}
+                          />
+                        ))}
+                      </svg>
+                      {layout.nodes.map((entry) => (
+                        <div
+                          key={entry.value}
+                          className="tree-node-slot"
+                          style={{ left: `${entry.x}px`, top: `${entry.y}px` }}
+                        >
+                          <ElementNode
+                            value={entry.value}
+                            index={`h:${entry.height} bf:${entry.balance}`}
+                            isActive={entry.value === activeNodeValue}
+                            isHighlighted={highlightedNodes.includes(entry.value)}
+                            isRemoving={entry.value === removingNodeValue}
+                            className="tree-node"
+                          />
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
                 </div>
               ) : (
@@ -605,7 +873,13 @@ const TreeVisualizer = () => {
               onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
               pseudocode={
-                pseudocodeKey === "bfs" ||
+                pseudocodeKey === "btree-insert"
+                  ? B_TREE_PSEUDOCODE.insert
+                  : pseudocodeKey === "btree-search"
+                    ? B_TREE_PSEUDOCODE.search
+                    : pseudocodeKey === "btree-inorder"
+                      ? B_TREE_PSEUDOCODE.inOrder
+                      : pseudocodeKey === "bfs" ||
                 pseudocodeKey === "dfs" ||
                 pseudocodeKey === "validate" ||
                 pseudocodeKey === "mirror" ||
@@ -646,15 +920,18 @@ const TreeVisualizer = () => {
             disabled={isAnimating}
           />
 
-          <CasePresets
-            disabled={isAnimating}
-            presets={[
-              { label: "Worst case", onClick: () => applyPreset(sortedSequence(8)) },
-              { label: "Average case", onClick: () => applyPreset([50, 25, 75, 10, 30, 60, 90]) },
-              { label: "Random case", onClick: () => applyPreset(uniqueRandomValues(7)) },
-            ]}
-          />
+          {!isBTree && (
+            <CasePresets
+              disabled={isAnimating}
+              presets={[
+                { label: "Worst case", onClick: () => applyPreset(sortedSequence(8)) },
+                { label: "Average case", onClick: () => applyPreset([50, 25, 75, 10, 30, 60, 90]) },
+                { label: "Random case", onClick: () => applyPreset(uniqueRandomValues(7)) },
+              ]}
+            />
+          )}
 
+          {!isBTree && (
           <div className="counterfactual-row">
             <button
               type="button"
@@ -672,19 +949,27 @@ const TreeVisualizer = () => {
               </span>
             )}
           </div>
+          )}
 
           <form className="operation-inputs" onSubmit={(e) => {
             e.preventDefault();
+            if (isBTree) {
+              if (activeTab === "insertKey") handleBTreeInsert();
+              else handleBTreeSearch();
+              return;
+            }
             if (activeTab === "insert") handleInsert();
             else if (activeTab === "delete") handleDelete();
             else handleSearch();
           }}>
             <div className="input-group">
-              <label>Value:</label>
+              <label>{isBTree ? "Key:" : "Value:"}</label>
               <input
                 type="number"
-                value={value}
-                onChange={e => setValue(e.target.value)}
+                value={isBTree ? btreeInput : value}
+                onChange={(e) =>
+                  isBTree ? setBtreeInput(e.target.value) : setValue(e.target.value)
+                }
                 placeholder="Enter a number"
                 disabled={isAnimating}
               />
@@ -695,11 +980,15 @@ const TreeVisualizer = () => {
               className="btn btn-primary btn-full operation-button"
               disabled={isAnimating}
             >
-              {activeTab === "insert" 
-                ? "Insert Node" 
-                : activeTab === "delete" 
-                  ? "Delete Node" 
-                  : "Search Node"}
+              {isBTree
+                ? activeTab === "insertKey"
+                  ? "Insert Key"
+                  : "Search Key"
+                : activeTab === "insert"
+                  ? "Insert Node"
+                  : activeTab === "delete"
+                    ? "Delete Node"
+                    : "Search Node"}
             </button>
           </form>
           
@@ -712,7 +1001,8 @@ const TreeVisualizer = () => {
                   key={a}
                   type="button"
                   aria-pressed={algo === a}
-                  disabled={isAnimating || !tree.root}
+                  disabled={isAnimating || (isBTree ? btree.size === 0 : !tree.root) || (isBTree && a !== "inorder")}
+                  title={isBTree && a !== "inorder" ? "Binary trees only" : undefined}
                   onClick={() => setAlgo(a)}
                 >
                   {a === "bfs"
@@ -762,7 +1052,7 @@ const TreeVisualizer = () => {
                 <button
                   type="submit"
                   className="btn btn-primary btn-full operation-button algo-run"
-                  disabled={isAnimating || !tree.root}
+                  disabled={isAnimating || (isBTree ? btree.size === 0 : !tree.root)}
                 >
                   Find LCA
                 </button>
@@ -773,19 +1063,21 @@ const TreeVisualizer = () => {
                 type="button"
                 className="btn btn-primary btn-full operation-button algo-run"
                 onClick={handleRunAlgo}
-                disabled={isAnimating || !tree.root}
+                disabled={isAnimating || (isBTree ? btree.size === 0 : !tree.root)}
               >
-                {algo === "bfs"
-                  ? "Run BFS"
-                  : algo === "dfs"
-                    ? "Run DFS"
-                    : algo === "inorder"
-                      ? "Run In-order"
-                      : algo === "postorder"
-                        ? "Run Post-order"
-                        : algo === "validate"
-                          ? "Run Validation"
-                          : "Mirror Tree"}
+                {isBTree
+                  ? "Run In-order"
+                  : algo === "bfs"
+                    ? "Run BFS"
+                    : algo === "dfs"
+                      ? "Run DFS"
+                      : algo === "inorder"
+                        ? "Run In-order"
+                        : algo === "postorder"
+                          ? "Run Post-order"
+                          : algo === "validate"
+                            ? "Run Validation"
+                            : "Mirror Tree"}
               </button>
             )}
           </div>

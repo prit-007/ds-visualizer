@@ -560,3 +560,32 @@ SORTING_PSEUDOCODE.heap = [
   '  return array',
   'end procedure',
 ];
+
+export const B_TREE_PSEUDOCODE = {
+  inOrder: [
+    'procedure btreeInOrder(node)',
+    '  visit keys between child subtrees in ascending order',
+    '  return all keys sorted',
+    'end procedure',
+  ],
+  insert: [
+    'procedure btreeInsert(node, value)',
+    '  if node is leaf then',
+    '    insert value into node.keys (sorted, shift to make room)',
+    '  else',
+    '    route value to the correct child',
+    '    if child is full then split child, promote median',
+    '    recurse into child',
+    '  if node overflows then split, promote median to parent',
+    'end procedure',
+  ],
+  search: [
+    'procedure btreeSearch(node, value)',
+    '  find the first key ≥ value in node.keys',
+    '  if key = value then return found',
+    '  if node is leaf then return not found',
+    '  route to the corresponding child',
+    '  recurse',
+    'end procedure',
+  ],
+};

@@ -562,3 +562,92 @@ describe('reset & clear', () => {
     expect(screen.getAllByText('25').length).toBeGreaterThan(0);
   });
 });
+
+describe('B-tree mode', () => {
+  beforeEach(() => {
+    clearRuns();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+    window.location.hash = '';
+  });
+
+  test('toggle switches to B-tree with insert/search controls and hides rotations', () => {
+    render(<TreeVisualizer />);
+    expect(screen.getByRole('button', { name: 'Toggle AVL rotations' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'B-Tree' }));
+
+    expect(screen.getByRole('button', { name: 'B-Tree' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Insert Key' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Toggle AVL rotations' })).not.toBeInTheDocument();
+  });
+
+  test('inserting keys builds the tree and in-order lists them sorted', () => {
+    vi.useFakeTimers();
+    render(<TreeVisualizer />);
+    fireEvent.click(screen.getByRole('button', { name: 'B-Tree' }));
+
+    [8, 3, 10].forEach((k) => {
+      fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+        target: { value: String(k) },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Insert Key' }));
+      finishRun();
+    });
+
+    expect(screen.getAllByText('8').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('3').length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'In-order' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run In-order' }));
+    // advance past the visits but stop before the finale unmounts the chips
+    advance(4);
+
+    const chips = [...document.querySelectorAll('.traversal-item')].map((c) => c.textContent);
+    expect(chips.join('')).toContain('3');
+    expect(chips.join('')).toContain('10');
+  });
+
+  test('search finds a key and missing keys error', () => {
+    vi.useFakeTimers();
+    render(<TreeVisualizer />);
+    fireEvent.click(screen.getByRole('button', { name: 'B-Tree' }));
+    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+      target: { value: '8' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Insert Key' }));
+    finishRun();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+      target: { value: '99' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Search Key' }));
+    finishRun();
+
+    expect(listRuns('tree')).toHaveLength(2);
+    expect(listRuns('tree')[1].label).toBe('B-tree search 99');
+    expect(listRuns('tree')[1].meta.treeType).toBe('btree');
+  });
+
+  test('properties show order, keys and height for the B-tree', () => {
+    render(<TreeVisualizer />);
+    fireEvent.click(screen.getByRole('button', { name: 'B-Tree' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(screen.getByText('Order:')).toBeInTheDocument();
+    expect(screen.getByText('Keys:')).toBeInTheDocument();
+  });
+
+  test('css styles btree nodes with dark variants', () => {
+    const css = readFileSync(
+      fileURLToPath(new URL('./TreeVisualizer.css', moduleUrl)),
+      'utf8'
+    );
+    expect(css).toMatch(/\.btree-node/);
+    expect(css).toMatch(/\.btree-key/);
+    expect(css).toMatch(/\.dark \.btree-node/);
+  });
+});
