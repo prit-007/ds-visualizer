@@ -219,3 +219,69 @@
   background-color: rgba(127, 29, 29, 0.35);
   border-color: #991b1b;
 }
+
+.algo-panel {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+.algo-panel h3 {
+  margin-bottom: 0.75rem;
+}
+
+.algo-toggle {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.algo-toggle button {
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  border: 2px solid #0284c7;
+  background-color: white;
+  color: #0284c7;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.algo-toggle button[aria-pressed='true'] {
+  background-color: #0284c7;
+  color: white;
+}
+
+.algo-toggle button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.algo-inputs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.algo-run {
+  width: 100%;
+}
+
+.dark .algo-panel {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+.dark .algo-toggle button {
+  background-color: #1e293b;
+  color: #7dd3fc;
+  border-color: #0369a1;
+}
+
+.dark .algo-toggle button[aria-pressed='true'] {
+  background-color: #0369a1;
+  color: white;
+}

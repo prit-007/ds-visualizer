@@ -16,7 +16,8 @@ import { sortedSequence, uniqueRandomValues } from "../lib/presets";
 import "./TreeVisualizer.css";
 import { AVLTree } from "../lib/avl";
 import { buildInsertSteps, buildDeleteSteps, buildSearchSteps, buildTraversalSteps } from "../lib/treeSteps";
-import { TREE_PSEUDOCODE } from "../lib/pseudocode";
+import { buildValidateBSTSteps, buildMirrorSteps, buildLCASteps } from "../lib/treeAlgoSteps";
+import { TREE_PSEUDOCODE, TREE_ALGO_PSEUDOCODE } from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import { layoutTree } from "../lib/treeLayout";
 
@@ -52,6 +53,9 @@ const TreeVisualizer = () => {
   const [error, setError] = useState(null);
   const [showTraversalAnimation, setShowTraversalAnimation] = useState(false);
   const [rotations, setRotations] = useState(true);
+  const [algo, setAlgo] = useState("validate");
+  const [lcaA, setLcaA] = useState("");
+  const [lcaB, setLcaB] = useState("");
   const [view, setView] = useState("story");
   
   // Refs
@@ -283,6 +287,91 @@ const TreeVisualizer = () => {
     );
   };
 
+  const algoUi = { setActiveNodeValue, setHighlightedNodes };
+
+  const handleValidate = () => {
+    if (!tree.root) {
+      setError("Tree is empty — insert a node first");
+      return;
+    }
+    const steps = buildValidateBSTSteps(tree.root, algoUi);
+    setPseudocodeKey("validate");
+    startRun(
+      steps,
+      withCleanup(() => {}),
+      {
+        before: tree.preOrder(tree.root),
+        after: tree.preOrder(tree.root),
+        label: "Validate BST",
+        meta: { rotations: tree.rotations, algo: "validate" },
+      }
+    );
+  };
+
+  const mirrorInPlace = (node) => {
+    if (!node) return;
+    const t = node.left;
+    node.left = node.right;
+    node.right = t;
+    mirrorInPlace(node.left);
+    mirrorInPlace(node.right);
+  };
+
+  const mirroredOrder = (node) => {
+    if (!node) return [];
+    return [node.value, ...mirroredOrder(node.right), ...mirroredOrder(node.left)];
+  };
+
+  const handleMirror = () => {
+    if (!tree.root) {
+      setError("Tree is empty — insert a node first");
+      return;
+    }
+    const steps = buildMirrorSteps(tree.root, algoUi);
+    setPseudocodeKey("mirror");
+    startRun(
+      steps,
+      withCleanup(() => {
+        mirrorInPlace(tree.root);
+        buildVisualTree();
+      }),
+      {
+        before: tree.preOrder(tree.root),
+        after: mirroredOrder(tree.root),
+        label: "Mirror tree",
+        meta: { rotations: tree.rotations, algo: "mirror" },
+      }
+    );
+  };
+
+  const handleLCA = () => {
+    const a = parseInt(lcaA);
+    const b = parseInt(lcaB);
+    if (isNaN(a) || isNaN(b)) {
+      setError("Please enter both values for LCA");
+      return;
+    }
+    if (!tree.root) {
+      setError("Tree is empty — insert a node first");
+      return;
+    }
+    const steps = buildLCASteps(tree.root, a, b, algoUi);
+    setPseudocodeKey("lca");
+    startRun(
+      steps,
+      withCleanup(() => {
+        setLcaA("");
+        setLcaB("");
+      }),
+      {
+        before: tree.preOrder(tree.root),
+        after: tree.preOrder(tree.root),
+        label: `LCA ${a}, ${b}`,
+        meta: { rotations: tree.rotations, algo: "lca" },
+      }
+    );
+  };
+
   const handleForkRun = (run) => {
     if (run.structure === "tree") applyPreset([...run.before]);
   };
@@ -413,7 +502,13 @@ const TreeVisualizer = () => {
               }}
               onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
-              pseudocode={TREE_PSEUDOCODE[pseudocodeKey]}
+              pseudocode={
+                pseudocodeKey === "validate" ||
+                pseudocodeKey === "mirror" ||
+                pseudocodeKey === "lca"
+                  ? TREE_ALGO_PSEUDOCODE[pseudocodeKey]
+                  : TREE_PSEUDOCODE[pseudocodeKey]
+              }
             />
           )}
           
@@ -539,7 +634,66 @@ const TreeVisualizer = () => {
               </button>
             </div>
           </div>
-          
+
+          {/* Tree algorithms */}
+          <div className="algo-panel">
+            <h3>Tree Algorithms</h3>
+            <div className="algo-toggle" role="group" aria-label="Algorithm">
+              {["validate", "mirror", "lca"].map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  aria-pressed={algo === a}
+                  disabled={isAnimating || !tree.root}
+                  onClick={() => setAlgo(a)}
+                >
+                  {a === "validate" ? "Validate BST" : a === "mirror" ? "Mirror" : "LCA"}
+                </button>
+              ))}
+            </div>
+            {algo === "lca" && (
+              <div className="algo-inputs">
+                <div className="input-group">
+                  <label>Value A:</label>
+                  <input
+                    type="number"
+                    value={lcaA}
+                    onChange={(e) => setLcaA(e.target.value)}
+                    placeholder="Enter value A"
+                    disabled={isAnimating}
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Value B:</label>
+                  <input
+                    type="number"
+                    value={lcaB}
+                    onChange={(e) => setLcaB(e.target.value)}
+                    placeholder="Enter value B"
+                    disabled={isAnimating}
+                  />
+                </div>
+              </div>
+            )}
+            <button
+              className="btn btn-primary btn-full operation-button algo-run"
+              onClick={
+                algo === "validate"
+                  ? handleValidate
+                  : algo === "mirror"
+                    ? handleMirror
+                    : handleLCA
+              }
+              disabled={isAnimating || !tree.root}
+            >
+              {algo === "validate"
+                ? "Run Validation"
+                : algo === "mirror"
+                  ? "Mirror Tree"
+                  : "Find LCA"}
+            </button>
+          </div>
+
           {/* Complexity info */}
           <ComplexityInfo
             operationName={complexityInfo.operationName}

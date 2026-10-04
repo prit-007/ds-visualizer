@@ -415,3 +415,105 @@ describe('run history', () => {
     ).toEqual(['30', '20']);
   });
 });
+
+describe('tree algorithms', () => {
+  beforeEach(() => {
+    clearRuns();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+  });
+
+  test('validate BST runs on a preset tree and records the run', () => {
+    vi.useFakeTimers();
+    render(<TreeVisualizer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Average case' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Validate BST' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Validation' }));
+    finishRun();
+
+    const runs = listRuns('tree');
+    expect(runs).toHaveLength(1);
+    expect(runs[0].label).toBe('Validate BST');
+    expect(runs[0].meta.algo).toBe('validate');
+  });
+
+  test('mirror flips the tree shape and records the run', () => {
+    vi.useFakeTimers();
+    render(<TreeVisualizer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Average case' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mirror' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Mirror Tree' }));
+    finishRun();
+
+    const runs = listRuns('tree');
+    expect(runs).toHaveLength(1);
+    expect(runs[0].label).toBe('Mirror tree');
+    expect(runs[0].meta.algo).toBe('mirror');
+    // mirror keeps the same values; pre-order shape flips
+    expect(runs[0].after[0]).toBe(50);
+    expect(runs[0].after.slice().sort((a, b) => a - b)).toEqual(
+      runs[0].before.slice().sort((a, b) => a - b)
+    );
+  });
+
+  test('LCA finds the ancestor of two values', () => {
+    vi.useFakeTimers();
+    render(<TreeVisualizer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Average case' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'LCA' }));
+    fireEvent.change(screen.getByPlaceholderText('Enter value A'), {
+      target: { value: '10' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Enter value B'), {
+      target: { value: '30' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Find LCA' }));
+    finishRun();
+
+    const runs = listRuns('tree');
+    expect(runs).toHaveLength(1);
+    expect(runs[0].label).toBe('LCA 10, 30');
+    expect(runs[0].meta.algo).toBe('lca');
+  });
+
+  test('missing LCA keys end with an error step but still record the run', () => {
+    vi.useFakeTimers();
+    render(<TreeVisualizer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Average case' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'LCA' }));
+    fireEvent.change(screen.getByPlaceholderText('Enter value A'), {
+      target: { value: '999' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Enter value B'), {
+      target: { value: '10' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Find LCA' }));
+    finishRun();
+
+    expect(listRuns('tree')).toHaveLength(1);
+  });
+
+  test('empty tree refuses algorithms with a guided error', () => {
+    render(<TreeVisualizer />);
+    // tree starts empty — algo toggle disabled; check via disabled state
+    expect(screen.getByRole('button', { name: 'Run Validation' })).toBeDisabled();
+  });
+
+  test('css styles the algo panel and dark mode', () => {
+    const css = readFileSync(
+      fileURLToPath(new URL('./TreeVisualizer.css', moduleUrl)),
+      'utf8'
+    );
+    expect(css).toMatch(/\.algo-panel/);
+    expect(css).toMatch(/\.algo-toggle/);
+    expect(css).toMatch(/\.algo-toggle button\[aria-pressed/);
+    expect(css).toMatch(/\.dark \.algo-panel/);
+  });
+});

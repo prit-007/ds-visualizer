@@ -472,3 +472,33 @@ export const SORTING_PSEUDOCODE = {
     '  return sorted array',
   ],
 };
+
+export const TREE_ALGO_PSEUDOCODE = {
+  validate: [
+    'procedure validateBST(node, lo, hi)',
+    '  if node = null then return true',
+    '  if node.value ≤ lo or node.value ≥ hi then return false',
+    '  validateBST(node.left, lo, node.value)',
+    '  validateBST(node.right, node.value, hi)',
+    '  return true',
+    'end procedure',
+  ],
+  mirror: [
+    'procedure mirror(node)',
+    '  if node = null then return',
+    '  if node.left = null and node.right = null then return',
+    '  swap(node.left, node.right)',
+    '  mirror(node.left)',
+    '  mirror(node.right)',
+    'end procedure',
+  ],
+  lca: [
+    'procedure lca(node, a, b)',
+    '  if not contains(node, a) then return "a missing"',
+    '  if not contains(node, b) then return "b missing"',
+    '  if a < node.value and b < node.value then return lca(node.left, a, b)',
+    '  if a > node.value and b > node.value then return lca(node.right, a, b)',
+    '  return node',
+    'end procedure',
+  ],
+};
