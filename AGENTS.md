@@ -19,9 +19,10 @@ React data-structure visualizer. **All app code lives in `pro/`** (Vite 8, migra
 | Watch tests | `cd pro && npm test` |
 | Single test file | `cd pro && npx vitest run src/lib/avl.test.js` |
 | Lint (source of truth for warnings) | `cd pro && npm run lint` |
-| Production build | `cd pro && npm run build` |
+| Production build | `cd pro && npm run build` (chained `scripts/spa-fallback.mjs` copies `dist/index.html` → `dist/404.html`) |
 
 - `pro/node_modules` is installed and current — `npm install` only if you change `pro/package.json`.
+- **GitHub Pages:** deploy workflow `.github/workflows/deploy.yml` builds with `BASE_PATH=/ds-visualizer/` on pushes to `master` and publishes `pro/dist` to the `gh-pages` branch (peaceiris). `vite.config.mjs` reads `base` from `BASE_PATH`; `App.jsx` passes `import.meta.env.BASE_URL` as the router basename. After merge: Settings → Pages → Source: Deploy from branch → `gh-pages`/root. Site: `https://prit-007.github.io/ds-visualizer/`.
 - **Platform gotcha (bit us once):** `node_modules/.bin` shims prefer `node.exe` (Windows Node 22 via WSL interop) — that's the environment the suite runs in. A plain linux-side `npm install <pkg>` prunes the win32 native bindings (`@rolldown/binding-win32-x64-msvc` etc.) and vitest dies with rolldown *"Cannot find native binding"*. Fix after any new dependency: `cd pro && npm install --force --no-save @rolldown/binding-win32-x64-msvc@1.2.11 @swc/core-win32-x64-msvc@1.16.2 lightningcss-win32-x64-msvc@1.33.0` (versions must match `package-lock.json`; linux twins may coexist).
 - **Verification order: `npm run lint` → `npm run test:ci` → `npm run build`.** Build does **not** run lint (Vite doesn't); lint is a separate step.
 - Lint runs ESLint 8 with `eslint-config-react-app` (config: `pro/package.json` → `eslintConfig`). Current state: **0 errors, 0 warnings** (Phase 3 cleared all 16). `eslintConfig` also declares `vi` as a global and disables `testing-library/no-container` + `no-node-access` **only** in `**/*.test.*` — appearance tests intentionally assert rendered structure (`querySelectorAll('.array-element')` etc.). Keep it that way; don't relax rules for source files.
