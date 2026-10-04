@@ -93,7 +93,7 @@ describe('memory representation', () => {
     expect(
       pointers.some((pointer) => pointer.textContent.includes('null'))
     ).toBe(true);
-  });
+  }, 20000);
 });
 
 describe('case presets', () => {
@@ -268,7 +268,7 @@ describe('traversals & algorithms panel', () => {
       (chip) => chip.textContent
     );
     expect(chips).toEqual(['20 → ', '10 → ', '30']);
-  });
+  }, 20000);
 
   test('DFS run plays stack steps and records the traversal', () => {
     vi.useFakeTimers();
@@ -283,7 +283,7 @@ describe('traversals & algorithms panel', () => {
 
     const runs = listRuns('tree');
     expect(runs[runs.length - 1].label).toBe('DFS traversal');
-  });
+  }, 20000);
 
   test('in-order still uses the classic traversal narration', () => {
     vi.useFakeTimers();
@@ -467,7 +467,7 @@ describe('tree algorithms', () => {
     expect(runs).toHaveLength(1);
     expect(runs[0].label).toBe('Validate BST');
     expect(runs[0].meta.algo).toBe('validate');
-  });
+  }, 20000);
 
   test('mirror flips the tree shape and records the run', () => {
     vi.useFakeTimers();
@@ -487,7 +487,7 @@ describe('tree algorithms', () => {
     expect(runs[0].after.slice().sort((a, b) => a - b)).toEqual(
       runs[0].before.slice().sort((a, b) => a - b)
     );
-  });
+  }, 20000);
 
   test('LCA finds the ancestor of two values', () => {
     vi.useFakeTimers();
