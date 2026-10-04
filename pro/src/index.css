@@ -1208,3 +1208,13 @@ h3 {
 .dark .data-action-btn.danger:hover:not(:disabled) {
   background-color: #450a0a;
 }
+
+/* Dark-mode polish for primary actions */
+.dark .operation-button {
+  background: linear-gradient(to right, #0369a1, #0284c7);
+  box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.25);
+}
+
+.dark .operation-button:hover:not(:disabled) {
+  box-shadow: 0 6px 10px -1px rgba(2, 132, 199, 0.35);
+}

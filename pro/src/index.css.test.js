@@ -42,3 +42,19 @@ describe('data-actions toolbar', () => {
     expect(indexCss).toMatch(/\.dark \.data-action-btn/);
   });
 });
+
+describe('dark mode coverage sweep', () => {
+  test('primary interactive surfaces ship dark variants', () => {
+    expect(indexCss).toMatch(/\.dark \.operation-button/);
+    expect(indexCss).toMatch(/\.dark \.tab-container/);
+    expect(indexCss).toMatch(/\.dark \.op-counters/);
+    expect(indexCss).toMatch(/\.dark \.error-message/);
+    expect(indexCss).toMatch(/\.dark \.memory-address/);
+    expect(indexCss).toMatch(/\.dark \.info-panel/);
+  });
+
+  test('design tokens flip in dark mode', () => {
+    expect(indexCss).toMatch(/\.dark\s*\{[^}]*--surface-color:\s*#1e293b/);
+    expect(indexCss).toMatch(/\.dark\s*\{[^}]*--primary-color:\s*#38bdf8/);
+  });
+});

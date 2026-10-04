@@ -299,3 +299,24 @@ h2 {
   color: #c4b5fd;
   border-color: #7c3aed;
 }
+
+.dark .linked-list-node {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border-color: #6366f1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+.dark .linked-list-node.active {
+  border-color: #818cf8;
+  color: white;
+}
+
+.dark .linked-list-node.highlighted {
+  background-color: #4338ca;
+  color: white;
+}
+
+.dark .pointer-container .line {
+  background-color: #334155 !important;
+}

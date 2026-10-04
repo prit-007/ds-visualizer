@@ -589,3 +589,24 @@ export const B_TREE_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+export const SEARCHING_PSEUDOCODE = {
+  linear: [
+    'procedure linearSearch(array, target)',
+    '  for i ← 0 to length(array) - 1 do',
+    '    if array[i] = target then return i',
+    '  return not found',
+    'end procedure',
+  ],
+  binary: [
+    'procedure binarySearch(array, target)',
+    '  lo ← 0; hi ← length(array) - 1',
+    '  while lo ≤ hi do',
+    '    mid ← (lo + hi) ÷ 2',
+    '    if array[mid] = target then return mid',
+    '    if target < array[mid] then hi ← mid - 1',
+    '    else lo ← mid + 1',
+    '  return not found',
+    'end procedure',
+  ],
+};
