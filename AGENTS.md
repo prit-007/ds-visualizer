@@ -1,6 +1,6 @@
 # AGENTS.md
 
-React data-structure visualizer. **All app code lives in `pro/`** (Vite 8, migrated from Create React App). The repo root is not the app. Roadmap/checklist lives in `ROADMAP.md` — consult it before starting work.
+React data-structure visualizer. **All app code lives in `pro/`** (Vite 8, migrated from Create React App). The repo root is not the app. Roadmap/checklist lives in `ROADMAP.md` — consult it before starting work. FOSS docs at repo root: `LICENSE` (MIT), `README.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `CHANGELOG.md` — keep them in sync with shipped features; `pro/README.md` is a short pointer to the root docs (not the stock CRA text).
 
 ## Repo shape (read first)
 
