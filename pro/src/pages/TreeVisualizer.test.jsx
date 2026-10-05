@@ -180,7 +180,7 @@ describe('tree canvas rendering', () => {
     });
   });
 
-  test('nodes show height and balance factor badges', () => {
+  test('balance badges stay quiet on balanced trees and flag imbalances', () => {
     vi.useFakeTimers();
     const { container } = render(<TreeVisualizer />);
 
@@ -188,11 +188,20 @@ describe('tree canvas rendering', () => {
     insertValue(10);
     insertValue(30);
 
-    const badges = [...container.querySelectorAll('.tree-node .element-index')].map(
+    // balanced AVL — no bf badges cluttering the canvas
+    let badges = [...container.querySelectorAll('.tree-node .element-index')];
+    expect(badges).toHaveLength(0);
+
+    // rotations off + a left chain → unbalanced nodes surface bf badges
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle AVL rotations' }));
+    insertValue(5);
+    insertValue(3);
+
+    badges = [...container.querySelectorAll('.tree-node .element-index')].map(
       (badge) => badge.textContent
     );
-    expect(badges).toHaveLength(3);
-    badges.forEach((badge) => expect(badge).toMatch(/h:\d/));
+    expect(badges.length).toBeGreaterThan(0);
+    badges.forEach((badge) => expect(badge).toMatch(/bf:/));
     expect(badges.some((badge) => badge.includes('bf'))).toBe(true);
   });
 

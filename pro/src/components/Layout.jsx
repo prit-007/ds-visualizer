@@ -328,7 +328,7 @@ const Layout = () => {
                 {isSidebarOpen && <span className="ml-3 font-medium">Help</span>}
               </Link>
             </li>
-            <GuidedTour collapsed={!isSidebarOpen} />
+            <GuidedTour collapsed={!isSidebarOpen} onRequestOpen={() => setIsSidebarOpen(true)} />
           </ul>
         </div>
       </div>

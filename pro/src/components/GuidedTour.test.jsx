@@ -1,63 +1,75 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import GuidedTour from './GuidedTour';
 import { TOUR_STEPS, TOUR_COMPLETED_KEY } from '../lib/tourSteps';
 
-const mocks = vi.hoisted(() => ({
-  driver: vi.fn(),
-  drive: vi.fn(),
-  destroy: vi.fn(),
-}));
+// Anchor stubs so getBoundingClientRect has something real to measure.
+const mountAnchors = () => {
+  document.body.innerHTML += `
+    <div class="sidebar" style="width:200px;height:300px"></div>
+    <div class="workspace" style="width:600px;height:400px"></div>
+    <button class="theme-toggle" style="width:40px;height:40px"></button>
+    <div class="sidebar-footer" style="width:200px;height:80px"></div>
+  `;
+};
 
-vi.mock('driver.js', () => ({ driver: mocks.driver }));
-
-describe('GuidedTour', () => {
-  let capturedOptions;
-
+describe('GuidedTour (custom overlay)', () => {
   beforeEach(() => {
     localStorage.clear();
-    mocks.driver.mockReset();
-    mocks.drive.mockReset();
-    mocks.destroy.mockReset();
-    mocks.driver.mockImplementation((options) => {
-      capturedOptions = options;
-      return { drive: mocks.drive, destroy: mocks.destroy };
-    });
+    document.body.innerHTML = '';
+    mountAnchors();
   });
 
-  test('auto-starts the tour on a first visit', () => {
+  test('auto-starts on a first visit and shows step 1', () => {
     render(<GuidedTour />);
 
-    expect(mocks.driver).toHaveBeenCalledTimes(1);
-    expect(mocks.driver.mock.calls[0][0].steps).toEqual(TOUR_STEPS);
-    expect(mocks.drive).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('dialog', { name: 'Guided tour' })).toBeInTheDocument();
+    expect(screen.getByText(TOUR_STEPS[0].popover.title)).toBeInTheDocument();
+    expect(screen.getByText(/Step 1 of 4/)).toBeInTheDocument();
   });
 
   test('stays dormant once the tour has been seen', () => {
     localStorage.setItem(TOUR_COMPLETED_KEY, '1');
     render(<GuidedTour />);
 
-    expect(mocks.driver).not.toHaveBeenCalled();
-    expect(mocks.drive).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog', { name: 'Guided tour' })).not.toBeInTheDocument();
   });
 
-  test('user closing the tour persists the completed flag and destroys it', () => {
+  test('Next advances through the steps', () => {
     render(<GuidedTour />);
 
-    expect(typeof capturedOptions.onDestroyStarted).toBe('function');
-    act(() => {
-      capturedOptions.onDestroyStarted();
-    });
-
-    expect(localStorage.getItem(TOUR_COMPLETED_KEY)).toBe('1');
-    expect(mocks.destroy).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByText(TOUR_STEPS[1].popover.title)).toBeInTheDocument();
+    expect(screen.getByText(/Step 2 of 4/)).toBeInTheDocument();
   });
 
-  test('unmounting destroys the driver without marking it completed', () => {
-    const { unmount } = render(<GuidedTour />);
-    unmount();
+  test('Finish on the last step persists the completed flag', () => {
+    render(<GuidedTour />);
 
-    expect(mocks.destroy).toHaveBeenCalledTimes(1);
-    expect(localStorage.getItem(TOUR_COMPLETED_KEY)).toBeNull();
+    for (let i = 0; i < 3; i += 1) {
+      fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
+
+    expect(localStorage.getItem(TOUR_COMPLETED_KEY)).toBe('1');
+    expect(screen.queryByRole('dialog', { name: 'Guided tour' })).not.toBeInTheDocument();
+  });
+
+  test('Escape closes the tour and marks it completed', () => {
+    render(<GuidedTour />);
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(localStorage.getItem(TOUR_COMPLETED_KEY)).toBe('1');
+    expect(screen.queryByRole('dialog', { name: 'Guided tour' })).not.toBeInTheDocument();
+  });
+
+  test('Skip closes without requiring all steps', () => {
+    render(<GuidedTour />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
+
+    expect(localStorage.getItem(TOUR_COMPLETED_KEY)).toBe('1');
+    expect(screen.queryByRole('dialog', { name: 'Guided tour' })).not.toBeInTheDocument();
   });
 
   test('the replay button starts a fresh tour after completion', () => {
@@ -66,8 +78,8 @@ describe('GuidedTour', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Take the guided tour' }));
 
-    expect(mocks.driver).toHaveBeenCalledTimes(1);
-    expect(mocks.drive).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('dialog', { name: 'Guided tour' })).toBeInTheDocument();
+    expect(screen.getByText(/Step 1 of 4/)).toBeInTheDocument();
   });
 
   test('collapsed sidebar hides the label but keeps the accessible name', () => {
@@ -75,5 +87,19 @@ describe('GuidedTour', () => {
 
     expect(screen.getByRole('button', { name: 'Take the guided tour' })).toBeInTheDocument();
     expect(screen.queryByText('Take the tour')).not.toBeInTheDocument();
+  });
+
+  test('requests the shell to open the sidebar so drawer anchors are visible', () => {
+    const onRequestOpen = vi.fn();
+    render(<GuidedTour onRequestOpen={onRequestOpen} />);
+
+    expect(onRequestOpen).toHaveBeenCalled();
+  });
+
+  test('unmounting does not mark the tour completed', () => {
+    const { unmount } = render(<GuidedTour />);
+    unmount();
+
+    expect(localStorage.getItem(TOUR_COMPLETED_KEY)).toBeNull();
   });
 });

@@ -686,7 +686,9 @@ const TreeVisualizer = () => {
   // needed so the canvas never forces scrolling on any device.
   const widthFit = (wrapWidth - 8) / Math.max(layout.width, 1);
   const heightFit = (Math.max(220, viewportH - 300) - 16) / Math.max(layout.height, 1);
-  const fitScale = Math.min(1, widthFit, heightFit);
+  // Floor the scale so nodes stay readable; the wrap scrolls if a very
+  // wide tree still overflows after the floor.
+  const fitScale = Math.max(0.45, Math.min(1, widthFit, heightFit));
 
   const edgeState = (edge) => {
     if (edge.childValue === removingNodeValue) return "tree-edge-removing";
@@ -697,7 +699,7 @@ const TreeVisualizer = () => {
 
   return (
     <div className="visualizer-container" ref={containerRef}>
-      <h1>AVL Tree Visualizer</h1>
+      <h1>{isBTree ? "B-Tree Visualizer" : "AVL Tree Visualizer"}</h1>
       
       <div className="visualizer-grid">
         {/* Visualization area */}
@@ -731,48 +733,13 @@ const TreeVisualizer = () => {
             </button>
           </div>
 
-          <div className="algo-toggle" role="group" aria-label="Tree structure">
-            <button
-              type="button"
-              aria-pressed={!isBTree}
-              disabled={isAnimating}
-              onClick={() => {
-                setStructure("binary");
-                setActiveTab("insert");
-                clearBTreeHighlights();
-                setError(null);
-                setRun(null);
-                setBtreeInput("");
-              }}
-            >
-              Binary
-            </button>
-            <button
-              type="button"
-              aria-pressed={isBTree}
-              disabled={isAnimating}
-              onClick={() => {
-                setStructure("btree");
-                setActiveTab("insertKey");
-                setAlgo("inorder");
-                setHighlightedNodes([]);
-                setActiveNodeValue(null);
-                setError(null);
-                setRun(null);
-                setValue("");
-              }}
-            >
-              B-Tree
-            </button>
-          </div>
-
           {view === "story" ? (
             <div className="tree-container">
               {layout.nodes.length > 0 ? (
                 <div
                   key={isBTree ? `btree-${btreeTick}` : "binary-canvas"}
                   className="tree-canvas-wrap"
-                  style={{ height: `${Math.max(layout.height * fitScale, 120)}px` }}
+                  style={{ height: `${Math.max(layout.height * fitScale, 240)}px` }}
                 >
                 <div
                   className="tree-canvas"
@@ -848,7 +815,8 @@ const TreeVisualizer = () => {
                         >
                           <ElementNode
                             value={entry.value}
-                            index={`h:${entry.height} bf:${entry.balance}`}
+                            index={entry.balance !== 0 ? `bf:${entry.balance}` : ""}
+                            showIndex={entry.balance !== 0}
                             isActive={entry.value === activeNodeValue}
                             isHighlighted={highlightedNodes.includes(entry.value)}
                             isRemoving={entry.value === removingNodeValue}
@@ -917,9 +885,63 @@ const TreeVisualizer = () => {
         {/* Controls area */}
         <div className="card controls-area">
           <h2>Tree Operations</h2>
-          
+
           <ErrorMessage message={error} />
-          
+
+          <div className="tree-mode-row">
+            <div className="algo-toggle" role="group" aria-label="Tree structure">
+              <button
+                type="button"
+                aria-pressed={!isBTree}
+                disabled={isAnimating}
+                onClick={() => {
+                  setStructure("binary");
+                  setActiveTab("insert");
+                  clearBTreeHighlights();
+                  setError(null);
+                  setRun(null);
+                  setBtreeInput("");
+                }}
+              >
+                Binary
+              </button>
+              <button
+                type="button"
+                aria-pressed={isBTree}
+                disabled={isAnimating}
+                onClick={() => {
+                  setStructure("btree");
+                  setActiveTab("insertKey");
+                  setAlgo("inorder");
+                  setHighlightedNodes([]);
+                  setActiveNodeValue(null);
+                  setError(null);
+                  setRun(null);
+                  setValue("");
+                }}
+              >
+                B-Tree
+              </button>
+            </div>
+            {!isBTree && (
+              <button
+                type="button"
+                className={`btn traversal-btn${rotations ? " active" : ""}`}
+                aria-label="Toggle AVL rotations"
+                aria-pressed={rotations}
+                onClick={() => setRotations(!rotations)}
+                disabled={isAnimating}
+              >
+                Rotations {rotations ? "On" : "Off"}
+              </button>
+            )}
+          </div>
+          {!isBTree && !rotations && (
+            <span className="counterfactual-note">
+              Rotations disabled — the tree may grow unbalanced
+            </span>
+          )}
+
           <TabNavigation
             tabs={operationTabs}
             activeTab={activeTab}
@@ -936,26 +958,6 @@ const TreeVisualizer = () => {
                 { label: "Random case", onClick: () => applyPreset(uniqueRandomValues(7)) },
               ]}
             />
-          )}
-
-          {!isBTree && (
-          <div className="counterfactual-row">
-            <button
-              type="button"
-              className={`btn traversal-btn${rotations ? " active" : ""}`}
-              aria-label="Toggle AVL rotations"
-              aria-pressed={rotations}
-              onClick={() => setRotations(!rotations)}
-              disabled={isAnimating}
-            >
-              Rotations {rotations ? "On" : "Off"}
-            </button>
-            {!rotations && (
-              <span className="counterfactual-note">
-                Rotations disabled — the tree may grow unbalanced
-              </span>
-            )}
-          </div>
           )}
 
           <form className="operation-inputs" onSubmit={(e) => {
@@ -1002,8 +1004,9 @@ const TreeVisualizer = () => {
           {/* Traversals + algorithms, unified */}
           <div className="algo-panel">
             <h3>Traversals &amp; Algorithms</h3>
-            <div className="algo-toggle" role="group" aria-label="Algorithm">
-              {["bfs", "dfs", "inorder", "postorder", "validate", "mirror", "lca"].map((a) => (
+            <p className="algo-group-label">Traversals</p>
+            <div className="algo-toggle" role="group" aria-label="Traversals">
+              {["bfs", "dfs", "inorder", "postorder"].map((a) => (
                 <button
                   key={a}
                   type="button"
@@ -1012,22 +1015,28 @@ const TreeVisualizer = () => {
                   title={isBTree && a !== "inorder" ? "Binary trees only" : undefined}
                   onClick={() => setAlgo(a)}
                 >
-                  {a === "bfs"
-                    ? "BFS"
-                    : a === "dfs"
-                      ? "DFS"
-                      : a === "inorder"
-                        ? "In-order"
-                        : a === "postorder"
-                          ? "Post-order"
-                          : a === "validate"
-                            ? "Validate BST"
-                            : a === "mirror"
-                              ? "Mirror"
-                              : "LCA"}
+                  {a === "bfs" ? "BFS" : a === "dfs" ? "DFS" : a === "inorder" ? "In-order" : "Post-order"}
                 </button>
               ))}
             </div>
+            {!isBTree && (
+              <>
+                <p className="algo-group-label">Algorithms</p>
+                <div className="algo-toggle" role="group" aria-label="Algorithms">
+                  {["validate", "mirror", "lca"].map((a) => (
+                    <button
+                      key={a}
+                      type="button"
+                      aria-pressed={algo === a}
+                      disabled={isAnimating || !tree.root}
+                      onClick={() => setAlgo(a)}
+                    >
+                      {a === "validate" ? "Validate BST" : a === "mirror" ? "Mirror" : "LCA"}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
             {algo === "lca" && (
               <form
                 className="algo-inputs"
