@@ -610,3 +610,137 @@ export const SEARCHING_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+export const HEAP_PSEUDOCODE = {
+  insert: [
+    'procedure heapInsert(heap, value)',
+    '  append value at the end',
+    '  i ← index of the new value',
+    '  while i > 0 and heap[parent(i)] > heap[i] do',
+    '    swap(heap[i], heap[parent(i)])',
+    '    i ← parent(i)',
+    '  return heap',
+  ],
+  extractMin: [
+    'procedure heapExtractMin(heap)',
+    '  if heap is empty then return null',
+    '  root ← heap[0]',
+    '  heap[0] ← heap[last]',
+    '  remove the last slot',
+    '  sift down the root',
+    '  while children exist do',
+    '    swap with the smaller child',
+    '  return root',
+  ],
+  peek: [
+    'procedure heapPeek(heap)',
+    '  if heap is empty then return null',
+    '  return heap[0]',
+  ],
+};
+
+export const DIJKSTRA_PSEUDOCODE = [
+  'procedure dijkstra(graph, start)',
+  '  dist ← {all: ∞}, dist[start] ← 0',
+  '  while unsettled nodes remain do',
+  '    u ← unsettled node with the smallest dist',
+  '    for each edge (u, v, w) do',
+  '      if dist[u] + w < dist[v] then dist[v] ← dist[u] + w',
+  '  return dist',
+  'end procedure',
+];
+
+export const TOPO_PSEUDOCODE = [
+  'procedure topologicalSort(graph)',
+  '  compute in-degree of every node',
+  '  queue ← nodes with in-degree 0',
+  '  while queue ≠ ∅ do',
+  '    u ← dequeue(queue); order ← order ∪ [u]',
+  '    for each neighbor v of u do',
+  '      if in-degree(v) − 1 = 0 then enqueue(queue, v)',
+  '  if order ≠ all nodes then cycle detected',
+  '  return order',
+  'end procedure',
+];
+
+export const DP_PSEUDOCODE = {
+  fib: [
+    'procedure fibonacci(n)',
+    '  table[0] ← 0; table[1] ← 1',
+    '  for i ← 2 to n do',
+    '    table[i] ← table[i - 2] + table[i - 1]',
+    '  return table[n]',
+    'end procedure',
+  ],
+  gridPaths: [
+    'procedure countPaths(rows, cols)',
+    '  fill cells row by row',
+    '  edge cells ← 1 (only one direction)',
+    '  ways(r,c) ← ways(r-1,c) + ways(r,c-1)',
+    '  return ways(rows-1, cols-1)',
+    'end procedure',
+  ],
+  coinChange: [
+    'procedure fewestCoins(amount, coins)',
+    '  dp[0] ← 0',
+    '  for i ← 1 to amount do',
+    '    dp[i] ← min over coins c ≤ i of dp[i-c] + 1',
+    '  return dp[amount]',
+    'end procedure',
+  ],
+};
+
+export const GREEDY_PSEUDOCODE = {
+  activity: [
+    'procedure activitySelection(intervals)',
+    '  sort intervals by end time',
+    '  for each interval in order do',
+    '    if it starts after the last selected then select it',
+    '    else skip (it overlaps)',
+    '  return selected intervals',
+    'end procedure',
+  ],
+  knapsack: [
+    'procedure fractionalKnapsack(items, capacity)',
+    '  sort items by value/weight',
+    '  take whole items while space remains',
+    '  take a fraction of the next item',
+    '  return total value',
+    'end procedure',
+  ],
+  coin: [
+    'procedure greedyCoinChange(amount, coins)',
+    '  while amount > 0 do',
+    '    use the largest coin ≤ amount',
+    '    amount ← amount − coin',
+    '  if amount = 0 then greedy is exact',
+    'end procedure',
+  ],
+};
+
+DP_PSEUDOCODE.lcs = [
+  'procedure LCS(a, b)',
+  '  dp[i][j] ← length of LCS of a[:i], b[:j]',
+  '  if a[i-1] = b[j-1] then dp[i][j] ← dp[i-1][j-1] + 1',
+  '  else dp[i][j] ← max(dp[i-1][j], dp[i][j-1])',
+  '  return dp[len(a)][len(b)]',
+  'end procedure',
+];
+
+DP_PSEUDOCODE.knap01 = [
+  'procedure zeroOneKnapsack(items, capacity)',
+  '  dp[i][w] ← best value from first i items in w kg',
+  '  if item w_i > w then keep dp[i-1][w]',
+  '  else dp[i][w] ← max(dp[i-1][w], dp[i-1][w-w_i] + v_i)',
+  '  return dp[n][capacity]',
+  'end procedure',
+];
+
+DP_PSEUDOCODE.robber = [
+  'procedure houseRobber(houses)',
+  '  dp[0] ← houses[0]; dp[1] ← max(houses[0], houses[1])',
+  '  for i ← 2 to n - 1 do',
+  '    dp[i] ← max(dp[i-1], dp[i-2] + houses[i])',
+  '  return dp[n-1]',
+  'end procedure',
+];

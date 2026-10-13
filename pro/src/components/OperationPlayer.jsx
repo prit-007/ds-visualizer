@@ -325,6 +325,7 @@ const OperationPlayer = ({
             lines={pseudocode}
             line={step?.line}
             vars={step?.vars}
+            kind={step?.kind}
           />
         )}
       </div>

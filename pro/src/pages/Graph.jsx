@@ -8,6 +8,7 @@ import {
 } from "../lib/graphSteps";
 import { layoutGraph } from "../lib/graphLayout";
 import { GRAPH_PSEUDOCODE } from "../lib/pseudocode";
+import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import ElementNode from "../components/ElementNode";
 import OperationPlayer from "../components/OperationPlayer";
@@ -325,7 +326,16 @@ const Graph = ({ initialNodes, initialEdges }) => {
   return (
     <div className="graph-page" ref={containerRef}>
       <h1>Interactive Graph Visualizer</h1>
+      <p className="page-tagline">Build an undirected graph, then explore it with BFS and DFS.</p>
 
+      <AlgoOverview
+        title="Graphs"
+        what="An undirected graph links nodes with edges. BFS explores level by level with a queue; DFS descends one path at a time with a stack."
+        time="O(V + E) traversals"
+        space="O(V)"
+        when="relationships and reachability between entities."
+        note="Circular canvas layout keeps every node readable regardless of count."
+      />
       <div className="visualizer-grid">
         <div className="visualization-area">
           <h2>Graph Visualization</h2>

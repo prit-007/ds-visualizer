@@ -13,6 +13,7 @@ const ADVERTISED_ROUTES = [
   '/array',
   '/linked-list',
   '/stack-queue',
+  '/heap',
   '/tree',
   '/graph',
   '/hash-table',

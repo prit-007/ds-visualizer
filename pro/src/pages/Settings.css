@@ -1,0 +1,73 @@
+
+.settings-page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.setting-card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1.1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+}
+
+.setting-card h2 {
+  margin-top: 0;
+}
+
+.setting-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.setting-btn {
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  border: 2px solid #0284c7;
+  background-color: white;
+  color: #0284c7;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.setting-btn[aria-pressed='true'] {
+  background-color: #0284c7;
+  color: white;
+}
+
+.setting-btn.danger {
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.setting-note {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.dark .setting-card {
+  background-color: #0f172a;
+  border-color: #1e293b;
+}
+
+.dark .setting-btn {
+  background-color: #1e293b;
+  color: #7dd3fc;
+  border-color: #0369a1;
+}
+
+.dark .setting-btn[aria-pressed='true'] {
+  background-color: #0369a1;
+  color: white;
+}
+
+.dark .setting-note {
+  color: #94a3b8;
+}

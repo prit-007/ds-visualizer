@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { buildAddSteps, buildInsertSteps, buildRemoveSteps } from "../lib/arraySteps";
 import { ARRAY_PSEUDOCODE } from "../lib/pseudocode";
+import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import ElementNode from "../components/ElementNode";
 import OperationPlayer from "../components/OperationPlayer";
@@ -208,7 +209,16 @@ const ArrayVisualizer = ({ initialArray }) => {
   return (
     <div className="array-visualizer-container" ref={containerRef}>
       <h1>Interactive Array Visualizer</h1>
+      <p className="page-tagline">Push, insert and remove elements — watch every index shift.</p>
 
+      <AlgoOverview
+        title="Arrays"
+        what="Arrays are contiguous slots of memory: indexing is instant, but inserting or removing in the middle shifts every neighbor one slot."
+        time="O(1) index · O(n) insert/remove"
+        space="O(n)"
+        when="ordered data you read far more than you mutate."
+        note="Push to the end is O(1); inserts/removes at arbitrary positions pay a linear shift."
+      />
       <div className="visualizer-grid">
         {/* Visualization area */}
         <div className="visualization-area">

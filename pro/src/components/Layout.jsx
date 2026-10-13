@@ -142,7 +142,7 @@ const Layout = () => {
               <li>
                 <button
                   type="button"
-                  className={categoryClass(categoryActive(['/array', '/linked-list', '/stack-queue', '/tree', '/graph', '/hash-table']))}
+                  className={categoryClass(categoryActive(['/array', '/linked-list', '/stack-queue', '/heap', '/tree', '/graph', '/hash-table']))}
                   onClick={() => toggleCategory('dataStructures')}
                   aria-expanded={expandedCategories.dataStructures}
                   aria-label="Data Structures"
@@ -173,6 +173,11 @@ const Layout = () => {
                     <li>
                       <Link to="/stack-queue" className={subLinkClass('/stack-queue')} aria-current={isActivePath('/stack-queue') ? 'page' : undefined}>
                         Stacks &amp; Queues
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/heap" className={subLinkClass('/heap')} aria-current={isActivePath('/heap') ? 'page' : undefined}>
+                        Heaps
                       </Link>
                     </li>
                     <li>
@@ -328,7 +333,7 @@ const Layout = () => {
                 {isSidebarOpen && <span className="ml-3 font-medium">Help</span>}
               </Link>
             </li>
-            <GuidedTour collapsed={!isSidebarOpen} />
+            <GuidedTour collapsed={!isSidebarOpen} onRequestOpen={() => setIsSidebarOpen(true)} />
           </ul>
         </div>
       </div>

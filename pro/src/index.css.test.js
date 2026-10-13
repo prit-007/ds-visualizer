@@ -81,6 +81,15 @@ describe('player containment + responsive contracts', () => {
   });
 });
 
+describe('page header + section separators', () => {
+  test('tagline and controls separators are styled with dark variants', () => {
+    expect(indexCss).toMatch(/\.page-tagline\s*\{/);
+    expect(indexCss).toMatch(/\.dark \.page-tagline/);
+    expect(indexCss).toMatch(/\.controls-area > h2\s*\{/);
+    expect(indexCss).toMatch(/\.info-panel > h3\s*\{/);
+  });
+});
+
 describe('dark theme tokens', () => {
   test('cohesive dark palette tokens exist and surfaces use them', () => {
     expect(indexCss).toMatch(/\.dark\s*\{[^}]*--panel-color:\s*#0f172a/);

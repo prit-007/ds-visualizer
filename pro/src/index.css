@@ -1331,3 +1331,253 @@ h3 {
     animation: step-chip-pulse 1.6s ease-in-out infinite;
   }
 }
+
+/* Guided tour overlay (custom; replaces driver.js anchoring) */
+.tour-root {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.tour-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.55);
+}
+
+.tour-spotlight {
+  position: fixed;
+  border-radius: 12px;
+  border: 2px solid #38bdf8;
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.0);
+  pointer-events: none;
+  z-index: 61;
+  transition: top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease;
+}
+
+.tour-popover {
+  position: fixed;
+  z-index: 62;
+  background-color: white;
+  color: #1e293b;
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
+  box-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.35);
+  padding: 1rem 1.1rem;
+  outline: none;
+}
+
+.tour-step-count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0284c7;
+  margin: 0 0 0.35rem;
+}
+
+.tour-title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.tour-desc {
+  margin: 0 0 0.85rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.tour-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.tour-btn {
+  padding: 0.4rem 0.9rem;
+  border-radius: 9999px;
+  border: none;
+  background: linear-gradient(to right, #0284c7, #0ea5e9);
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.tour-btn.ghost {
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.dark .tour-overlay {
+  background-color: rgba(2, 6, 23, 0.7);
+}
+
+.dark .tour-popover {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-color: #1e293b;
+}
+
+.dark .tour-title {
+  color: #f1f5f9;
+}
+
+.dark .tour-desc {
+  color: #94a3b8;
+}
+
+.dark .tour-btn.ghost {
+  color: #94a3b8;
+  border-color: #475569;
+}
+
+/* Page header tagline + section separators (visual restructure) */
+.page-tagline {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 62ch;
+  margin: -1.25rem auto 1.75rem;
+}
+
+.dark .page-tagline {
+  color: var(--muted-color);
+}
+
+.controls-area > h2 {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e0f2fe;
+  margin-bottom: 1.25rem;
+}
+
+.dark .controls-area > h2 {
+  border-color: var(--input-border);
+}
+
+.controls-area .operation-inputs {
+  margin-top: 1rem;
+}
+
+.controls-area .algo-panel,
+.controls-area .tree-mode-row,
+.controls-area .counterfactual-row {
+  margin-top: 0.75rem;
+}
+
+.info-panel > h3 {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e0f2fe;
+  margin-bottom: 0.75rem;
+}
+
+.dark .info-panel > h3 {
+  border-color: var(--input-border);
+}
+
+/* AlgoOverview — learning-first card above each canvas */
+.algo-overview {
+  margin: 0 0 1.25rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
+  background:
+    radial-gradient(circle at 90% 0, rgba(2, 132, 199, 0.05), transparent 45%),
+    #ffffff;
+}
+
+.algo-overview-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: #0284c7;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.95rem;
+}
+
+.algo-overview-summary::-webkit-details-marker {
+  display: none;
+}
+
+.ao-what {
+  margin: 0.6rem 0 0.75rem;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.ao-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+@media (max-width: 640px) {
+  .ao-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ao-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background-color: #f0f9ff;
+  color: #0c4a6e;
+}
+
+.ao-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0284c7;
+}
+
+.ao-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0c4a6e;
+}
+
+.ao-note {
+  margin: 0.7rem 0 0;
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.dark .algo-overview {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+.dark .ao-what {
+  color: #cbd5e1;
+}
+
+.dark .ao-cell {
+  background-color: #1e293b;
+  color: #7dd3fc;
+}
+
+.dark .ao-label {
+  color: #38bdf8;
+}
+
+.dark .ao-value {
+  color: #7dd3fc;
+}
+
+.dark .ao-note {
+  color: #94a3b8;
+}

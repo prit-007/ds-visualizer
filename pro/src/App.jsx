@@ -16,7 +16,13 @@ import HashTable from './pages/HashTable';
 import Graph from './pages/Graph';
 import Sorting from './pages/Sorting';
 import Searching from './pages/Searching';
-import ComingSoon from './pages/ComingSoon';
+import Heap from './pages/Heap';
+import GraphAlgo from './pages/GraphAlgo';
+import DynamicProgramming from './pages/DynamicProgramming';
+import Greedy from './pages/Greedy';
+import Help from './pages/Help';
+import Settings from './pages/Settings';
+import Playground from './pages/Playground';
 
 const App = () => {
   return (
@@ -34,16 +40,22 @@ const App = () => {
           <Route path='/complexity' element={<ComplexityLab />} />
           <Route path='/challenges' element={<Challenges />} />
           <Route path='/stack-queue' element={<StackQueue />} />
+          <Route path='/heap' element={<Heap />} />
           <Route path='/graph' element={<Graph />} />
           <Route path='/hash-table' element={<HashTable />} />
           <Route path='/sorting' element={<Sorting />} />
           <Route path='/searching' element={<Searching />} />
-          <Route path='/graph-algo' element={<ComingSoon title="Graph Algorithms" />} />
-          <Route path='/dynamic-programming' element={<ComingSoon title="Dynamic Programming" />} />
-          <Route path='/greedy' element={<ComingSoon title="Greedy Algorithms" />} />
-          <Route path='/visualizer' element={<ComingSoon title="Visualizer" />} />
-          <Route path='/settings' element={<ComingSoon title="Settings" />} />
-          <Route path='/help' element={<ComingSoon title="Help" />} />
+          <Route path='/graph-algo' element={<GraphAlgo />} />
+          <Route path='/dynamic-programming' element={<DynamicProgramming />} />
+          <Route path='/greedy' element={<Greedy />} />
+          <Route path='/help' element={<Help />} />
+          <Route path='/settings' element={<Settings />} />
+          <Route path='/visualizer' element={<Playground />} />
+          
+          
+          
+          
+          
         </Route>
       </Routes>
       </MotionConfig>

@@ -17,8 +17,12 @@
 | Arrays | `/array` | push, insert-at, remove-at with per-index shift narration |
 | Linked lists | `/linked-list` | Singly / Doubly / Circular types, pointer-hop narration |
 | Stacks & queues | `/stack-queue` | Stack, Queue, Deque, Circular ring buffer |
+| Heaps | `/heap` | binary min-heap (priority queue): insert, extract-min, peek — dual array + tree canvas |
 | Trees | `/tree` | AVL (with counterfactual rotations-off BST mode), B-tree (order-3), BFS/DFS/Validate/Mirror/LCA algorithms |
 | Graphs | `/graph` | add node/edge, BFS, DFS on a circular canvas |
+| Graph algorithms | `/graph-algo` | Dijkstra shortest path + Topological Sort, live distance/in-degree tables |
+| Dynamic programming | `/dynamic-programming` | six programs — Fibonacci, grid paths, coin change, LCS, 0/1 knapsack, house robber — DP-tables animate cell by cell |
+| Greedy | `/greedy` | activity selection, fractional knapsack, greedy coin change |
 | Hash tables | `/hash-table` | separate chaining, chain-walk narration |
 | Sorting | `/sorting` | bubble, selection, insertion, merge, quick, heap — swaps visibly move nodes |
 | Searching | `/searching` | linear + binary search with window narration |
@@ -26,6 +30,7 @@
 ### Learning features
 - **Lessons** — MDX-guided lessons per structure (`/lessons`)
 - **Curriculum map** — concept DAG with mastery tracking (`/curriculum`)
+- **Learn cards** — every visualizer opens with an AlgoOverview: plain-language explanation, time/space complexity and when to use it
 - **Prediction mode** — the player asks "what's next?" at every step boundary
 - **Complexity lab** — measured growth vs theoretical curves (`/complexity`)
 - **Challenges** — adversarial worst-case search scoring (`/challenges`)

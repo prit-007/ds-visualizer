@@ -9,6 +9,7 @@ import {
   buildHeapSteps,
 } from "../lib/sortingSteps";
 import { SORTING_PSEUDOCODE } from "../lib/pseudocode";
+import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import ElementNode from "../components/ElementNode";
 import OperationPlayer from "../components/OperationPlayer";
@@ -238,7 +239,16 @@ const Sorting = ({ initialArray }) => {
   return (
     <div className="sorting-page" ref={containerRef}>
       <h1>Interactive Sorting Visualizer</h1>
+      <p className="page-tagline">Six algorithms with animated swaps and honest comparisons.</p>
 
+      <AlgoOverview
+        title="Sorting"
+        what="Reorder a collection. Quadratic sorts (bubble, selection, insertion) teach the loops; merge, quick and heap reach O(n log n)."
+        time="O(n²) … O(n log n)"
+        space="O(1) … O(n)"
+        when="order matters — and to see how the same goal gets solved very differently."
+        note="Swaps animate in real time: nodes physically move, not just highlight."
+      />
       <div className="visualizer-grid">
         <div className="visualization-area">
           <h2>Sorting Visualization</h2>

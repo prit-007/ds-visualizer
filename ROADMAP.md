@@ -114,6 +114,7 @@ Exit criteria: each feature demoable on `/tree` with zero backend.
 - [x] **Searching visualizer** shipped (`feat(searching)`: `/searching` linear + binary, `searchingSteps.js` + `SEARCHING_PSEUDOCODE`, Enter-to-search form, unsorted-binary guided error; decorative search content remains on Home until further polish).
 - [x] **Dark-mode polish** (`feat(dark)`: `.dark .linked-list-node`, `.dark .operation-button`, coverage sweep + token-flip contract). (`feat(layout)`: viewport-height shell with workspace-internal scroll, mobile drawer + backdrop, active-route highlighting, scroll-to-top on route change, framer-motion page transitions honoring reduced-motion).
 - [ ] string/float value support (currently integers only) — *level-order traversal shipped early in Phase 4*
+- [x] **Algorithms breadth (AlgoViz-style reference):** DP page (Fibonacci/grid/coin), Greedy page (activity/knapsack/coin), Dijkstra + Topological Sort on `/graph-algo`, heap visualizer.
 - [ ] Structure/algorithm benchmarks: Web Worker, median-of-N, noise warnings
 
 Exit criteria: every sidebar route resolves to a real page.
@@ -126,3 +127,27 @@ Exit criteria: every sidebar route resolves to a real page.
 - Verification order every time: `npm run lint` → `npm run test:ci` → `npm run build`.
 - Keep `AGENTS.md` truthful after every phase; never let docs and code drift.
 - Don't commit unless explicitly asked.
+
+
+## Future roadmap (idea bank — picked in order as we go)
+
+**Data structures:** Trie (string sets, auto-complete), Union-Find (disjoint sets), Segment Tree / Fenwick (range queries), 2-3-4 trees via the existing B-tree, Binary Indexed array.
+
+**Algorithms — more of each family**
+- Graph: Bellman-Ford (negative weights), Floyd-Warshall (all-pairs), Prim's / Kruskal's MST, A*, Kosaraju SCC, cycle detection.
+- Sorting: radix, counting, bucket, shell.
+- Searching: ternary, jump, interpolation (keeping the sorted-guard honesty).
+- Strings: KMP, Rabin-Karp, Z-algorithm.
+- Backtracking: N-Queens, Sudoku solver, Hamiltonian path, subset-sum.
+- DP: edit distance, subset-sum table, LIS, Kadane (max subarray), word-break.
+- Trees: red-black insights (reuse AVL rotations), diameter/height mini-algos.
+
+**Features still unimplemented:** string/float value support across structures; Web Worker benchmarks (median-of-N, noise warnings) — both Phase 7 items.
+
+**Playground ambitions:** visual algorithm-building (stepper DSL) with shareable snippets; step types beyond narration (table writes, bar moves) so any future algorithm can be expressed.
+
+**Learning:** per-algorithm practice quizzes in Challenges; mastery-driven recommendations from the curriculum map; spaced repetition of missed prediction questions.
+
+## Remaining ComingSoon
+
+- `/settings` (theme/motion/clear-progress preferences) and `/visualizer` (custom-algorithm playground, parkjs814-style). String/float value support + Web Worker benchmarks remain open Phase 7 items.
