@@ -342,3 +342,116 @@ export const buildKadaneSteps = (values, ui) => {
 
   return steps;
 };
+
+// ---- Word break (1D reachability over string prefixes) ----
+export const buildWordBreakSteps = (s, dictWords, ui) => {
+  const dict = new Set(dictWords);
+  const table = { 0: true };
+  const prev = {};
+  const snap = () => ({ ...table });
+  const steps = [
+    {
+      description: `Word break for "${s}" with [${dictWords.join(', ')}]`,
+      kind: 'move',
+      line: 1,
+      vars: { s, dict: dictWords },
+      action: () => {
+        ui.setActiveKey?.(null);
+        ui.setHighlightedKeys?.([]);
+        ui.setTable?.(snap());
+      },
+    },
+    {
+      description: 'dp[i] = can s[0..i) be split into dictionary words',
+      kind: 'compare',
+      line: 2,
+      action: () => {},
+    },
+    {
+      description: 'dp[0] = true (empty string)',
+      kind: 'found',
+      line: 2,
+      vars: { i: 0, value: true },
+      action: () => {
+        ui.setActiveKey?.(0);
+        ui.setTable?.(snap());
+      },
+    },
+  ];
+
+  for (let i = 1; i <= s.length; i += 1) {
+    let reached = false;
+    for (let j = 0; j < i; j += 1) {
+      if (!table[j]) continue;
+      const word = s.slice(j, i);
+      if (dict.has(word)) {
+        table[i] = true;
+        prev[i] = j;
+        steps.push({
+          description: `split at ${j}: "${word}" in dictionary (dp[${j}] = true) → dp[${i}] = true`,
+          kind: 'found',
+          line: 5,
+          vars: { i, j, word, value: true },
+          action: () => {
+            ui.setActiveKey?.(i);
+            ui.setHighlightedKeys?.([j]);
+            ui.setTable?.(snap());
+          },
+        });
+        reached = true;
+        break;
+      }
+      steps.push({
+        description: `split at ${j}: "${word}" not in dictionary`,
+        kind: 'compare',
+        line: 5,
+        vars: { i, j, word },
+        action: () => {
+          ui.setActiveKey?.(i);
+          ui.setHighlightedKeys?.([j]);
+        },
+      });
+    }
+    if (!reached) {
+      table[i] = false;
+      steps.push({
+        description: `no valid split reaches ${i} → dp[${i}] = false`,
+        kind: 'compare',
+        line: 5,
+        vars: { i, value: false },
+        action: () => {
+          ui.setActiveKey?.(i);
+          ui.setHighlightedKeys?.([]);
+          ui.setTable?.(snap());
+        },
+      });
+    }
+  }
+
+  const value = table[s.length] === true;
+  let description;
+  if (value) {
+    const segments = [];
+    let at = s.length;
+    while (at > 0) {
+      segments.unshift(s.slice(prev[at], at));
+      at = prev[at];
+    }
+    description = `Word break: "${s}" → ${segments.join(' | ')}`;
+  } else {
+    description = `Word break: "${s}" cannot be segmented`;
+  }
+  steps.push({
+    description,
+    kind: value ? 'found' : 'error',
+    line: 6,
+    vars: { s, value },
+    action: () => {
+      ui.setActiveKey?.(null);
+      ui.setHighlightedKeys?.([]);
+      ui.setTable?.(snap());
+    },
+  });
+
+  return steps;
+};
