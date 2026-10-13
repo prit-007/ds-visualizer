@@ -781,3 +781,27 @@ export const BELLMAN_FORD_PSEUDOCODE = [
   '  if a final pass still improves, a negative cycle exists',
   'end procedure',
 ];
+
+export const MST_PSEUDOCODE = {
+  prim: [
+    'procedure prim(graph, start)',
+    '  T ← {start}',
+    '  while |T| < |V| do',
+    '    (u, v) ← cheapest edge from T to the outside',
+    '    add v to T, add (u, v) to the tree',
+    '  return tree',
+    'end procedure',
+  ],
+  kruskal: [
+    'procedure kruskal(graph)',
+    '  sort edges by weight',
+    '  T ← []',
+    '  for edge (u, v, w) in sorted order do',
+    '    if adding (u, v) does not create a cycle then',
+    '      add it to T',
+    '    else',
+    '      skip it',
+    '  return T',
+    'end procedure',
+  ],
+};
