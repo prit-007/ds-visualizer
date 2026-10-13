@@ -125,10 +125,7 @@ export const buildGridPathsSteps = (rows, cols, ui) => {
           vars: { r, c, up: a, left: b },
           action: () => {
             ui.setActiveCell?.([r, c]);
-            ui.setHighlightedCells?.([
-              [r - 1, c],
-              [r, c - 1],
-            ]);
+            ui.setHighlightedCells?.([[r - 1, c], [r, c - 1]]);
           },
         });
         steps.push({
@@ -234,6 +231,247 @@ export const buildCoinChangeSteps = (target, coins, ui) => {
     vars: { target, value },
     action: () => {
       clearUi(ui);
+      ui.setTable?.(snap());
+    },
+  });
+
+  return steps;
+};
+
+
+// ---- Longest Common Subsequence (2D table) ----
+export const buildLCSSteps = (a, b, ui) => {
+  const table = {};
+  const snap = () => ({ ...table });
+  const steps = [
+    {
+      description: `LCS of "${a}" and "${b}"`,
+      kind: 'move',
+      line: 1,
+      vars: { a, b },
+      action: () => {
+        ui.setActiveCell?.(null);
+        ui.setHighlightedCells?.([]);
+        ui.setTable?.(snap());
+      },
+    },
+    {
+      description: 'Filling dp[i][j] row by row — match extends, else best of up/left',
+      kind: 'compare',
+      line: 2,
+      action: () => {},
+    },
+  ];
+
+  for (let i = 0; i <= a.length; i += 1) {
+    for (let j = 0; j <= b.length; j += 1) {
+      if (i === 0 || j === 0) {
+        table[`${i},${j}`] = 0;
+        continue;
+      }
+      const ca = a[i - 1];
+      const cb = b[j - 1];
+      if (ca === cb) {
+        table[`${i},${j}`] = table[`${i - 1},${j - 1}`] + 1;
+        steps.push({
+          description: `${ca} = ${cb} at dp[${i}][${j}] → diagonal + 1`,
+          kind: 'found',
+          line: 3,
+          vars: { i, j, ca, cb, value: table[`${i},${j}`] },
+          action: () => {
+            ui.setActiveCell?.([i, j]);
+            ui.setHighlightedCells?.([[i - 1, j - 1]]);
+          },
+        });
+      } else {
+        const up = table[`${i - 1},${j}`];
+        const left = table[`${i},${j - 1}`];
+        table[`${i},${j}`] = Math.max(up, left);
+        steps.push({
+          description: `${ca} ≠ ${cb} → dp[${i}][${j}] = max(up, left) = ${Math.max(up, left)}`,
+          kind: 'compare',
+          line: 4,
+          vars: { i, j, ca, cb, up, left, value: table[`${i},${j}`] },
+          action: () => {
+            ui.setActiveCell?.([i, j]);
+            ui.setHighlightedCells?.([
+              [i - 1, j],
+              [i, j - 1],
+            ]);
+          },
+        });
+      }
+    }
+  }
+
+  const value = table[`${a.length},${b.length}`];
+  steps.push({
+    description: `LCS length: ${value}`,
+    kind: 'found',
+    line: 6,
+    vars: { a, b, value },
+    action: () => {
+      ui.setActiveCell?.(null);
+      ui.setHighlightedCells?.([]);
+      ui.setTable?.(snap());
+    },
+  });
+
+  return steps;
+};
+
+// ---- 0/1 Knapsack (2D table over items × capacity) ----
+export const buildZeroOneKnapsackSteps = (items, capacity, ui) => {
+  // items = [weight, value]
+  const table = {};
+  const snap = () => ({ ...table });
+  const steps = [
+    {
+      description: `0/1 knapsack — ${items.length} items, capacity ${capacity}`,
+      kind: 'move',
+      line: 1,
+      vars: { n: items.length, capacity },
+      action: () => {
+        ui.setActiveCell?.(null);
+        ui.setHighlightedCells?.([]);
+        ui.setTable?.(snap());
+      },
+    },
+    {
+      description: 'dp[i][w] = best value using first i items within weight w',
+      kind: 'compare',
+      line: 2,
+      action: () => {},
+    },
+  ];
+
+  for (let i = 0; i <= items.length; i += 1) {
+    for (let w = 0; w <= capacity; w += 1) {
+      if (i === 0 || w === 0) {
+        table[`${i},${w}`] = 0;
+        continue;
+      }
+      const [wi, vi] = items[i - 1];
+      const skip = table[`${i - 1},${w}`];
+      if (wi > w) {
+        table[`${i},${w}`] = skip;
+        steps.push({
+          description: `item ${i} (${wi}kg) too heavy for ${w}kg → keep ${skip}`,
+          kind: 'compare',
+          line: 3,
+          vars: { item: i, weight: wi, w, value: skip },
+          action: () => {
+            ui.setActiveCell?.([i, w]);
+            ui.setHighlightedCells?.([[i - 1, w]]);
+            ui.setTable?.(snap());
+          },
+        });
+      } else {
+        const take = table[`${i - 1},${w - wi}`] + vi;
+        table[`${i},${w}`] = Math.max(skip, take);
+        steps.push({
+          description: `item ${i} fits: max(skip ${skip}, take ${take}) = ${Math.max(skip, take)}`,
+          kind: 'found',
+          line: 4,
+          vars: { item: i, weight: wi, w, skip, take, value: table[`${i},${w}`] },
+          action: () => {
+            ui.setActiveCell?.([i, w]);
+            ui.setHighlightedCells?.([
+              [i - 1, w],
+              [i - 1, w - wi],
+            ]);
+            ui.setTable?.(snap());
+          },
+        });
+      }
+    }
+  }
+
+  const value = table[`${items.length},${capacity}`];
+  steps.push({
+    description: `Maximum value: ${value}`,
+    kind: 'found',
+    line: 6,
+    vars: { value },
+    action: () => {
+      ui.setActiveCell?.(null);
+      ui.setHighlightedCells?.([]);
+      ui.setTable?.(snap());
+    },
+  });
+
+  return steps;
+};
+
+// ---- House robber (max non-adjacent sum, 1D) ----
+export const buildHouseRobberSteps = (values, ui) => {
+  const dp = { 0: values[0] };
+  const snap = () => ({ ...dp });
+  const steps = [
+    {
+      description: `House robber on [${values.join(', ')}]`,
+      kind: 'move',
+      line: 1,
+      vars: { values },
+      action: () => {
+        ui.setActiveKey?.(null);
+        ui.setHighlightedKeys?.([]);
+        ui.setTable?.(snap());
+      },
+    },
+    {
+      description: values.length > 1 && values[1] > values[0]
+        ? `dp[1] = max(houses 0..1) = ${values[1]}`
+        : `dp[0] = house 0 = ${values[0]}`,
+      kind: 'compare',
+      line: 2,
+      vars: { i: 0, value: values[0] },
+      action: () => {
+        ui.setTable?.(snap());
+      },
+    },
+  ];
+
+  if (values.length > 1) {
+    dp[1] = Math.max(values[0], values[1]);
+    steps.push({
+      description: `dp[1] = max(houses 0..1) = ${dp[1]}`,
+      kind: 'found',
+      line: 3,
+      vars: { i: 1, value: dp[1] },
+      action: () => {
+        ui.setActiveKey?.(1);
+        ui.setTable?.(snap());
+      },
+    });
+  }
+
+  for (let i = 2; i < values.length; i += 1) {
+    const skip = dp[i - 1];
+    const take = dp[i - 2] + values[i];
+    dp[i] = Math.max(skip, take);
+    steps.push({
+      description: `dp[${i}] = max(skip ${skip}, rob ${values[i]} + dp[${i - 2}] = ${take}) = ${dp[i]}`,
+      kind: 'found',
+      line: 4,
+      vars: { i, skip, take, value: dp[i] },
+      action: () => {
+        ui.setActiveKey?.(i);
+        ui.setHighlightedKeys?.([i - 2, i - 1]);
+        ui.setTable?.(snap());
+      },
+    });
+  }
+
+  const value = dp[values.length - 1];
+  steps.push({
+    description: `Maximum loot without adjacent houses: ${value}`,
+    kind: 'found',
+    line: 6,
+    vars: { value },
+    action: () => {
+      ui.setActiveKey?.(null);
+      ui.setHighlightedKeys?.([]);
       ui.setTable?.(snap());
     },
   });

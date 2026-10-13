@@ -21,7 +21,7 @@
 | Trees | `/tree` | AVL (with counterfactual rotations-off BST mode), B-tree (order-3), BFS/DFS/Validate/Mirror/LCA algorithms |
 | Graphs | `/graph` | add node/edge, BFS, DFS on a circular canvas |
 | Graph algorithms | `/graph-algo` | Dijkstra shortest path + Topological Sort, live distance/in-degree tables |
-| Dynamic programming | `/dynamic-programming` | Fibonacci, grid paths, fewest-coin change — DP-tables animate cell by cell |
+| Dynamic programming | `/dynamic-programming` | six programs — Fibonacci, grid paths, coin change, LCS, 0/1 knapsack, house robber — DP-tables animate cell by cell |
 | Greedy | `/greedy` | activity selection, fractional knapsack, greedy coin change |
 | Hash tables | `/hash-table` | separate chaining, chain-walk narration |
 | Sorting | `/sorting` | bubble, selection, insertion, merge, quick, heap — swaps visibly move nodes |

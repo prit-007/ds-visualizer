@@ -1,7 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import TabNavigation from "../components/TabNavigation";
+import CasePresets from "../components/CasePresets";
 import AlgoOverview from "../components/AlgoOverview";
-import { buildFibSteps, buildGridPathsSteps, buildCoinChangeSteps } from "../lib/dpSteps";
+import {
+  buildFibSteps,
+  buildGridPathsSteps,
+  buildCoinChangeSteps,
+  buildLCSSteps,
+  buildZeroOneKnapsackSteps,
+  buildHouseRobberSteps,
+} from "../lib/dpSteps";
 import { DP_PSEUDOCODE } from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import OperationPlayer from "../components/OperationPlayer";
@@ -18,12 +26,18 @@ const TABS = [
   { id: "fib", label: "Fibonacci" },
   { id: "grid", label: "Grid Paths" },
   { id: "coin", label: "Coin Change" },
+  { id: "lcs", label: "Longest Common Subsequence" },
+  { id: "knap01", label: "0/1 Knapsack" },
+  { id: "robber", label: "House Robber" },
 ];
 
 const COMPLEXITY = {
   fib: { operationName: "Fibonacci (tabulation)", complexity: "O(n)", explanation: "Each of the n subproblems is computed once from two already-solved ones — linear, and far better than the exponential naive recursion." },
   grid: { operationName: "Grid Paths", complexity: "O(rows × cols)", explanation: "Every cell's count reuses the cell above and the cell to the left, filling the table once in row-major order." },
   coin: { operationName: "Coin Change (fewest coins)", complexity: "O(target × coins)", explanation: "Each amount tries every coin that fits and keeps the best: dp[i] = min(dp[i−c] + 1)." },
+  lcs: { operationName: "Longest Common Subsequence", complexity: "O(len(a) × len(b))", explanation: "A 2D table where every match extends a diagonal and every mismatch keeps the best of up/left — every pair of prefixes is solved once." },
+  knap01: { operationName: "0/1 Knapsack", complexity: "O(items × capacity)", explanation: "dp[i][w] = best value from the first i items within weight w — take-or-skip over every item/weight pair. Contrast with the fractional (greedy) knapsack." },
+  robber: { operationName: "House Robber", complexity: "O(n)", explanation: "dp[i] = best loot from the first i houses: either skip house i (keep dp[i−1]) or rob it and add dp[i−2] — never two adjacent." },
 };
 
 const OVERVIEW = {
@@ -44,6 +58,22 @@ const OVERVIEW = {
     time: "O(target × coins)", space: "O(target)", when: "minimum-pieces problems with denominations.",
     note: "DP gives the optimum — a greedy largest-first approach can fail on amounts like 6 with coins 4 and 3.",
   },
+  lcs: {
+    title: "Longest Common Subsequence",
+    what: "How many characters can we line up from two strings in order? If the current chars match, the diagonal answer grows; otherwise keep the best of the cell above and the cell to the left.",
+    time: "O(len(a) × len(b))", space: "O(len(a) × len(b))", when: "diff tools, DNA alignment, and any 'longest shared pattern' problem.",
+  },
+  knap01: {
+    title: "0/1 Knapsack",
+    what: "Best value you can carry with at most weight W, each item either fully taken or skipped. dp[i][w] = max(skip, take) where take = dp[i−1][w − wi] + vi.",
+    time: "O(items × capacity)", space: "O(items × capacity)", when: "indivisible resource allocation — luggage, budgets, portfolios.",
+    note: "The greedy fractional version is optimal when you may split items; the 0/1 version (no splitting) needs DP.",
+  },
+  robber: {
+    title: "House Robber",
+    what: "Steal the most value from a line of houses without robbing two adjacent ones: dp[i] = max(dp[i−1], dp[i−2] + houses[i]).",
+    time: "O(n)", space: "O(n) memo (O(1) with two slots)", when: "any 'max sum with a no-adjacent constraint' problem.",
+  },
 };
 
 const emptyTable = () => ({});
@@ -51,11 +81,18 @@ const emptyTable = () => ({});
 const DynamicProgramming = () => {
   const seed = readScenario();
   const isScenario = seed && seed.structure === "dynamic-programming";
-  const [tab, setTab] = useState(seed && seed.mode === "grid" ? "grid" : seed && seed.mode === "coin" ? "coin" : "fib");
+  const [tab, setTab] = useState(
+    seed && ["grid", "coin", "lcs", "knap01", "robber"].includes(seed.mode) ? seed.mode : "fib"
+  );
   const [nInput, setNInput] = useState(String(seed && Number.isInteger(seed.n) ? seed.n : 6));
   const [rowsInput, setRowsInput] = useState(String(seed && Number.isInteger(seed.rows) ? seed.rows : 3));
   const [colsInput, setColsInput] = useState(String(seed && Number.isInteger(seed.cols) ? seed.cols : 3));
   const [targetInput, setTargetInput] = useState(String(seed && Number.isInteger(seed.target) ? seed.target : 7));
+  const [strA, setStrA] = useState(seed && seed.strA ? seed.strA : "ABCBDAB");
+  const [strB, setStrB] = useState(seed && seed.strB ? seed.strB : "BDCABA");
+  const [capacity01Input, setCapacity01Input] = useState(String(seed && Number.isInteger(seed.cap) ? seed.cap : 5));
+  const [knap01Items, setKnap01Items] = useState([[2, 3], [3, 4], [4, 5], [5, 6]]);
+  const [robValuesInput, setRobValuesInput] = useState("2, 7, 9, 3, 1");
   const [activeKey, setActiveKey] = useState(null);
   const [highlightedKeys, setHighlightedKeys] = useState([]);
   const [activeCell, setActiveCell] = useState(null);
@@ -116,7 +153,7 @@ const DynamicProgramming = () => {
       }
       steps = buildGridPathsSteps(rows, cols, ui);
       label = `Grid paths ${rows}×${cols}`;
-    } else {
+    } else if (tab === "coin") {
       const target = parseInt(targetInput);
       if (!Number.isInteger(target) || target < 1 || target > 60) {
         setError("Please enter a target amount (1-60)");
@@ -124,6 +161,29 @@ const DynamicProgramming = () => {
       }
       steps = buildCoinChangeSteps(target, [1, 2, 5], ui);
       label = `Coin change ${target}`;
+    } else if (tab === "lcs") {
+      if (!strA.trim() || !strB.trim()) {
+        setError("Please enter both strings");
+        return;
+      }
+      steps = buildLCSSteps(strA, strB, ui);
+      label = `LCS ${strA} / ${strB}`;
+    } else if (tab === "knap01") {
+      const capacity = parseInt(capacity01Input);
+      if (!Number.isInteger(capacity) || capacity < 1 || capacity > 20) {
+        setError("Please enter a capacity (1-20)");
+        return;
+      }
+      steps = buildZeroOneKnapsackSteps(knap01Items, capacity, ui);
+      label = `Knapsack × ${capacity}`;
+    } else {
+      const values = robValuesInput.split(/[,\s]+/).filter((x) => x !== "").map((x) => parseInt(x, 10));
+      if (values.length < 1 || values.some((v) => !Number.isInteger(v))) {
+        setError("Please enter one or more house values, e.g. 2, 7, 9, 3, 1");
+        return;
+      }
+      steps = buildHouseRobberSteps(values, ui);
+      label = `Robber (${values.length} houses)`;
     }
 
     startRun(steps, () => clearHighlights(), {
@@ -138,6 +198,11 @@ const DynamicProgramming = () => {
     setRowsInput("3");
     setColsInput("3");
     setTargetInput("7");
+    setStrA("ABCBDAB");
+    setStrB("BDCABA");
+    setCapacity01Input("5");
+    setKnap01Items([[2, 3], [3, 4], [4, 5], [5, 6]]);
+    setRobValuesInput("2, 7, 9, 3, 1");
     setTable(emptyRef.current);
     clearHighlights();
     setError(null);
@@ -177,7 +242,37 @@ const DynamicProgramming = () => {
   }
   const coinKeys = Array.from({ length: (parseInt(targetInput) || 7) + 1 }, (_, i) => i);
 
-  const shareExtra = { mode: tab, n: parseInt(nInput) || 6, rows: parseInt(rowsInput) || 3, cols: parseInt(colsInput) || 3, target: parseInt(targetInput) || 7 };
+  const capacity01InputNum = parseInt(capacity01Input) || 5;
+  const lcsCells = () => {
+    const out = [];
+    for (let i = 0; i <= strA.length; i += 1) {
+      for (let j = 0; j <= strB.length; j += 1) out.push([i, j]);
+    }
+    return out;
+  };
+  const knap01Cells = () => {
+    const out = [];
+    for (let i = 0; i <= knap01Items.length; i += 1) {
+      for (let w = 0; w <= capacity01InputNum; w += 1) out.push([i, w]);
+    }
+    return out;
+  };
+  const robberValues = () =>
+    robValuesInput
+      .split(/[,\s]+/)
+      .filter((x) => x !== "")
+      .map((x) => parseInt(x, 10));
+
+  const shareExtra = {
+    mode: tab,
+    n: parseInt(nInput) || 6,
+    rows: parseInt(rowsInput) || 3,
+    cols: parseInt(colsInput) || 3,
+    target: parseInt(targetInput) || 7,
+    strA,
+    strB,
+    cap: capacity01InputNum,
+  };
 
   return (
     <div className="dp-page" ref={containerRef}>
@@ -239,6 +334,48 @@ const DynamicProgramming = () => {
                 ))}
               </div>
             )}
+            {tab === "lcs" && (
+              <div className="dp-grid" style={{ gridTemplateColumns: `repeat(${strB.length + 1}, auto)` }}>
+                {lcsCells().map(([i, j]) => {
+                  const key = `${i},${j}`;
+                  const active = activeCell && activeCell[0] === i && activeCell[1] === j;
+                  const highlighted = highlightedCells.some(([h1, h2]) => h1 === i && h2 === j);
+                  const label = (i === 0 ? "·" : strA[i - 1]) + "" + (j === 0 ? "·" : strB[j - 1]);
+                  return (
+                    <span key={key} className={`dp-grid-cell${active ? " active" : ""}${highlighted ? " highlighted" : ""}`}>
+                      <span className="dp-index">{label}</span>
+                      {table[key] !== undefined ? table[key] : <span className="dp-empty">—</span>}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {tab === "knap01" && (
+              <div className="dp-grid" style={{ gridTemplateColumns: `repeat(${capacity01InputNum + 1}, auto)` }}>
+                {knap01Cells().map(([i, w]) => {
+                  const key = `${i},${w}`;
+                  const active = activeCell && activeCell[0] === i && activeCell[1] === w;
+                  const highlighted = highlightedCells.some(([h1, h2]) => h1 === i && h2 === w);
+                  const label = i === 0 ? "·w" : `#${i}`;
+                  return (
+                    <span key={key} className={`dp-grid-cell${active ? " active" : ""}${highlighted ? " highlighted" : ""}`}>
+                      <span className="dp-index">{label}</span>
+                      {table[key] !== undefined ? table[key] : <span className="dp-empty">—</span>}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {tab === "robber" && (
+              <div className="dp-chips">
+                {robberValues().map((v, i) => (
+                  <span key={i} className={`dp-chip${activeKey === i ? " active" : ""}${highlightedKeys.includes(i) ? " highlighted" : ""}`}>
+                    <span className="dp-index">house {i}</span>
+                    {table[i] !== undefined ? table[i] : v}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {run && (
@@ -260,6 +397,9 @@ const DynamicProgramming = () => {
               {tab === "fib" && "memo[n] = the n-th Fibonacci number."}
               {tab === "grid" && "ways[r][c] = paths from (0,0) to (r,c)."}
               {tab === "coin" && "dp[i] = fewest coins making amount i (∞ = unreachable)."}
+            {tab === "lcs" && "dp[i][j] = LCS length of the first i chars of A and first j of B."}
+            {tab === "knap01" && "dp[i][w] = best value from the first i items within weight w."}
+            {tab === "robber" && "dp[i] = best loot from the first i houses (never adjacent)."}
             </p>
           </div>
         </div>
@@ -269,6 +409,16 @@ const DynamicProgramming = () => {
           <ErrorMessage message={error} />
 
           <TabNavigation tabs={TABS} activeTab={tab} onTabChange={handleTabChange} disabled={isAnimating} />
+
+          {tab === "knap01" && (
+            <CasePresets
+              disabled={isAnimating}
+              presets={[
+                { label: "Classic", onClick: () => setKnap01Items([[2, 3], [3, 4], [4, 5], [5, 6]]) },
+                { label: "Tiny", onClick: () => setKnap01Items([[1, 1], [2, 3], [3, 6]]) },
+              ]}
+            />
+          )}
 
           <form
             className="operation-inputs"
@@ -301,8 +451,42 @@ const DynamicProgramming = () => {
                 <input type="number" value={targetInput} onChange={(e) => setTargetInput(e.target.value)} disabled={isAnimating} placeholder="target" />
               </div>
             )}
+            {tab === "lcs" && (
+              <>
+                <div className="input-group">
+                  <label>String A:</label>
+                  <input type="text" value={strA} onChange={(e) => setStrA(e.target.value)} disabled={isAnimating} placeholder="ABCBDAB" />
+                </div>
+                <div className="input-group">
+                  <label>String B:</label>
+                  <input type="text" value={strB} onChange={(e) => setStrB(e.target.value)} disabled={isAnimating} placeholder="BDCABA" />
+                </div>
+              </>
+            )}
+            {tab === "knap01" && (
+              <div className="input-group">
+                <label>Capacity:</label>
+                <input type="number" value={capacity01Input} onChange={(e) => setCapacity01Input(e.target.value)} disabled={isAnimating} placeholder="capacity" />
+              </div>
+            )}
+            {tab === "robber" && (
+              <div className="input-group">
+                <label>House values:</label>
+                <input type="text" value={robValuesInput} onChange={(e) => setRobValuesInput(e.target.value)} disabled={isAnimating} placeholder="2, 7, 9, 3, 1" />
+              </div>
+            )}
             <button type="submit" className="operation-button" disabled={isAnimating}>
-              {tab === "fib" ? "Run Fibonacci" : tab === "grid" ? "Count Paths" : "Run Coin Change"}
+              {tab === "fib"
+                ? "Run Fibonacci"
+                : tab === "grid"
+                  ? "Count Paths"
+                  : tab === "coin"
+                    ? "Run Coin Change"
+                    : tab === "lcs"
+                      ? "Compute LCS"
+                      : tab === "knap01"
+                        ? "Fill Knapsack"
+                        : "Run House Robber"}
             </button>
           </form>
 
@@ -311,7 +495,21 @@ const DynamicProgramming = () => {
           <PropertyDisplay
             title="DP Properties"
             properties={[
-              { name: "Subproblems", value: tab === "fib" ? (parseInt(nInput) || 6) + 1 : tab === "grid" ? (parseInt(rowsInput) || 3) * (parseInt(colsInput) || 3) : (parseInt(targetInput) || 7) + 1 },
+              {
+                name: "Subproblems",
+                value:
+                  tab === "fib"
+                    ? (parseInt(nInput) || 6) + 1
+                    : tab === "grid"
+                      ? (parseInt(rowsInput) || 3) * (parseInt(colsInput) || 3)
+                      : tab === "coin"
+                        ? (parseInt(targetInput) || 7) + 1
+                        : tab === "lcs"
+                          ? (strA.length + 1) * (strB.length + 1)
+                          : tab === "knap01"
+                            ? (knap01Items.length + 1) * (capacity01InputNum + 1)
+                            : robberValues().length,
+              },
             ]}
           />
         </div>

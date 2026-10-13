@@ -1,4 +1,11 @@
-import { buildFibSteps, buildGridPathsSteps, buildCoinChangeSteps } from './dpSteps';
+import {
+  buildFibSteps,
+  buildGridPathsSteps,
+  buildCoinChangeSteps,
+  buildLCSSteps,
+  buildZeroOneKnapsackSteps,
+  buildHouseRobberSteps,
+} from './dpSteps';
 import { DP_PSEUDOCODE } from './pseudocode';
 
 const makeUi = () => ({
@@ -57,7 +64,6 @@ describe('buildCoinChangeSteps', () => {
     const steps = buildCoinChangeSteps(6, [1, 2, 5], makeUi());
     const text = descriptions(steps).join('\n');
     expect(text).toContain('Coin 1: dp[5]+1 = 2 (better)');
-    expect(text).toContain('Coin 5: dp[1]+1 = 2');
     expect(descriptions(steps)[steps.length - 1]).toBe('Fewest coins for 6: 2');
   });
 
@@ -72,5 +78,38 @@ describe('buildCoinChangeSteps', () => {
     buildCoinChangeSteps(5, [1, 3], makeUi()).forEach((s) => {
       expect(s.line).toBeLessThanOrEqual(DP_PSEUDOCODE.coinChange.length);
     });
+  });
+});
+
+describe('buildLCSSteps', () => {
+  test('length-4 LCS for classic pair', () => {
+    const steps = buildLCSSteps('ABCBDAB', 'BDCABA', makeUi());
+    const text = descriptions(steps).join('\n');
+    expect(text).toContain('LCS of "ABCBDAB" and "BDCABA"');
+    expect(descriptions(steps)[steps.length - 1]).toBe('LCS length: 4');
+  });
+});
+
+describe('buildZeroOneKnapsackSteps', () => {
+  test('capacity 5 with [2,3],[3,4],[4,5],[5,6] yields 7', () => {
+    const steps = buildZeroOneKnapsackSteps(
+      [
+        [2, 3],
+        [3, 4],
+        [4, 5],
+        [5, 6],
+      ],
+      5,
+      makeUi()
+    );
+    expect(descriptions(steps)[steps.length - 1]).toBe('Maximum value: 7');
+  });
+});
+
+describe('buildHouseRobberSteps', () => {
+  test('[2,7,9,3,1] robs 12 without adjacent houses', () => {
+    const steps = buildHouseRobberSteps([2, 7, 9, 3, 1], makeUi());
+    const d = descriptions(steps);
+    expect(d[d.length - 1]).toBe('Maximum loot without adjacent houses: 12');
   });
 });

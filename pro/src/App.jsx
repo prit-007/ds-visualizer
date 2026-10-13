@@ -21,7 +21,8 @@ import GraphAlgo from './pages/GraphAlgo';
 import DynamicProgramming from './pages/DynamicProgramming';
 import Greedy from './pages/Greedy';
 import Help from './pages/Help';
-import ComingSoon from './pages/ComingSoon';
+import Settings from './pages/Settings';
+import Playground from './pages/Playground';
 
 const App = () => {
   return (
@@ -48,10 +49,12 @@ const App = () => {
           <Route path='/dynamic-programming' element={<DynamicProgramming />} />
           <Route path='/greedy' element={<Greedy />} />
           <Route path='/help' element={<Help />} />
+          <Route path='/settings' element={<Settings />} />
+          <Route path='/visualizer' element={<Playground />} />
           
           
-          <Route path='/visualizer' element={<ComingSoon title="Visualizer" />} />
-          <Route path='/settings' element={<ComingSoon title="Settings" />} />
+          
+          
           
         </Route>
       </Routes>

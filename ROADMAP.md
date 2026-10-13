@@ -129,5 +129,25 @@ Exit criteria: every sidebar route resolves to a real page.
 - Don't commit unless explicitly asked.
 
 
+## Future roadmap (idea bank — picked in order as we go)
+
+**Data structures:** Trie (string sets, auto-complete), Union-Find (disjoint sets), Segment Tree / Fenwick (range queries), 2-3-4 trees via the existing B-tree, Binary Indexed array.
+
+**Algorithms — more of each family**
+- Graph: Bellman-Ford (negative weights), Floyd-Warshall (all-pairs), Prim's / Kruskal's MST, A*, Kosaraju SCC, cycle detection.
+- Sorting: radix, counting, bucket, shell.
+- Searching: ternary, jump, interpolation (keeping the sorted-guard honesty).
+- Strings: KMP, Rabin-Karp, Z-algorithm.
+- Backtracking: N-Queens, Sudoku solver, Hamiltonian path, subset-sum.
+- DP: edit distance, subset-sum table, LIS, Kadane (max subarray), word-break.
+- Trees: red-black insights (reuse AVL rotations), diameter/height mini-algos.
+
+**Features still unimplemented:** string/float value support across structures; Web Worker benchmarks (median-of-N, noise warnings) — both Phase 7 items.
+
+**Playground ambitions:** visual algorithm-building (stepper DSL) with shareable snippets; step types beyond narration (table writes, bar moves) so any future algorithm can be expressed.
+
+**Learning:** per-algorithm practice quizzes in Challenges; mastery-driven recommendations from the curriculum map; spaced repetition of missed prediction questions.
+
 ## Remaining ComingSoon
+
 - `/settings` (theme/motion/clear-progress preferences) and `/visualizer` (custom-algorithm playground, parkjs814-style). String/float value support + Web Worker benchmarks remain open Phase 7 items.

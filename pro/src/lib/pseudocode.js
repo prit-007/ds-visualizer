@@ -717,3 +717,30 @@ export const GREEDY_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+DP_PSEUDOCODE.lcs = [
+  'procedure LCS(a, b)',
+  '  dp[i][j] ← length of LCS of a[:i], b[:j]',
+  '  if a[i-1] = b[j-1] then dp[i][j] ← dp[i-1][j-1] + 1',
+  '  else dp[i][j] ← max(dp[i-1][j], dp[i][j-1])',
+  '  return dp[len(a)][len(b)]',
+  'end procedure',
+];
+
+DP_PSEUDOCODE.knap01 = [
+  'procedure zeroOneKnapsack(items, capacity)',
+  '  dp[i][w] ← best value from first i items in w kg',
+  '  if item w_i > w then keep dp[i-1][w]',
+  '  else dp[i][w] ← max(dp[i-1][w], dp[i-1][w-w_i] + v_i)',
+  '  return dp[n][capacity]',
+  'end procedure',
+];
+
+DP_PSEUDOCODE.robber = [
+  'procedure houseRobber(houses)',
+  '  dp[0] ← houses[0]; dp[1] ← max(houses[0], houses[1])',
+  '  for i ← 2 to n - 1 do',
+  '    dp[i] ← max(dp[i-1], dp[i-2] + houses[i])',
+  '  return dp[n-1]',
+  'end procedure',
+];
