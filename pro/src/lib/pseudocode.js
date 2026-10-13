@@ -805,3 +805,26 @@ export const MST_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+
+
+SORTING_PSEUDOCODE.counting = [
+  'procedure countingSort(array)',
+  '  k ← max(array); tally ← [0] * (k + 1)',
+  '  for x in array do tally[x] += 1',
+  '  for i in 1..k do tally[i] += tally[i - 1]',
+  '  for x in array (right to left) do',
+  '    out[--tally[x]] ← x',
+  '  copy out back to array',
+  'end procedure',
+];
+
+SORTING_PSEUDOCODE.radix = [
+  'procedure radixSort(array)',
+  '  for each digit place (1s, 10s, …) do',
+  '    tally the digits into buckets',
+  '    place each value at its bucket position (stable)',
+  '    concatenate the buckets back into array',
+  '  return array',
+  'end procedure',
+];

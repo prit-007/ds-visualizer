@@ -378,3 +378,45 @@ describe('reset & clear', () => {
     expect(screen.getAllByText('9').length).toBeGreaterThan(0);
   });
 });
+
+describe('Sorting — distribution sorts', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+    window.location.hash = '';
+  });
+
+  test('counting sort tab runs and records the run label', () => {
+    render(<Sorting />);
+    fireEvent.click(screen.getByRole('button', { name: 'Counting' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Counting Sort' }));
+    finishRun();
+
+    const runs = listRuns('sorting');
+    expect(runs[runs.length - 1].label).toBe('Counting sort');
+  });
+
+  test('radix sort tab runs and records the run label', () => {
+    render(<Sorting />);
+    fireEvent.click(screen.getByRole('button', { name: 'Radix' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Radix Sort' }));
+    finishRun();
+
+    const runs = listRuns('sorting');
+    expect(runs[runs.length - 1].label).toBe('Radix sort');
+  });
+
+  test('distribution sorts reject negative values', () => {
+    render(<Sorting initialArray={[5, -1, 3]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Counting' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Counting Sort' }));
+
+    expect(screen.getAllByText(/non-negative/).length).toBeGreaterThan(0);
+  });
+});
