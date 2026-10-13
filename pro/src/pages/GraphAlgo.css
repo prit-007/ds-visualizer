@@ -156,3 +156,37 @@
 .dark .graph-algo-edge.mst-edge {
   stroke: #4ade80;
 }
+
+.fw-matrix {
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.fw-matrix th,
+.fw-matrix td {
+  border: 1px solid #cbd5e1;
+  padding: 0.35rem 0.55rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.fw-matrix .fw-header {
+  font-weight: 700;
+  background: #f1f5f9;
+}
+
+.fw-matrix td.fw-active {
+  background: #bae6fd;
+  color: #0c4a6e;
+  font-weight: 700;
+}
+
+.dark .fw-matrix th,
+.dark .fw-matrix td {
+  border-color: #334155;
+}
+
+.dark .fw-matrix td.fw-active {
+  background: #0c4a6e;
+  color: #e0f2fe;
+}

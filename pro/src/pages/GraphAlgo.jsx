@@ -4,12 +4,14 @@ import { buildDijkstraSteps } from "../lib/dijkstraSteps";
 import { buildTopoSteps } from "../lib/topoSteps";
 import { buildBellmanFordSteps } from "../lib/bellmanFordSteps";
 import { buildPrimSteps, buildKruskalSteps } from "../lib/mstSteps";
+import { buildFloydWarshallSteps } from "../lib/floydWarshallSteps";
 import { layoutGraph } from "../lib/graphLayout";
 import {
   DIJKSTRA_PSEUDOCODE,
   TOPO_PSEUDOCODE,
   BELLMAN_FORD_PSEUDOCODE,
   MST_PSEUDOCODE,
+  FLOYD_PSEUDOCODE,
 } from "../lib/pseudocode";
 import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
@@ -115,6 +117,7 @@ const TABS = [
   { id: "topo", label: "Topological Sort" },
   { id: "bellman", label: "Bellman-Ford" },
   { id: "mst", label: "MST" },
+  { id: "floyd", label: "Floyd-Warshall" },
 ];
 
 const COMPLEXITY = {
@@ -141,6 +144,12 @@ const COMPLEXITY = {
     complexity: "O(E log V) · O(E log E)",
     explanation:
       "Prim greedily grows one tree through the cheapest fringe edge (heap gives log V per step); Kruskal sorts all edges and accepts the cheapest safe one, tracking components with union-find (log E per step).",
+  },
+  floyd: {
+    operationName: "Floyd–Warshall",
+    complexity: "O(V³)",
+    explanation:
+      "Every ordered pair (i, j) is tested against every intermediate k — three nested loops through all V nodes — so all-pairs shortest distances drop out in one pass.",
   },
 };
 
@@ -179,6 +188,8 @@ const GraphAlgo = () => {
   const [activeEdge, setActiveEdge] = useState(null);
   const [treeEdges, setTreeEdges] = useState([]);
   const [mstMethod, setMstMethod] = useState("prim");
+  const [fwMatrix, setFwMatrix] = useState([]);
+  const [fwActiveCell, setFwActiveCell] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [run, setRun] = useState(null);
   const [error, setError] = useState(null);
@@ -187,6 +198,7 @@ const GraphAlgo = () => {
   const isTopo = algo === "topo";
   const isBellman = algo === "bellman";
   const isMst = algo === "mst";
+  const isFloyd = algo === "floyd";
 
   useEffect(() => {
     if (error) {
@@ -216,6 +228,8 @@ const GraphAlgo = () => {
     setIndegrees(zeroIndegrees(presetNodes));
     setStartInput(String(start));
     setTopoOrder([]);
+    setFwMatrix([]);
+    setFwActiveCell(null);
     clearHighlights();
     setError(null);
     setRun(null);
@@ -232,6 +246,25 @@ const GraphAlgo = () => {
   const handleRun = () => {
     if (nodes.length === 0) {
       setError("Graph is empty — load a preset first");
+      return;
+    }
+
+    if (isFloyd) {
+      const steps = buildFloydWarshallSteps(nodes, edges, {
+        setMatrix: setFwMatrix,
+        setActiveCell: setFwActiveCell,
+      });
+      startRun(
+        steps,
+        () => {
+          clearHighlights();
+        },
+        {
+          before: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          after: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          label: "Floyd-Warshall",
+        }
+      );
       return;
     }
 
@@ -368,6 +401,10 @@ const GraphAlgo = () => {
       applyPreset(MST_NODES, MST_EDGES, 1);
       return;
     }
+    if (next === "floyd") {
+      applyPreset(SMALL_NODES, SMALL_EDGES, 1);
+      return;
+    }
     setDistances(emptyDistances(nodes));
     setDistances(emptyDistances(nodes));
     setIndegrees(zeroIndegrees(nodes));
@@ -379,8 +416,8 @@ const GraphAlgo = () => {
 
   const handleReset = () =>
     applyPreset(
-      isTopo ? COURSE_NODES : isBellman ? BF_NODES : isMst ? MST_NODES : DEMO_NODES,
-      isTopo ? COURSE_EDGES : isBellman ? BF_EDGES : isMst ? MST_EDGES : DEMO_EDGES,
+      isTopo ? COURSE_NODES : isBellman ? BF_NODES : isMst ? MST_NODES : isFloyd ? SMALL_NODES : DEMO_NODES,
+      isTopo ? COURSE_EDGES : isBellman ? BF_EDGES : isMst ? MST_EDGES : isFloyd ? SMALL_EDGES : DEMO_EDGES,
       isBellman ? 1 : 1
     );
   const handleClear = () => applyPreset([], [], "");
@@ -526,6 +563,43 @@ const GraphAlgo = () => {
             </div>
           )}
 
+          {isFloyd && (
+            <div className="info-panel dist-panel">
+              <h3>All-pairs distance matrix</h3>
+              <table className="fw-matrix">
+                <thead>
+                  <tr>
+                    <th></th>
+                    {orderedNodes.map((n) => (
+                      <th key={n}>{n}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {orderedNodes.map((r) => (
+                    <tr key={r}>
+                      <td className="fw-header">{r}</td>
+                      {orderedNodes.map((c) => {
+                        const cell = fwMatrix[orderedNodes.indexOf(r)]?.[orderedNodes.indexOf(c)];
+                        const active =
+                          fwActiveCell &&
+                          fwActiveCell[0] === orderedNodes.indexOf(r) &&
+                          fwActiveCell[1] === orderedNodes.indexOf(c);
+                        return (
+                          <td
+                            key={`${r}-${c}`}
+                            className={active ? "fw-active" : ""}
+                          >
+                            {cell === undefined || cell === Infinity ? "∞" : cell}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
           {run && (
             <OperationPlayer
               steps={run.steps}
@@ -542,7 +616,9 @@ const GraphAlgo = () => {
                     ? BELLMAN_FORD_PSEUDOCODE
                     : isMst
                       ? MST_PSEUDOCODE[mstMethod]
-                      : DIJKSTRA_PSEUDOCODE
+                      : isFloyd
+                        ? FLOYD_PSEUDOCODE
+                        : DIJKSTRA_PSEUDOCODE
               }
             />
           )}
@@ -620,7 +696,16 @@ const GraphAlgo = () => {
                         { label: "Dense", onClick: () => applyPreset(MST_DENSE_NODES, MST_DENSE_EDGES, 1) },
                         { label: "Disconnected", onClick: () => applyPreset(MST_NODES, MST_DISCONNECTED_EDGES, 1) },
                       ]
-                    : [
+                    : isFloyd
+                      ? [
+                          { label: "Small graph", onClick: () => applyPreset(SMALL_NODES, SMALL_EDGES, 1) },
+                          { label: "Classic", onClick: () => applyPreset(MST_NODES, MST_EDGES, 1) },
+                          {
+                            label: "Negative cycle",
+                            onClick: () => applyPreset(BF_CYCLE_NODES, BF_CYCLE_EDGES, 1),
+                          },
+                        ]
+                      : [
                     { label: "Demo graph", onClick: () => applyPreset(DEMO_NODES, DEMO_EDGES, 1) },
                     { label: "Small graph", onClick: () => applyPreset(SMALL_NODES, SMALL_EDGES, 1) },
                     {
@@ -673,7 +758,15 @@ const GraphAlgo = () => {
               </div>
             )}
             <button type="submit" className="operation-button" disabled={isAnimating}>
-              {isTopo ? "Run Topological Sort" : isBellman ? "Run Bellman-Ford" : isMst ? "Run MST" : "Run Dijkstra"}
+              {isTopo
+                ? "Run Topological Sort"
+                : isBellman
+                  ? "Run Bellman-Ford"
+                  : isMst
+                    ? "Run MST"
+                    : isFloyd
+                      ? "Run Floyd-Warshall"
+                      : "Run Dijkstra"}
             </button>
           </form>
 
@@ -689,14 +782,16 @@ const GraphAlgo = () => {
               { name: "Nodes", value: nodes.length },
               { name: "Edges", value: edges.length },
               {
-                name: isTopo ? "Ordered" : isMst ? "Tree edges" : "Settled",
+                name: isTopo ? "Ordered" : isMst ? "Tree edges" : isFloyd ? "Matrix" : "Settled",
                 value: isTopo
                   ? `${topoOrder.length} / ${nodes.length}`
                   : isMst
                     ? `${treeEdges.length} / ${nodes.length - 1}`
-                    : isBellman
-                      ? `${nodes.filter((n) => distances[n] !== Infinity && distances[n] !== undefined).length} / ${nodes.length}`
-                      : `${visitedNodes.length} / ${nodes.length}`,
+                    : isFloyd
+                      ? `${nodes.length} × ${nodes.length}`
+                      : isBellman
+                        ? `${nodes.filter((n) => distances[n] !== Infinity && distances[n] !== undefined).length} / ${nodes.length}`
+                        : `${visitedNodes.length} / ${nodes.length}`,
               },
             ]}
           />
