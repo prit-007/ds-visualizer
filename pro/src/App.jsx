@@ -18,6 +18,9 @@ import Sorting from './pages/Sorting';
 import Searching from './pages/Searching';
 import Heap from './pages/Heap';
 import GraphAlgo from './pages/GraphAlgo';
+import DynamicProgramming from './pages/DynamicProgramming';
+import Greedy from './pages/Greedy';
+import Help from './pages/Help';
 import ComingSoon from './pages/ComingSoon';
 
 const App = () => {
@@ -42,11 +45,14 @@ const App = () => {
           <Route path='/sorting' element={<Sorting />} />
           <Route path='/searching' element={<Searching />} />
           <Route path='/graph-algo' element={<GraphAlgo />} />
-          <Route path='/dynamic-programming' element={<ComingSoon title="Dynamic Programming" />} />
-          <Route path='/greedy' element={<ComingSoon title="Greedy Algorithms" />} />
+          <Route path='/dynamic-programming' element={<DynamicProgramming />} />
+          <Route path='/greedy' element={<Greedy />} />
+          <Route path='/help' element={<Help />} />
+          
+          
           <Route path='/visualizer' element={<ComingSoon title="Visualizer" />} />
           <Route path='/settings' element={<ComingSoon title="Settings" />} />
-          <Route path='/help' element={<ComingSoon title="Help" />} />
+          
         </Route>
       </Routes>
       </MotionConfig>

@@ -21,6 +21,7 @@ import {
   DEQUE_PSEUDOCODE,
   CIRCULAR_QUEUE_PSEUDOCODE,
 } from "../lib/pseudocode";
+import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import ElementNode from "../components/ElementNode";
 import OperationPlayer from "../components/OperationPlayer";
@@ -592,6 +593,14 @@ const StackQueue = ({ initialItems }) => {
       <h1>Interactive Stack & Queue Visualizer</h1>
       <p className="page-tagline">LIFO, FIFO, deques and a circular ring buffer in one page.</p>
 
+      <AlgoOverview
+        title="Stacks, Queues, Deques, Ring Buffers"
+        what="Stacks are LIFO, queues FIFO. A deque adds O(1) work at both ends; a circular buffer reuses fixed slots with modulo arithmetic."
+        time="O(1) push/pop · O(n) array dequeue/front"
+        space="O(n)"
+        when="ordering work — undo stacks, task queues, sliding windows."
+        note="The ring exploits modular indices, so nothing ever shifts."
+      />
       <div className="visualizer-grid">
         <div className="visualization-area">
           <h2>Stack & Queue Visualization</h2>

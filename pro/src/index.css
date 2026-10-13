@@ -1479,3 +1479,105 @@ h3 {
 .dark .info-panel > h3 {
   border-color: var(--input-border);
 }
+
+/* AlgoOverview — learning-first card above each canvas */
+.algo-overview {
+  margin: 0 0 1.25rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
+  background:
+    radial-gradient(circle at 90% 0, rgba(2, 132, 199, 0.05), transparent 45%),
+    #ffffff;
+}
+
+.algo-overview-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: #0284c7;
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.95rem;
+}
+
+.algo-overview-summary::-webkit-details-marker {
+  display: none;
+}
+
+.ao-what {
+  margin: 0.6rem 0 0.75rem;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.ao-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+@media (max-width: 640px) {
+  .ao-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ao-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background-color: #f0f9ff;
+  color: #0c4a6e;
+}
+
+.ao-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0284c7;
+}
+
+.ao-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0c4a6e;
+}
+
+.ao-note {
+  margin: 0.7rem 0 0;
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.dark .algo-overview {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+.dark .ao-what {
+  color: #cbd5e1;
+}
+
+.dark .ao-cell {
+  background-color: #1e293b;
+  color: #7dd3fc;
+}
+
+.dark .ao-label {
+  color: #38bdf8;
+}
+
+.dark .ao-value {
+  color: #7dd3fc;
+}
+
+.dark .ao-note {
+  color: #94a3b8;
+}

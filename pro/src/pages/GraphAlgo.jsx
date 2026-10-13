@@ -4,6 +4,7 @@ import { buildDijkstraSteps } from "../lib/dijkstraSteps";
 import { buildTopoSteps } from "../lib/topoSteps";
 import { layoutGraph } from "../lib/graphLayout";
 import { DIJKSTRA_PSEUDOCODE, TOPO_PSEUDOCODE } from "../lib/pseudocode";
+import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import OperationPlayer from "../components/OperationPlayer";
 import ErrorMessage from "../components/ErrorMessage";
@@ -258,6 +259,14 @@ const GraphAlgo = () => {
           : "Dijkstra's shortest path on a weighted graph, edge by edge."}
       </p>
 
+      <AlgoOverview
+        title="Dijkstra + Topological Sort"
+        what="Dijkstra settles nodes nearest-first by relaxing weighted edges; Kahn’s algorithm topologically sorts a DAG by repeatedly removing in-degree-0 nodes."
+        time="O((V+E) log V) · O(V + E)"
+        space="O(V)"
+        when="single-source shortest paths on non-negative weights; dependency ordering on acyclic graphs."
+        note="Directed edges (topo) wear arrows; unreachable nodes stay at ∞ honestly."
+      />
       <div className="visualizer-grid">
         <div className="visualization-area">
           <h2>Graph</h2>

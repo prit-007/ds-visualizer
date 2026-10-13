@@ -8,6 +8,7 @@ import {
   LINKED_LIST_DOUBLY_PSEUDOCODE,
   LINKED_LIST_CIRCULAR_PSEUDOCODE,
 } from "../lib/pseudocode";
+import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import { prefersReducedMotion } from "../lib/motionPrefs";
 import OperationPlayer from "../components/OperationPlayer";
@@ -383,6 +384,14 @@ const LinkedListVisualizer = ({ initialNodes }) => {
       <h1>Interactive Linked List Visualizer</h1>
       <p className="page-tagline">Singly, doubly and circular lists with pointer-by-pointer narration.</p>
       
+      <AlgoOverview
+        title="Linked Lists"
+        what="Nodes point at their neighbors instead of living in a contiguous block. The structure type changes the rules — singly, doubly, circular."
+        time="O(n) walk · O(1) head/tail"
+        space="O(n)"
+        when="frequent insertion/removal anywhere and no need for random access."
+        note="Doubly lists can walk both ways; circular lists keep the tail pointing back at the head."
+      />
       <div className="visualizer-grid">
         {/* Visualization area */}
         <div className="visualization-area">

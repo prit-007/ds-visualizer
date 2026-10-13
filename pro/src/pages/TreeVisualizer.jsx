@@ -18,6 +18,7 @@ import { AVLTree } from "../lib/avl";
 import { buildInsertSteps, buildDeleteSteps, buildSearchSteps, buildTraversalSteps } from "../lib/treeSteps";
 import { buildValidateBSTSteps, buildMirrorSteps, buildLCASteps, buildBFSSteps, buildDFSTreeSteps } from "../lib/treeAlgoSteps";
 import { TREE_PSEUDOCODE, TREE_ALGO_PSEUDOCODE } from "../lib/pseudocode";
+import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import { layoutTree } from "../lib/treeLayout";
 import { BTree } from "../lib/btree";
@@ -702,6 +703,14 @@ const TreeVisualizer = () => {
       <h1>{isBTree ? "B-Tree Visualizer" : "AVL Tree Visualizer"}</h1>
       <p className="page-tagline">AVL and B-tree modes with traversals, validations and rebalances.</p>
       
+      <AlgoOverview
+        title="AVL + B-Tree"
+        what="An AVL tree rotates to keep every subtree balanced, so operations stay O(log n). A B-tree fans out into many keys per node for shallow, bushy trees."
+        time="O(log n) insert/delete/search"
+        space="O(n)"
+        when="ordered data that changes often and benefits from range-friendly storage."
+        note="The rotations toggle lets you compare a balanced AVL against a skewed BST."
+      />
       <div className="visualizer-grid">
         {/* Visualization area */}
         <div className="card visualization-area">

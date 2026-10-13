@@ -662,3 +662,58 @@ export const TOPO_PSEUDOCODE = [
   '  return order',
   'end procedure',
 ];
+
+export const DP_PSEUDOCODE = {
+  fib: [
+    'procedure fibonacci(n)',
+    '  table[0] ← 0; table[1] ← 1',
+    '  for i ← 2 to n do',
+    '    table[i] ← table[i - 2] + table[i - 1]',
+    '  return table[n]',
+    'end procedure',
+  ],
+  gridPaths: [
+    'procedure countPaths(rows, cols)',
+    '  fill cells row by row',
+    '  edge cells ← 1 (only one direction)',
+    '  ways(r,c) ← ways(r-1,c) + ways(r,c-1)',
+    '  return ways(rows-1, cols-1)',
+    'end procedure',
+  ],
+  coinChange: [
+    'procedure fewestCoins(amount, coins)',
+    '  dp[0] ← 0',
+    '  for i ← 1 to amount do',
+    '    dp[i] ← min over coins c ≤ i of dp[i-c] + 1',
+    '  return dp[amount]',
+    'end procedure',
+  ],
+};
+
+export const GREEDY_PSEUDOCODE = {
+  activity: [
+    'procedure activitySelection(intervals)',
+    '  sort intervals by end time',
+    '  for each interval in order do',
+    '    if it starts after the last selected then select it',
+    '    else skip (it overlaps)',
+    '  return selected intervals',
+    'end procedure',
+  ],
+  knapsack: [
+    'procedure fractionalKnapsack(items, capacity)',
+    '  sort items by value/weight',
+    '  take whole items while space remains',
+    '  take a fraction of the next item',
+    '  return total value',
+    'end procedure',
+  ],
+  coin: [
+    'procedure greedyCoinChange(amount, coins)',
+    '  while amount > 0 do',
+    '    use the largest coin ≤ amount',
+    '    amount ← amount − coin',
+    '  if amount = 0 then greedy is exact',
+    'end procedure',
+  ],
+};

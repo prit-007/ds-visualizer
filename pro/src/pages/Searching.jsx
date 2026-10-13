@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { buildLinearSteps, buildBinarySteps } from "../lib/searchingSteps";
 import { SEARCHING_PSEUDOCODE } from "../lib/pseudocode";
+import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import ElementNode from "../components/ElementNode";
 import OperationPlayer from "../components/OperationPlayer";
@@ -177,6 +178,14 @@ const Searching = ({ initialArray, initialTarget }) => {
       <h1>Interactive Searching Visualizer</h1>
       <p className="page-tagline">Linear and binary search, one comparison at a time.</p>
 
+      <AlgoOverview
+        title="Searching"
+        what="Find a target in a collection. Linear search scans every index; binary search halves the window, but demands a sorted array."
+        time="O(n) linear · O(log n) binary"
+        space="O(1)"
+        when="lookup, and binary whenever the data is already sorted."
+        note="Binary search on an unsorted array is refused — honestly, not silently wrong."
+      />
       <div className="visualizer-grid">
         <div className="visualization-area">
           <h2>Searching Visualization</h2>

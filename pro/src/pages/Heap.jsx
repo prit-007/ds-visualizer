@@ -4,6 +4,7 @@ import { MinHeap } from "../lib/heap";
 import { buildInsertSteps, buildExtractSteps, buildPeekSteps } from "../lib/heapSteps";
 import { layoutHeap, CANVAS_W } from "../lib/heapLayout";
 import { HEAP_PSEUDOCODE } from "../lib/pseudocode";
+import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import ElementNode from "../components/ElementNode";
 import OperationPlayer from "../components/OperationPlayer";
@@ -226,6 +227,14 @@ const Heap = () => {
       <h1>Interactive Binary Heap Visualizer</h1>
       <p className="page-tagline">A binary min-heap with dual array and tree views.</p>
 
+      <AlgoOverview
+        title="Binary Heap (Priority Queue)"
+        what="A complete tree stored in an array where the smallest key always sits at the root. Insert bubbles up; extract-min sifts the last key back down."
+        time="O(log n) insert/extract · O(1) peek"
+        space="O(n)"
+        when="repeatedly grab-the-minimum workloads: schedulers, Dijkstra, heapsort."
+        note="The array row and tree canvas are the same data — two views of one heap."
+      />
       <div className="visualizer-grid">
         <div className="visualization-area">
           <h2>Min-Heap Visualization</h2>

@@ -9,6 +9,7 @@ import {
   buildDeleteSteps,
 } from "../lib/hashTableSteps";
 import { HASH_TABLE_PSEUDOCODE } from "../lib/pseudocode";
+import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import ElementNode from "../components/ElementNode";
 import OperationPlayer from "../components/OperationPlayer";
@@ -259,6 +260,14 @@ const HashTable = ({ initialKeys }) => {
       <h1>Interactive Hash Table Visualizer</h1>
       <p className="page-tagline">Separate chaining — watch keys hash into buckets and chains grow.</p>
 
+      <AlgoOverview
+        title="Hash Table"
+        what="A hash function maps each key to a bucket; separate chaining grows every bucket lazily into a small chain."
+        time="O(1) avg · O(n) worst"
+        space="O(n)"
+        when="key → value lookups with a decent hash and few collisions."
+        note="Duplicate keys are refused — every key maps to exactly one value."
+      />
       <div className="visualizer-grid">
         <div className="visualization-area">
           <h2>Hash Table Visualization</h2>
