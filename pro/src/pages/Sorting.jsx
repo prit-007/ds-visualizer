@@ -8,6 +8,7 @@ import {
   buildQuickSteps,
   buildHeapSteps,
 } from "../lib/sortingSteps";
+import { buildCountingSteps, buildRadixSteps } from "../lib/linearSortsSteps";
 import { SORTING_PSEUDOCODE } from "../lib/pseudocode";
 import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
@@ -34,6 +35,8 @@ const TABS = [
   { id: "merge", label: "Merge" },
   { id: "quick", label: "Quick" },
   { id: "heap", label: "Heap" },
+  { id: "counting", label: "Counting" },
+  { id: "radix", label: "Radix" },
 ];
 
 const BUILDERS = {
@@ -43,6 +46,8 @@ const BUILDERS = {
   merge: buildMergeSteps,
   quick: buildQuickSteps,
   heap: buildHeapSteps,
+  counting: buildCountingSteps,
+  radix: buildRadixSteps,
 };
 
 const ALGORITHM_NAME = {
@@ -52,6 +57,8 @@ const ALGORITHM_NAME = {
   merge: "Merge",
   quick: "Quick",
   heap: "Heap",
+  counting: "Counting",
+  radix: "Radix",
 };
 
 const COMPLEXITY = {
@@ -90,6 +97,18 @@ const COMPLEXITY = {
     complexity: "O(n log n)",
     explanation:
       "Heap sort builds a max-heap in place, then repeatedly extracts the maximum into the end of the array. Consistent O(n log n) with no extra memory.",
+  },
+  counting: {
+    operationName: "Counting Sort",
+    complexity: "O(n + k)",
+    explanation:
+      "Counting sort tallies how many times each value appears in a range 0..k, converts the tally into positions, then drops each element into place. Linear when k is small, but it needs non-negative integers.",
+  },
+  radix: {
+    operationName: "Radix Sort (LSD)",
+    complexity: "O(d · n)",
+    explanation:
+      "Radix sort stable-sorts the array once per decimal digit place, least-significant first. d digit passes of O(n) each — no comparisons needed.",
   },
 };
 
@@ -194,6 +213,18 @@ const Sorting = ({ initialArray }) => {
       return;
     }
 
+    if ((activeTab === "counting" || activeTab === "radix") && array.some((v) => v < 0)) {
+      setError("Counting and radix sort need non-negative integers");
+      return;
+    }
+    if (activeTab === "counting") {
+      const k = Math.max(...array);
+      if (k > 200) {
+        setError("Counting sort works best on a small value range (max ≤ 200)");
+        return;
+      }
+    }
+
     const builder = BUILDERS[activeTab] ?? buildBubbleSteps;
     const steps = builder(array, ui);
     const sorted = [...array].sort((a, b) => a - b);
@@ -239,11 +270,11 @@ const Sorting = ({ initialArray }) => {
   return (
     <div className="sorting-page" ref={containerRef}>
       <h1>Interactive Sorting Visualizer</h1>
-      <p className="page-tagline">Six algorithms with animated swaps and honest comparisons.</p>
+      <p className="page-tagline">Eight algorithms with animated swaps, comparisons — and digit buckets.</p>
 
       <AlgoOverview
-        title="Sorting"
-        what="Reorder a collection. Quadratic sorts (bubble, selection, insertion) teach the loops; merge, quick and heap reach O(n log n)."
+        title="Sorting — comparison + distribution"
+        what="Reorder a collection. Bubble, selection and insertion teach the loops; merge, quick and heap reach O(n log n); counting and radix beat all comparisons by exploiting integer range and digits (O(n + k), O(d · n))."
         time="O(n²) … O(n log n)"
         space="O(1) … O(n)"
         when="order matters — and to see how the same goal gets solved very differently."
