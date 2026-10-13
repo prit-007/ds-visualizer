@@ -925,3 +925,15 @@ export const STRING_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+export const FLOYD_PSEUDOCODE = [
+  'procedure floydWarshall(G)',
+  '  dist ← weight matrix: ∞ for missing edges, 0 on the diagonal',
+  '  for k in 1..V do',
+  '    for i in 1..V do',
+  '      for j in 1..V do',
+  '        if dist[i][k] + dist[k][j] < dist[i][j] then',
+  '          dist[i][j] ← dist[i][k] + dist[k][j]',
+  '  return dist   ▸ any negative diagonal means a negative cycle',
+  'end procedure',
+];

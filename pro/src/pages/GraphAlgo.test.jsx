@@ -248,3 +248,40 @@ describe('GraphAlgo (MST)', () => {
     expect(screen.getByText(/Graph disconnected/)).toBeInTheDocument();
   });
 });
+
+describe('GraphAlgo (Floyd-Warshall)', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+    window.location.hash = '';
+  });
+
+  test('tab-switch loads a weighted graph and a run fills the matrix', () => {
+    const { container } = render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'Floyd-Warshall' }));
+    expect(screen.getByRole('button', { name: 'Run Floyd-Warshall' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run Floyd-Warshall' }));
+    finishRun();
+
+    expect(listRuns('graph-algo')[listRuns('graph-algo').length - 1].label).toBe('Floyd-Warshall');
+    const cells = container.querySelectorAll('.fw-matrix tbody td:not(.fw-header)');
+    expect(cells.length).toBe(9); // 3x3 matrix
+  });
+
+  test('a negative-cycle preset ends with the honest flag', () => {
+    render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'Floyd-Warshall' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Negative cycle' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Floyd-Warshall' }));
+    finishRun();
+
+    expect(screen.getByText(/Negative cycle detected/)).toBeInTheDocument();
+  });
+});
