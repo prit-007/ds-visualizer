@@ -700,6 +700,7 @@ const TreeVisualizer = () => {
   return (
     <div className="visualizer-container" ref={containerRef}>
       <h1>{isBTree ? "B-Tree Visualizer" : "AVL Tree Visualizer"}</h1>
+      <p className="page-tagline">AVL and B-tree modes with traversals, validations and rebalances.</p>
       
       <div className="visualizer-grid">
         {/* Visualization area */}

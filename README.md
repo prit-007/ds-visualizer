@@ -17,8 +17,10 @@
 | Arrays | `/array` | push, insert-at, remove-at with per-index shift narration |
 | Linked lists | `/linked-list` | Singly / Doubly / Circular types, pointer-hop narration |
 | Stacks & queues | `/stack-queue` | Stack, Queue, Deque, Circular ring buffer |
+| Heaps | `/heap` | binary min-heap (priority queue): insert, extract-min, peek — dual array + tree canvas |
 | Trees | `/tree` | AVL (with counterfactual rotations-off BST mode), B-tree (order-3), BFS/DFS/Validate/Mirror/LCA algorithms |
 | Graphs | `/graph` | add node/edge, BFS, DFS on a circular canvas |
+| Graph algorithms | `/graph-algo` | Dijkstra shortest path on weighted graphs with a live distance table |
 | Hash tables | `/hash-table` | separate chaining, chain-walk narration |
 | Sorting | `/sorting` | bubble, selection, insertion, merge, quick, heap — swaps visibly move nodes |
 | Searching | `/searching` | linear + binary search with window narration |

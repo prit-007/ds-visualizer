@@ -224,6 +224,7 @@ const Heap = () => {
   return (
     <div className="heap-page" ref={containerRef}>
       <h1>Interactive Binary Heap Visualizer</h1>
+      <p className="page-tagline">A binary min-heap with dual array and tree views.</p>
 
       <div className="visualizer-grid">
         <div className="visualization-area">

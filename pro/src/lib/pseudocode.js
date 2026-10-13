@@ -638,3 +638,14 @@ export const HEAP_PSEUDOCODE = {
     '  return heap[0]',
   ],
 };
+
+export const DIJKSTRA_PSEUDOCODE = [
+  'procedure dijkstra(graph, start)',
+  '  dist ← {all: ∞}, dist[start] ← 0',
+  '  while unsettled nodes remain do',
+  '    u ← unsettled node with the smallest dist',
+  '    for each edge (u, v, w) do',
+  '      if dist[u] + w < dist[v] then dist[v] ← dist[u] + w',
+  '  return dist',
+  'end procedure',
+];

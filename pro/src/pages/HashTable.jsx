@@ -257,6 +257,7 @@ const HashTable = ({ initialKeys }) => {
   return (
     <div className="hash-table-page" ref={containerRef}>
       <h1>Interactive Hash Table Visualizer</h1>
+      <p className="page-tagline">Separate chaining — watch keys hash into buckets and chains grow.</p>
 
       <div className="visualizer-grid">
         <div className="visualization-area">

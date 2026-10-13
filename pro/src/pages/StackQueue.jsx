@@ -590,6 +590,7 @@ const StackQueue = ({ initialItems }) => {
   return (
     <div className="stack-queue-page" ref={containerRef}>
       <h1>Interactive Stack & Queue Visualizer</h1>
+      <p className="page-tagline">LIFO, FIFO, deques and a circular ring buffer in one page.</p>
 
       <div className="visualizer-grid">
         <div className="visualization-area">

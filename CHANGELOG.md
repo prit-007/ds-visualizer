@@ -34,6 +34,8 @@ All notable changes to AlgoViz are documented here. Format loosely follows
   across pages, coverage-sweep contract tests
 - **Polish** — typography tokens (`--font-sans`/`--font-mono`), press-scale
   micro-interactions, panel transitions, current-step pulse
+- **Binary heap** — `/heap` min-heap / priority queue visualizer: insert (bubble up), extract-min (sift down), peek; dual animated array + tree canvas, `heap.js`/`heapSteps.js`/`heapLayout.js`
+- **Graph algorithms** — `/graph-algo` Dijkstra shortest path on weighted graphs: settle/relax narration, live distance table, weight labels, unreachable-∞ handling
 - **AVL improvements** — rotation steps drive edge highlights
   (LL/RR/LR/RL read as real rebalances), adaptive tree layout + scale-to-fit
   (no horizontal scroll as trees grow)

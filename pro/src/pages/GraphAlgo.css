@@ -1,0 +1,114 @@
+
+.graph-algo-canvas {
+  position: relative;
+  margin: 1rem auto;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.graph-algo-edge {
+  stroke: #94a3b8;
+  stroke-width: 2;
+}
+
+.graph-algo-edge.active {
+  stroke: #0284c7;
+  stroke-width: 3;
+}
+
+.graph-algo-weight {
+  font-size: 0.75rem;
+  font-weight: 700;
+  fill: #475569;
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 3px;
+}
+
+.graph-algo-node-slot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.graph-algo-node {
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  border: 2px solid #0284c7;
+  background-color: white;
+  color: #1e293b;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.graph-algo-node.active {
+  transform: scale(1.1);
+  box-shadow: 0 0 18px rgba(2, 132, 199, 0.5);
+}
+
+.graph-algo-node.visited {
+  border-color: #16a34a;
+  background-color: #dcfce7;
+}
+
+.dist-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.dist-table th,
+.dist-table td {
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dist-table th {
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+.dist-table td.dist-settled {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.dark .graph-algo-node {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border-color: #0369a1;
+}
+
+.dark .graph-algo-node.visited {
+  background-color: #14532d;
+  border-color: #22c55e;
+  color: #dcfce7;
+}
+
+.dark .graph-algo-edge {
+  stroke: #475569;
+}
+
+.dark .graph-algo-edge.active {
+  stroke: #38bdf8;
+}
+
+.dark .graph-algo-weight {
+  fill: #cbd5e1;
+  stroke: #0f172a;
+}
+
+.dark .dist-table th,
+.dark .dist-table td {
+  border-color: #334155;
+}

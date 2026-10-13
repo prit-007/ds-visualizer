@@ -1435,3 +1435,47 @@ h3 {
   color: #94a3b8;
   border-color: #475569;
 }
+
+/* Page header tagline + section separators (visual restructure) */
+.page-tagline {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 62ch;
+  margin: -1.25rem auto 1.75rem;
+}
+
+.dark .page-tagline {
+  color: var(--muted-color);
+}
+
+.controls-area > h2 {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e0f2fe;
+  margin-bottom: 1.25rem;
+}
+
+.dark .controls-area > h2 {
+  border-color: var(--input-border);
+}
+
+.controls-area .operation-inputs {
+  margin-top: 1rem;
+}
+
+.controls-area .algo-panel,
+.controls-area .tree-mode-row,
+.controls-area .counterfactual-row {
+  margin-top: 0.75rem;
+}
+
+.info-panel > h3 {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e0f2fe;
+  margin-bottom: 0.75rem;
+}
+
+.dark .info-panel > h3 {
+  border-color: var(--input-border);
+}

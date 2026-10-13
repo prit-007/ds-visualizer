@@ -238,6 +238,7 @@ const Sorting = ({ initialArray }) => {
   return (
     <div className="sorting-page" ref={containerRef}>
       <h1>Interactive Sorting Visualizer</h1>
+      <p className="page-tagline">Six algorithms with animated swaps and honest comparisons.</p>
 
       <div className="visualizer-grid">
         <div className="visualization-area">

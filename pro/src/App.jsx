@@ -17,6 +17,7 @@ import Graph from './pages/Graph';
 import Sorting from './pages/Sorting';
 import Searching from './pages/Searching';
 import Heap from './pages/Heap';
+import GraphAlgo from './pages/GraphAlgo';
 import ComingSoon from './pages/ComingSoon';
 
 const App = () => {
@@ -40,7 +41,7 @@ const App = () => {
           <Route path='/hash-table' element={<HashTable />} />
           <Route path='/sorting' element={<Sorting />} />
           <Route path='/searching' element={<Searching />} />
-          <Route path='/graph-algo' element={<ComingSoon title="Graph Algorithms" />} />
+          <Route path='/graph-algo' element={<GraphAlgo />} />
           <Route path='/dynamic-programming' element={<ComingSoon title="Dynamic Programming" />} />
           <Route path='/greedy' element={<ComingSoon title="Greedy Algorithms" />} />
           <Route path='/visualizer' element={<ComingSoon title="Visualizer" />} />

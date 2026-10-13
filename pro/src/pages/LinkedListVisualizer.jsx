@@ -381,6 +381,7 @@ const LinkedListVisualizer = ({ initialNodes }) => {
   return (
     <div className="linked-list-visualizer-container" ref={containerRef}>
       <h1>Interactive Linked List Visualizer</h1>
+      <p className="page-tagline">Singly, doubly and circular lists with pointer-by-pointer narration.</p>
       
       <div className="visualizer-grid">
         {/* Visualization area */}

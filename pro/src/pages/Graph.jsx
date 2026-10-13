@@ -325,6 +325,7 @@ const Graph = ({ initialNodes, initialEdges }) => {
   return (
     <div className="graph-page" ref={containerRef}>
       <h1>Interactive Graph Visualizer</h1>
+      <p className="page-tagline">Build an undirected graph, then explore it with BFS and DFS.</p>
 
       <div className="visualizer-grid">
         <div className="visualization-area">

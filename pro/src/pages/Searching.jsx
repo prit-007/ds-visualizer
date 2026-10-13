@@ -175,6 +175,7 @@ const Searching = ({ initialArray, initialTarget }) => {
   return (
     <div className="searching-page" ref={containerRef}>
       <h1>Interactive Searching Visualizer</h1>
+      <p className="page-tagline">Linear and binary search, one comparison at a time.</p>
 
       <div className="visualizer-grid">
         <div className="visualization-area">

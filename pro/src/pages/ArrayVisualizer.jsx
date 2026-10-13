@@ -208,6 +208,7 @@ const ArrayVisualizer = ({ initialArray }) => {
   return (
     <div className="array-visualizer-container" ref={containerRef}>
       <h1>Interactive Array Visualizer</h1>
+      <p className="page-tagline">Push, insert and remove elements — watch every index shift.</p>
 
       <div className="visualizer-grid">
         {/* Visualization area */}
