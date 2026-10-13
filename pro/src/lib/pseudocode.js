@@ -744,3 +744,28 @@ DP_PSEUDOCODE.robber = [
   '  return dp[n-1]',
   'end procedure',
 ];
+
+export const UNION_FIND_PSEUDOCODE = {
+  make: [
+    'procedure makeSet(value)',
+    '  parent[value] ← value',
+    '  rank[value] ← 0',
+    'end procedure',
+  ],
+  find: [
+    'procedure find(value)',
+    '  while parent[value] ≠ value do',
+    '    value ← parent[value]',
+    '  compress the path to the root',
+    '  return root',
+    'end procedure',
+  ],
+  union: [
+    'procedure union(a, b)',
+    '  ra ← find(a); rb ← find(b)',
+    '  if ra = rb then return',
+    '  attach the smaller rank under the larger',
+    '  return the new root',
+    'end procedure',
+  ],
+};

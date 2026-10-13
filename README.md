@@ -17,7 +17,8 @@
 | Arrays | `/array` | push, insert-at, remove-at with per-index shift narration |
 | Linked lists | `/linked-list` | Singly / Doubly / Circular types, pointer-hop narration |
 | Stacks & queues | `/stack-queue` | Stack, Queue, Deque, Circular ring buffer |
-| Heaps | `/heap` | binary min-heap (priority queue): insert, extract-min, peek — dual array + tree canvas |
+| Heaps | `/heap` | binary min-heap
+| Union-Find | `/union-find` | disjoint sets — union by rank, find with path compression (priority queue): insert, extract-min, peek — dual array + tree canvas |
 | Trees | `/tree` | AVL (with counterfactual rotations-off BST mode), B-tree (order-3), BFS/DFS/Validate/Mirror/LCA algorithms |
 | Graphs | `/graph` | add node/edge, BFS, DFS on a circular canvas |
 | Graph algorithms | `/graph-algo` | Dijkstra shortest path + Topological Sort, live distance/in-degree tables |
