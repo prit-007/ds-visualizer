@@ -64,8 +64,8 @@ const Strings = () => {
   const [textInput, setTextInput] = useState(DEFAULT_TEXT);
   const [patternInput, setPatternInput] = useState(DEFAULT_PATTERN);
   const [activeTab, setActiveTab] = useState("kmp");
-  const [highlightRange, setHighlightRange] = useState([0, 0]);
-  const [activeCell, setActiveCell] = useState(null);
+  const [, setHighlightRange] = useState([0, 0]);
+  const [, setActiveCell] = useState(null);
   const [foundTarget, setFoundTarget] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [run, setRun] = useState(null);
@@ -165,8 +165,6 @@ const Strings = () => {
       handleReset();
     }
   };
-
-  const matchesVisible = foundTarget !== null;
 
   return (
     <div className="strings-page" ref={containerRef}>

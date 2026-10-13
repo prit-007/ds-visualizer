@@ -10,6 +10,7 @@ import {
   buildZeroOneKnapsackSteps,
   buildHouseRobberSteps,
 } from "../lib/dpSteps";
+import { buildEditDistanceSteps, buildLISSteps } from "../lib/dpExtraSteps";
 import { DP_PSEUDOCODE } from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import OperationPlayer from "../components/OperationPlayer";
@@ -29,6 +30,8 @@ const TABS = [
   { id: "lcs", label: "Longest Common Subsequence" },
   { id: "knap01", label: "0/1 Knapsack" },
   { id: "robber", label: "House Robber" },
+  { id: "edit", label: "Edit Distance" },
+  { id: "lis", label: "Longest Increasing Subsequence" },
 ];
 
 const COMPLEXITY = {
@@ -38,6 +41,8 @@ const COMPLEXITY = {
   lcs: { operationName: "Longest Common Subsequence", complexity: "O(len(a) × len(b))", explanation: "A 2D table where every match extends a diagonal and every mismatch keeps the best of up/left — every pair of prefixes is solved once." },
   knap01: { operationName: "0/1 Knapsack", complexity: "O(items × capacity)", explanation: "dp[i][w] = best value from the first i items within weight w — take-or-skip over every item/weight pair. Contrast with the fractional (greedy) knapsack." },
   robber: { operationName: "House Robber", complexity: "O(n)", explanation: "dp[i] = best loot from the first i houses: either skip house i (keep dp[i−1]) or rob it and add dp[i−2] — never two adjacent." },
+  edit: { operationName: "Edit Distance (Levenshtein)", complexity: "O(len(a) × len(b))", explanation: "dp[i][j] = fewest single-character edits to turn a[:i] into b[:j]: diagonal when the chars match, otherwise 1 + min(insert, delete, replace)." },
+  lis: { operationName: "Longest Increasing Subsequence", complexity: "O(n²)", explanation: "dp[i] = length of the longest increasing subsequence ending at i: scan every earlier j < i with A[j] < A[i] and take dp[j] + 1." },
 };
 
 const OVERVIEW = {
@@ -74,6 +79,18 @@ const OVERVIEW = {
     what: "Steal the most value from a line of houses without robbing two adjacent ones: dp[i] = max(dp[i−1], dp[i−2] + houses[i]).",
     time: "O(n)", space: "O(n) memo (O(1) with two slots)", when: "any 'max sum with a no-adjacent constraint' problem.",
   },
+  edit: {
+    title: "Edit Distance (Levenshtein)",
+    what: "How many single-character inserts, deletes, or replaces turn one string into another? dp[i][j] = 0 on a perfect diagonal match, otherwise 1 + min of the three edits.",
+    time: "O(len(a) × len(b))", space: "O(len(a) × len(b))", when: "spell-checkers, fuzzy search, DNA alignment, diff tools.",
+    note: "Contrast with LCS — LCS counts the longest shared subsequence; edit distance counts the cost of transforming one string into the other.",
+  },
+  lis: {
+    title: "Longest Increasing Subsequence",
+    what: "Find the longest subsequence (not necessarily contiguous) that is strictly increasing. dp[i] = 1 + the best dp[j] among all earlier smaller elements.",
+    time: "O(n²)", space: "O(n)", when: "patience sorting, box-stacking, and many scheduling/resource problems.",
+    note: "A binary-search + patience-sorting variant gives O(n log n) — the O(n²) DP here is the clearest starting point.",
+  },
 };
 
 const emptyTable = () => ({});
@@ -82,7 +99,7 @@ const DynamicProgramming = () => {
   const seed = readScenario();
   const isScenario = seed && seed.structure === "dynamic-programming";
   const [tab, setTab] = useState(
-    seed && ["grid", "coin", "lcs", "knap01", "robber"].includes(seed.mode) ? seed.mode : "fib"
+    seed && ["grid", "coin", "lcs", "knap01", "robber", "edit", "lis"].includes(seed.mode) ? seed.mode : "fib"
   );
   const [nInput, setNInput] = useState(String(seed && Number.isInteger(seed.n) ? seed.n : 6));
   const [rowsInput, setRowsInput] = useState(String(seed && Number.isInteger(seed.rows) ? seed.rows : 3));
@@ -93,6 +110,7 @@ const DynamicProgramming = () => {
   const [capacity01Input, setCapacity01Input] = useState(String(seed && Number.isInteger(seed.cap) ? seed.cap : 5));
   const [knap01Items, setKnap01Items] = useState([[2, 3], [3, 4], [4, 5], [5, 6]]);
   const [robValuesInput, setRobValuesInput] = useState("2, 7, 9, 3, 1");
+  const [lisInput, setLisInput] = useState(seed && seed.lis ? seed.lis : "3, 1, 4, 1, 5, 9, 2, 6");
   const [activeKey, setActiveKey] = useState(null);
   const [highlightedKeys, setHighlightedKeys] = useState([]);
   const [activeCell, setActiveCell] = useState(null);
@@ -176,7 +194,7 @@ const DynamicProgramming = () => {
       }
       steps = buildZeroOneKnapsackSteps(knap01Items, capacity, ui);
       label = `Knapsack × ${capacity}`;
-    } else {
+    } else if (tab === "robber") {
       const values = robValuesInput.split(/[,\s]+/).filter((x) => x !== "").map((x) => parseInt(x, 10));
       if (values.length < 1 || values.some((v) => !Number.isInteger(v))) {
         setError("Please enter one or more house values, e.g. 2, 7, 9, 3, 1");
@@ -184,6 +202,21 @@ const DynamicProgramming = () => {
       }
       steps = buildHouseRobberSteps(values, ui);
       label = `Robber (${values.length} houses)`;
+    } else if (tab === "edit") {
+      if (!strA.trim() || !strB.trim()) {
+        setError("Please enter both strings");
+        return;
+      }
+      steps = buildEditDistanceSteps(strA, strB, ui);
+      label = `Edit distance ${strA} / ${strB}`;
+    } else {
+      const values = lisInput.split(/[,\s]+/).filter((x) => x !== "").map((x) => parseInt(x, 10));
+      if (values.length < 1 || values.some((v) => !Number.isInteger(v))) {
+        setError("Please enter one or more integers, e.g. 3, 1, 4, 1, 5");
+        return;
+      }
+      steps = buildLISSteps(values, ui);
+      label = `LIS (${values.length} values)`;
     }
 
     startRun(steps, () => clearHighlights(), {
@@ -203,6 +236,7 @@ const DynamicProgramming = () => {
     setCapacity01Input("5");
     setKnap01Items([[2, 3], [3, 4], [4, 5], [5, 6]]);
     setRobValuesInput("2, 7, 9, 3, 1");
+    setLisInput("3, 1, 4, 1, 5, 9, 2, 6");
     setTable(emptyRef.current);
     clearHighlights();
     setError(null);
@@ -376,6 +410,33 @@ const DynamicProgramming = () => {
                 ))}
               </div>
             )}
+            {tab === "edit" && (
+              <div className="dp-grid" style={{ gridTemplateColumns: `repeat(${strB.length + 1}, auto)` }}>
+                {lcsCells().map(([i, j]) => {
+                  const key = `${i},${j}`;
+                  const active = activeCell && activeCell[0] === i && activeCell[1] === j;
+                  const highlighted = highlightedCells.some(([h1, h2]) => h1 === i && h2 === j);
+                  const label = (i === 0 ? "·" : strA[i - 1]) + "" + (j === 0 ? "·" : strB[j - 1]);
+                  return (
+                    <span key={key} className={`dp-grid-cell${active ? " active" : ""}${highlighted ? " highlighted" : ""}`}>
+                      <span className="dp-index">{label}</span>
+                      {table[key] !== undefined ? table[key] : <span className="dp-empty">—</span>}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {tab === "lis" && (
+              <div className="dp-chips">
+                {lisInput.split(/[,\s]+/).filter((x) => x !== "").map((x, i) => (
+                  <span key={i} className={`dp-chip${activeKey === i ? " active" : ""}${highlightedKeys.includes(i) ? " highlighted" : ""}`}>
+                    <span className="dp-index">dp[{i}]</span>
+                    {table[i] !== undefined ? table[i] : <span className="dp-empty">—</span>}
+                    <span className="dp-index">{x}</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {run && (
@@ -399,7 +460,9 @@ const DynamicProgramming = () => {
               {tab === "coin" && "dp[i] = fewest coins making amount i (∞ = unreachable)."}
             {tab === "lcs" && "dp[i][j] = LCS length of the first i chars of A and first j of B."}
             {tab === "knap01" && "dp[i][w] = best value from the first i items within weight w."}
-            {tab === "robber" && "dp[i] = best loot from the first i houses (never adjacent)."}
+              {tab === "robber" && "dp[i] = best loot from the first i houses (never adjacent)."}
+              {tab === "edit" && "dp[i][j] = fewest edits to turn a[:i] into b[:j]."}
+              {tab === "lis" && "dp[i] = length of the longest increasing subsequence ending at i."}
             </p>
           </div>
         </div>
@@ -475,6 +538,24 @@ const DynamicProgramming = () => {
                 <input type="text" value={robValuesInput} onChange={(e) => setRobValuesInput(e.target.value)} disabled={isAnimating} placeholder="2, 7, 9, 3, 1" />
               </div>
             )}
+            {tab === "edit" && (
+              <>
+                <div className="input-group">
+                  <label>String A:</label>
+                  <input type="text" value={strA} onChange={(e) => setStrA(e.target.value)} disabled={isAnimating} placeholder="kitten" />
+                </div>
+                <div className="input-group">
+                  <label>String B:</label>
+                  <input type="text" value={strB} onChange={(e) => setStrB(e.target.value)} disabled={isAnimating} placeholder="sitting" />
+                </div>
+              </>
+            )}
+            {tab === "lis" && (
+              <div className="input-group">
+                <label>Values:</label>
+                <input type="text" value={lisInput} onChange={(e) => setLisInput(e.target.value)} disabled={isAnimating} placeholder="3, 1, 4, 1, 5, 9, 2, 6" />
+              </div>
+            )}
             <button type="submit" className="operation-button" disabled={isAnimating}>
               {tab === "fib"
                 ? "Run Fibonacci"
@@ -486,7 +567,11 @@ const DynamicProgramming = () => {
                       ? "Compute LCS"
                       : tab === "knap01"
                         ? "Fill Knapsack"
-                        : "Run House Robber"}
+                        : tab === "robber"
+                          ? "Run House Robber"
+                          : tab === "edit"
+                            ? "Compute Edit Distance"
+                            : "Run LIS"}
             </button>
           </form>
 
@@ -506,9 +591,13 @@ const DynamicProgramming = () => {
                         ? (parseInt(targetInput) || 7) + 1
                         : tab === "lcs"
                           ? (strA.length + 1) * (strB.length + 1)
-                          : tab === "knap01"
-                            ? (knap01Items.length + 1) * (capacity01InputNum + 1)
-                            : robberValues().length,
+                          : tab === "edit"
+                            ? (strA.length + 1) * (strB.length + 1)
+                            : tab === "knap01"
+                              ? (knap01Items.length + 1) * (capacity01InputNum + 1)
+                              : tab === "lis"
+                                ? lisInput.split(/[,\s]+/).filter((x) => x !== "").length
+                                : robberValues().length,
               },
             ]}
           />

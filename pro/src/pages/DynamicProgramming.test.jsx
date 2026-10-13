@@ -58,6 +58,29 @@ describe('DynamicProgramming', () => {
     expect(listRuns('dynamic-programming')[0].label).toBe('Coin change 6');
   });
 
+  test('edit distance tab computes kitten→sitting = 3 and records the run', () => {
+    const { container } = render(<DynamicProgramming />);
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Distance' }));
+    fireEvent.change(screen.getByPlaceholderText('kitten'), { target: { value: 'kitten' } });
+    fireEvent.change(screen.getByPlaceholderText('sitting'), { target: { value: 'sitting' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Compute Edit Distance' }));
+    finishRun();
+
+    expect(listRuns('dynamic-programming')[0].label).toBe('Edit distance kitten / sitting');
+    const cells = [...container.querySelectorAll('.dp-grid-cell')].map((c) => c.textContent);
+    expect(cells.some((c) => c.includes('·s'))).toBe(true);
+  });
+
+  test('LIS tab computes a length-4 sequence and records the run', () => {
+    render(<DynamicProgramming />);
+    fireEvent.click(screen.getByRole('button', { name: 'Longest Increasing Subsequence' }));
+    fireEvent.change(screen.getByPlaceholderText('3, 1, 4, 1, 5, 9, 2, 6'), { target: { value: '1, 5, 2, 3, 4' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Run LIS' }));
+    finishRun();
+
+    expect(listRuns('dynamic-programming')[0].label).toBe('LIS (5 values)');
+  });
+
   test('css contract', () => {
     expect(css).toMatch(/\.dp-canvas\s*\{/);
     expect(css).toMatch(/\.dp-chip\s*\{/);
