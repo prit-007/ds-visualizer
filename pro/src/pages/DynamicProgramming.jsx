@@ -10,7 +10,7 @@ import {
   buildZeroOneKnapsackSteps,
   buildHouseRobberSteps,
 } from "../lib/dpSteps";
-import { buildEditDistanceSteps, buildLISSteps, buildSubsetSumSteps, buildKadaneSteps } from "../lib/dpExtraSteps";
+import { buildEditDistanceSteps, buildLISSteps, buildSubsetSumSteps, buildKadaneSteps, buildWordBreakSteps } from "../lib/dpExtraSteps";
 import { DP_PSEUDOCODE } from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import OperationPlayer from "../components/OperationPlayer";
@@ -34,6 +34,7 @@ const TABS = [
   { id: "lis", label: "Longest Increasing Subsequence" },
   { id: "subset", label: "Subset Sum" },
   { id: "kadane", label: "Kadane (Max Subarray)" },
+  { id: "wordbreak", label: "Word Break" },
 ];
 
 const COMPLEXITY = {
@@ -47,6 +48,7 @@ const COMPLEXITY = {
   lis: { operationName: "Longest Increasing Subsequence", complexity: "O(n²)", explanation: "dp[i] = length of the longest increasing subsequence ending at i: scan every earlier j < i with A[j] < A[i] and take dp[j] + 1." },
   subset: { operationName: "Subset Sum", complexity: "O(n × target)", explanation: "dp[i][t] = whether some subset of the first i numbers totals t: keep what was already reachable, plus everything that becomes reachable by including nums[i]." },
   kadane: { operationName: "Kadane (max subarray)", complexity: "O(n)", explanation: "dp[i] = best sum of a subarray ending at i: extend the previous run when it is non-negative, otherwise restart at a[i]. The answer is the best dp[i] — works even when every value is negative." },
+  wordbreak: { operationName: "Word Break", complexity: "O(n² × lookup)", explanation: "dp[i] = whether the first i characters split cleanly into dictionary words: every earlier reachable prefix j tries the middle slice s[j..i)." },
 };
 
 const OVERVIEW = {
@@ -115,7 +117,7 @@ const DynamicProgramming = () => {
   const seed = readScenario();
   const isScenario = seed && seed.structure === "dynamic-programming";
   const [tab, setTab] = useState(
-    seed && ["grid", "coin", "lcs", "knap01", "robber", "edit", "lis", "subset", "kadane"].includes(seed.mode) ? seed.mode : "fib"
+    seed && ["grid", "coin", "lcs", "knap01", "robber", "edit", "lis", "subset", "kadane", "wordbreak"].includes(seed.mode) ? seed.mode : "fib"
   );
   const [nInput, setNInput] = useState(String(seed && Number.isInteger(seed.n) ? seed.n : 6));
   const [rowsInput, setRowsInput] = useState(String(seed && Number.isInteger(seed.rows) ? seed.rows : 3));
@@ -130,6 +132,8 @@ const DynamicProgramming = () => {
   const [subsetNumsInput, setSubsetNumsInput] = useState("3, 34, 4, 12, 5, 2");
   const [subsetTargetInput, setSubsetTargetInput] = useState("9");
   const [kadaneInput, setKadaneInput] = useState("-2, 1, -3, 4, -1, 2, 1, -5, 4");
+  const [wbStringInput, setWbStringInput] = useState("leetcode");
+  const [wbDictInput, setWbDictInput] = useState("leet, code, le");
   const [activeKey, setActiveKey] = useState(null);
   const [highlightedKeys, setHighlightedKeys] = useState([]);
   const [activeCell, setActiveCell] = useState(null);
@@ -249,6 +253,18 @@ const DynamicProgramming = () => {
       }
       steps = buildSubsetSumSteps(nums, target, ui);
       label = `Subset sum ${target}`;
+    } else if (tab === "wordbreak") {
+      if (!wbStringInput.trim() || wbStringInput.length > 20) {
+        setError("Please enter a string (1-20 characters)");
+        return;
+      }
+      const words = wbDictInput.split(/[,\s]+/).filter((x) => x !== "");
+      if (words.length < 1) {
+        setError("Please enter at least one dictionary word");
+        return;
+      }
+      steps = buildWordBreakSteps(wbStringInput, words, ui);
+      label = `Word break ${wbStringInput}`;
     } else {
       const values = lisInput.split(/[,\s]+/).filter((x) => x !== "").map((x) => parseInt(x, 10));
       if (values.length < 1 || values.some((v) => !Number.isInteger(v))) {
@@ -280,6 +296,8 @@ const DynamicProgramming = () => {
     setSubsetNumsInput("3, 34, 4, 12, 5, 2");
     setSubsetTargetInput("9");
     setKadaneInput("-2, 1, -3, 4, -1, 2, 1, -5, 4");
+    setWbStringInput("leetcode");
+    setWbDictInput("leet, code, le");
     setTable(emptyRef.current);
     clearHighlights();
     setError(null);
@@ -514,6 +532,17 @@ const DynamicProgramming = () => {
                 ))}
               </div>
             )}
+            {tab === "wordbreak" && (
+              <div className="dp-chips">
+                {Array.from({ length: wbStringInput.length + 1 }, (_, i) => (
+                  <span key={i} className={`dp-chip${activeKey === i ? " active" : ""}${highlightedKeys.includes(i) ? " highlighted" : ""}`}>
+                    <span className="dp-index">dp[{i}]</span>
+                    {table[i] === undefined ? <span className="dp-empty">—</span> : table[i] ? "✓" : "✗"}
+                    <span className="dp-index">{i === 0 ? "·" : wbStringInput[i - 1]}</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {run && (
@@ -542,6 +571,7 @@ const DynamicProgramming = () => {
               {tab === "lis" && "dp[i] = length of the longest increasing subsequence ending at i."}
               {tab === "subset" && "dp[i][t] = whether the first i numbers can total t."}
               {tab === "kadane" && "dp[i] = best sum of a subarray ending at i."}
+              {tab === "wordbreak" && "dp[i] = whether the first i characters split into dictionary words."}
             </p>
           </div>
         </div>
@@ -653,6 +683,18 @@ const DynamicProgramming = () => {
                 <input type="text" value={kadaneInput} onChange={(e) => setKadaneInput(e.target.value)} disabled={isAnimating} placeholder="-2, 1, -3, 4, -1, 2, 1" />
               </div>
             )}
+            {tab === "wordbreak" && (
+              <>
+                <div className="input-group">
+                  <label>String:</label>
+                  <input type="text" value={wbStringInput} onChange={(e) => setWbStringInput(e.target.value)} disabled={isAnimating} placeholder="leetcode" />
+                </div>
+                <div className="input-group">
+                  <label>Dictionary:</label>
+                  <input type="text" value={wbDictInput} onChange={(e) => setWbDictInput(e.target.value)} disabled={isAnimating} placeholder="leet, code, le" />
+                </div>
+              </>
+            )}
             <button type="submit" className="operation-button" disabled={isAnimating}>
               {tab === "fib"
                 ? "Run Fibonacci"
@@ -672,7 +714,9 @@ const DynamicProgramming = () => {
                               ? "Run LIS"
                               : tab === "subset"
                                 ? "Check Subset Sum"
-                                : "Run Kadane"}
+                                : tab === "kadane"
+                                  ? "Run Kadane"
+                                  : "Run Word Break"}
             </button>
           </form>
 
@@ -702,7 +746,9 @@ const DynamicProgramming = () => {
                                   ? lisInput.split(/[,\s]+/).filter((x) => x !== "").length
                                   : tab === "kadane"
                                     ? kadaneInput.split(/[,\s]+/).filter((x) => x !== "").length
-                                    : robberValues().length,
+                                    : tab === "wordbreak"
+                                      ? wbStringInput.length + 1
+                                      : robberValues().length,
               },
             ]}
           />

@@ -724,6 +724,15 @@ export const DP_PSEUDOCODE = {
     '  return max(dp)',
     'end procedure',
   ],
+  wordbreak: [
+    'procedure wordBreak(s, dict)',
+    '  dp[0] ← true',
+    '  for i ← 1 to |s| do',
+    '    for j ← 0 to i-1 do',
+    '      if dp[j] and s[j..i) ∈ dict then dp[i] ← true',
+    '  return dp[|s|]',
+    'end procedure',
+  ],
 };
 
 export const GREEDY_PSEUDOCODE = {

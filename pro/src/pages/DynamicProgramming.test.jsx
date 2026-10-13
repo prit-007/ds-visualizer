@@ -83,6 +83,16 @@ describe('DynamicProgramming', () => {
     expect(marks.some((m) => m.includes('✓'))).toBe(true);
   });
 
+  test('word break tab segments the default string and records the run', () => {
+    render(<DynamicProgramming />);
+    fireEvent.click(screen.getByRole('button', { name: 'Word Break' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Word Break' }));
+    finishRun();
+
+    expect(listRuns('dynamic-programming')[0].label).toBe('Word break leetcode');
+    expect(screen.getByText('Word break: "leetcode" → leet | code')).toBeInTheDocument();
+  });
+
   test('kadane tab finds the max subarray sum and records the run', () => {
     render(<DynamicProgramming />);
     fireEvent.click(screen.getByRole('button', { name: 'Kadane (Max Subarray)' }));

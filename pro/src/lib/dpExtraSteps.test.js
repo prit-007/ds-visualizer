@@ -1,4 +1,4 @@
-import { buildEditDistanceSteps, buildLISSteps, buildSubsetSumSteps, buildKadaneSteps } from './dpExtraSteps';
+import { buildEditDistanceSteps, buildLISSteps, buildSubsetSumSteps, buildKadaneSteps, buildWordBreakSteps } from './dpExtraSteps';
 import { DP_PSEUDOCODE } from './pseudocode';
 
 const makeUi = () => ({
@@ -106,5 +106,40 @@ describe('buildKadaneSteps', () => {
     expect(last.description).toBe('Maximum subarray sum: 6');
     expect(last.kind).toBe('found');
     expect(last.vars.value).toBe(6);
+  });
+});
+
+describe('buildWordBreakSteps', () => {
+  test('finds a segmentation and narrates each successful split', () => {
+    const ui = makeUi();
+    const steps = buildWordBreakSteps('leetcode', ['leet', 'code', 'le'], ui);
+    const d = descriptions(steps);
+
+    expect(d[0]).toBe('Word break for "leetcode" with [leet, code, le]');
+    expect(d).toContain('dp[0] = true (empty string)');
+    expect(d).toContain('split at 0: "leet" in dictionary (dp[0] = true) → dp[4] = true');
+    expect(d).toContain('split at 4: "code" in dictionary (dp[4] = true) → dp[8] = true');
+
+    steps.forEach((s) => {
+      expect(s.line).toBeGreaterThanOrEqual(1);
+      expect(s.line).toBeLessThanOrEqual(DP_PSEUDOCODE.wordbreak.length);
+    });
+
+    const last = steps[steps.length - 1];
+    expect(last.description).toBe('Word break: "leetcode" → leet | code');
+    expect(last.kind).toBe('found');
+    expect(last.vars.value).toBe(true);
+  });
+
+  test('an unsegmentable string ends honestly', () => {
+    const ui = makeUi();
+    const steps = buildWordBreakSteps('catsandog', ['cats', 'dog', 'sand', 'and', 'cat'], ui);
+    const d = descriptions(steps);
+
+    expect(d).toContain('no valid split reaches 8 → dp[8] = false');
+    const last = steps[steps.length - 1];
+    expect(last.description).toBe('Word break: "catsandog" cannot be segmented');
+    expect(last.kind).toBe('error');
+    expect(last.vars.value).toBe(false);
   });
 });
