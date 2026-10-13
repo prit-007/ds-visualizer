@@ -71,6 +71,28 @@ describe('DynamicProgramming', () => {
     expect(cells.some((c) => c.includes('·s'))).toBe(true);
   });
 
+  test('subset sum tab checks reachability and records the run', () => {
+    const { container } = render(<DynamicProgramming />);
+    fireEvent.click(screen.getByRole('button', { name: 'Subset Sum' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Check Subset Sum' }));
+    finishRun();
+
+    expect(listRuns('dynamic-programming')[0].label).toBe('Subset sum 9');
+    expect(screen.getByText('Subset sum 9 is reachable from the given numbers')).toBeInTheDocument();
+    const marks = [...container.querySelectorAll('.dp-grid-cell')].map((c) => c.textContent);
+    expect(marks.some((m) => m.includes('✓'))).toBe(true);
+  });
+
+  test('kadane tab finds the max subarray sum and records the run', () => {
+    render(<DynamicProgramming />);
+    fireEvent.click(screen.getByRole('button', { name: 'Kadane (Max Subarray)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Kadane' }));
+    finishRun();
+
+    expect(listRuns('dynamic-programming')[0].label).toBe('Kadane (9 values)');
+    expect(screen.getByText('Maximum subarray sum: 6')).toBeInTheDocument();
+  });
+
   test('LIS tab computes a length-4 sequence and records the run', () => {
     render(<DynamicProgramming />);
     fireEvent.click(screen.getByRole('button', { name: 'Longest Increasing Subsequence' }));
