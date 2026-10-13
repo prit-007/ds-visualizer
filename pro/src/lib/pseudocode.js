@@ -707,6 +707,23 @@ export const DP_PSEUDOCODE = {
     '  return max(dp)',
     'end procedure',
   ],
+  subset: [
+    'procedure subsetSum(nums, T)',
+    '  dp[0][0] ← true',
+    '  for i ← 1..n do',
+    '    for t ← 0..T do',
+    '      dp[i][t] ← dp[i-1][t] or (t ≥ nums[i] and dp[i-1][t-nums[i]])',
+    '  return dp[n][T]',
+    'end procedure',
+  ],
+  kadane: [
+    'procedure maxSubarray(A)',
+    '  dp[0] ← A[0]',
+    '  for i ← 1 to n-1 do',
+    '    dp[i] ← max(A[i], dp[i-1] + A[i])',
+    '  return max(dp)',
+    'end procedure',
+  ],
 };
 
 export const GREEDY_PSEUDOCODE = {

@@ -10,7 +10,7 @@ import {
   buildZeroOneKnapsackSteps,
   buildHouseRobberSteps,
 } from "../lib/dpSteps";
-import { buildEditDistanceSteps, buildLISSteps } from "../lib/dpExtraSteps";
+import { buildEditDistanceSteps, buildLISSteps, buildSubsetSumSteps, buildKadaneSteps } from "../lib/dpExtraSteps";
 import { DP_PSEUDOCODE } from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import OperationPlayer from "../components/OperationPlayer";
@@ -32,6 +32,8 @@ const TABS = [
   { id: "robber", label: "House Robber" },
   { id: "edit", label: "Edit Distance" },
   { id: "lis", label: "Longest Increasing Subsequence" },
+  { id: "subset", label: "Subset Sum" },
+  { id: "kadane", label: "Kadane (Max Subarray)" },
 ];
 
 const COMPLEXITY = {
@@ -43,6 +45,8 @@ const COMPLEXITY = {
   robber: { operationName: "House Robber", complexity: "O(n)", explanation: "dp[i] = best loot from the first i houses: either skip house i (keep dp[i−1]) or rob it and add dp[i−2] — never two adjacent." },
   edit: { operationName: "Edit Distance (Levenshtein)", complexity: "O(len(a) × len(b))", explanation: "dp[i][j] = fewest single-character edits to turn a[:i] into b[:j]: diagonal when the chars match, otherwise 1 + min(insert, delete, replace)." },
   lis: { operationName: "Longest Increasing Subsequence", complexity: "O(n²)", explanation: "dp[i] = length of the longest increasing subsequence ending at i: scan every earlier j < i with A[j] < A[i] and take dp[j] + 1." },
+  subset: { operationName: "Subset Sum", complexity: "O(n × target)", explanation: "dp[i][t] = whether some subset of the first i numbers totals t: keep what was already reachable, plus everything that becomes reachable by including nums[i]." },
+  kadane: { operationName: "Kadane (max subarray)", complexity: "O(n)", explanation: "dp[i] = best sum of a subarray ending at i: extend the previous run when it is non-negative, otherwise restart at a[i]. The answer is the best dp[i] — works even when every value is negative." },
 };
 
 const OVERVIEW = {
@@ -91,6 +95,18 @@ const OVERVIEW = {
     time: "O(n²)", space: "O(n)", when: "patience sorting, box-stacking, and many scheduling/resource problems.",
     note: "A binary-search + patience-sorting variant gives O(n log n) — the O(n²) DP here is the clearest starting point.",
   },
+  subset: {
+    title: "Subset Sum",
+    what: "Can some subset of the numbers add up exactly to the target? dp[i][t] = true when t stays reachable after seeing the first i numbers — either it already was, or nums[i] closes the gap.",
+    time: "O(n × target)", space: "O(n × target)", when: "partition/equally-split problems, budgeting, cryptography warm-ups.",
+    note: "The classic pseudo-polynomial knapsack cousin — 'easy with small targets, exponential to brute-force'.",
+  },
+  kadane: {
+    title: "Kadane (Maximum Subarray)",
+    what: "The best subarray ending here either extends the previous run or restarts at the current value: dp[i] = max(a[i], dp[i−1] + a[i]). The global answer is the best dp[i].",
+    time: "O(n)", space: "O(1) with two slots", when: "maximum profit windows, audio signal peaks, any 'best contiguous run' scan.",
+    note: "The one-line inner max is the whole trick — a naive O(n²) double loop does the same job far slower.",
+  },
 };
 
 const emptyTable = () => ({});
@@ -99,7 +115,7 @@ const DynamicProgramming = () => {
   const seed = readScenario();
   const isScenario = seed && seed.structure === "dynamic-programming";
   const [tab, setTab] = useState(
-    seed && ["grid", "coin", "lcs", "knap01", "robber", "edit", "lis"].includes(seed.mode) ? seed.mode : "fib"
+    seed && ["grid", "coin", "lcs", "knap01", "robber", "edit", "lis", "subset", "kadane"].includes(seed.mode) ? seed.mode : "fib"
   );
   const [nInput, setNInput] = useState(String(seed && Number.isInteger(seed.n) ? seed.n : 6));
   const [rowsInput, setRowsInput] = useState(String(seed && Number.isInteger(seed.rows) ? seed.rows : 3));
@@ -111,6 +127,9 @@ const DynamicProgramming = () => {
   const [knap01Items, setKnap01Items] = useState([[2, 3], [3, 4], [4, 5], [5, 6]]);
   const [robValuesInput, setRobValuesInput] = useState("2, 7, 9, 3, 1");
   const [lisInput, setLisInput] = useState(seed && seed.lis ? seed.lis : "3, 1, 4, 1, 5, 9, 2, 6");
+  const [subsetNumsInput, setSubsetNumsInput] = useState("3, 34, 4, 12, 5, 2");
+  const [subsetTargetInput, setSubsetTargetInput] = useState("9");
+  const [kadaneInput, setKadaneInput] = useState("-2, 1, -3, 4, -1, 2, 1, -5, 4");
   const [activeKey, setActiveKey] = useState(null);
   const [highlightedKeys, setHighlightedKeys] = useState([]);
   const [activeCell, setActiveCell] = useState(null);
@@ -209,6 +228,27 @@ const DynamicProgramming = () => {
       }
       steps = buildEditDistanceSteps(strA, strB, ui);
       label = `Edit distance ${strA} / ${strB}`;
+    } else if (tab === "kadane") {
+      const values = kadaneInput.split(/[,\s]+/).filter((x) => x !== "").map((x) => parseInt(x, 10));
+      if (values.length < 1 || values.some((v) => !Number.isInteger(v))) {
+        setError("Please enter one or more integers, e.g. -2, 1, -3, 4, -1, 2");
+        return;
+      }
+      steps = buildKadaneSteps(values, ui);
+      label = `Kadane (${values.length} values)`;
+    } else if (tab === "subset") {
+      const nums = subsetNumsInput.split(/[,\s]+/).filter((x) => x !== "").map((x) => parseInt(x, 10));
+      const target = parseInt(subsetTargetInput);
+      if (nums.length < 1 || nums.some((v) => !Number.isInteger(v) || v < 0)) {
+        setError("Please enter non-negative integers, e.g. 3, 34, 4, 12, 5, 2");
+        return;
+      }
+      if (!Number.isInteger(target) || target < 1 || target > 20) {
+        setError("Please enter a target between 1 and 20");
+        return;
+      }
+      steps = buildSubsetSumSteps(nums, target, ui);
+      label = `Subset sum ${target}`;
     } else {
       const values = lisInput.split(/[,\s]+/).filter((x) => x !== "").map((x) => parseInt(x, 10));
       if (values.length < 1 || values.some((v) => !Number.isInteger(v))) {
@@ -237,6 +277,9 @@ const DynamicProgramming = () => {
     setKnap01Items([[2, 3], [3, 4], [4, 5], [5, 6]]);
     setRobValuesInput("2, 7, 9, 3, 1");
     setLisInput("3, 1, 4, 1, 5, 9, 2, 6");
+    setSubsetNumsInput("3, 34, 4, 12, 5, 2");
+    setSubsetTargetInput("9");
+    setKadaneInput("-2, 1, -3, 4, -1, 2, 1, -5, 4");
     setTable(emptyRef.current);
     clearHighlights();
     setError(null);
@@ -288,6 +331,14 @@ const DynamicProgramming = () => {
     const out = [];
     for (let i = 0; i <= knap01Items.length; i += 1) {
       for (let w = 0; w <= capacity01InputNum; w += 1) out.push([i, w]);
+    }
+    return out;
+  };
+  const subsetCells = () => {
+    const count = subsetNumsInput.split(/[,\s]+/).filter((x) => x !== "").length;
+    const out = [];
+    for (let i = 0; i <= count; i += 1) {
+      for (let t = 0; t <= (parseInt(subsetTargetInput) || 9); t += 1) out.push([i, t]);
     }
     return out;
   };
@@ -437,6 +488,32 @@ const DynamicProgramming = () => {
                 ))}
               </div>
             )}
+            {tab === "subset" && (
+              <div className="dp-grid" style={{ gridTemplateColumns: `repeat(${(parseInt(subsetTargetInput) || 9) + 1}, auto)` }}>
+                {subsetCells().map(([i, t]) => {
+                  const key = `${i},${t}`;
+                  const active = activeCell && activeCell[0] === i && activeCell[1] === t;
+                  const highlighted = highlightedCells.some(([h1, h2]) => h1 === i && h2 === t);
+                  return (
+                    <span key={key} className={`dp-grid-cell${active ? " active" : ""}${highlighted ? " highlighted" : ""}`}>
+                      <span className="dp-index">{i},{t}</span>
+                      {table[key] === undefined ? <span className="dp-empty">—</span> : table[key] ? "✓" : "✗"}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {tab === "kadane" && (
+              <div className="dp-chips">
+                {kadaneInput.split(/[,\s]+/).filter((x) => x !== "").map((x, i) => (
+                  <span key={i} className={`dp-chip${activeKey === i ? " active" : ""}${highlightedKeys.includes(i) ? " highlighted" : ""}`}>
+                    <span className="dp-index">dp[{i}]</span>
+                    {table[i] !== undefined ? table[i] : <span className="dp-empty">—</span>}
+                    <span className="dp-index">{x}</span>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {run && (
@@ -463,6 +540,8 @@ const DynamicProgramming = () => {
               {tab === "robber" && "dp[i] = best loot from the first i houses (never adjacent)."}
               {tab === "edit" && "dp[i][j] = fewest edits to turn a[:i] into b[:j]."}
               {tab === "lis" && "dp[i] = length of the longest increasing subsequence ending at i."}
+              {tab === "subset" && "dp[i][t] = whether the first i numbers can total t."}
+              {tab === "kadane" && "dp[i] = best sum of a subarray ending at i."}
             </p>
           </div>
         </div>
@@ -556,6 +635,24 @@ const DynamicProgramming = () => {
                 <input type="text" value={lisInput} onChange={(e) => setLisInput(e.target.value)} disabled={isAnimating} placeholder="3, 1, 4, 1, 5, 9, 2, 6" />
               </div>
             )}
+            {tab === "subset" && (
+              <>
+                <div className="input-group">
+                  <label>Numbers:</label>
+                  <input type="text" value={subsetNumsInput} onChange={(e) => setSubsetNumsInput(e.target.value)} disabled={isAnimating} placeholder="3, 34, 4, 12, 5, 2" />
+                </div>
+                <div className="input-group">
+                  <label>Target:</label>
+                  <input type="number" value={subsetTargetInput} onChange={(e) => setSubsetTargetInput(e.target.value)} disabled={isAnimating} placeholder="9" />
+                </div>
+              </>
+            )}
+            {tab === "kadane" && (
+              <div className="input-group">
+                <label>Values:</label>
+                <input type="text" value={kadaneInput} onChange={(e) => setKadaneInput(e.target.value)} disabled={isAnimating} placeholder="-2, 1, -3, 4, -1, 2, 1" />
+              </div>
+            )}
             <button type="submit" className="operation-button" disabled={isAnimating}>
               {tab === "fib"
                 ? "Run Fibonacci"
@@ -571,7 +668,11 @@ const DynamicProgramming = () => {
                           ? "Run House Robber"
                           : tab === "edit"
                             ? "Compute Edit Distance"
-                            : "Run LIS"}
+                            : tab === "lis"
+                              ? "Run LIS"
+                              : tab === "subset"
+                                ? "Check Subset Sum"
+                                : "Run Kadane"}
             </button>
           </form>
 
@@ -595,9 +696,13 @@ const DynamicProgramming = () => {
                             ? (strA.length + 1) * (strB.length + 1)
                             : tab === "knap01"
                               ? (knap01Items.length + 1) * (capacity01InputNum + 1)
-                              : tab === "lis"
-                                ? lisInput.split(/[,\s]+/).filter((x) => x !== "").length
-                                : robberValues().length,
+                              : tab === "subset"
+                                ? (subsetNumsInput.split(/[,\s]+/).filter((x) => x !== "").length + 1) * ((parseInt(subsetTargetInput) || 9) + 1)
+                                : tab === "lis"
+                                  ? lisInput.split(/[,\s]+/).filter((x) => x !== "").length
+                                  : tab === "kadane"
+                                    ? kadaneInput.split(/[,\s]+/).filter((x) => x !== "").length
+                                    : robberValues().length,
               },
             ]}
           />

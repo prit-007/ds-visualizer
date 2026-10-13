@@ -168,3 +168,177 @@ export const buildLISSteps = (values, ui) => {
 
   return steps;
 };
+
+// ---- Subset sum (2D reachability table over numbers × target) ----
+export const buildSubsetSumSteps = (nums, target, ui) => {
+  const table = {};
+  const snap = () => ({ ...table });
+  const steps = [
+    {
+      description: `Subset sum target ${target} from [${nums.join(', ')}]`,
+      kind: 'move',
+      line: 1,
+      vars: { nums, target },
+      action: () => {
+        ui.setActiveCell?.(null);
+        ui.setHighlightedCells?.([]);
+        ui.setTable?.(snap());
+      },
+    },
+    {
+      description: 'dp[i][t] = can some subset of the first i numbers total t',
+      kind: 'compare',
+      line: 2,
+      action: () => {},
+    },
+  ];
+
+  table['0,0'] = true;
+  steps.push({
+    description: 'dp[0][0] = true (empty subset)',
+    kind: 'found',
+    line: 2,
+    vars: { i: 0, t: 0, value: true },
+    action: () => {
+      ui.setActiveCell?.([0, 0]);
+      ui.setHighlightedCells?.([]);
+      ui.setTable?.(snap());
+    },
+  });
+
+  for (let i = 1; i <= nums.length; i += 1) {
+    const num = nums[i - 1];
+    for (let t = 0; t <= target; t += 1) {
+      if (t === 0) {
+        table[`${i},0`] = true;
+        continue;
+      }
+      const exclude = table[`${i - 1},${t}`] === true;
+      const include = t >= num && table[`${i - 1},${t - num}`] === true;
+      table[`${i},${t}`] = exclude || include;
+      if (exclude) {
+        steps.push({
+          description: `t = ${t} already reachable excluding nums[${i}] = ${num}`,
+          kind: 'found',
+          line: 5,
+          vars: { i, t, num, value: true },
+          action: () => {
+            ui.setActiveCell?.([i, t]);
+            ui.setHighlightedCells?.([[i - 1, t]]);
+          },
+        });
+      } else if (include) {
+        steps.push({
+          description: `include nums[${i}] = ${num} → dp[${i - 1}][${t - num}] = true → t = ${t} reachable`,
+          kind: 'found',
+          line: 5,
+          vars: { i, t, num, value: true },
+          action: () => {
+            ui.setActiveCell?.([i, t]);
+            ui.setHighlightedCells?.([[i - 1, t], [i - 1, t - num]]);
+          },
+        });
+      } else {
+        steps.push({
+          description: `dp[${i}][${t}] stays false — neither exclude nor include reaches ${t}`,
+          kind: 'compare',
+          line: 5,
+          vars: { i, t, num, value: false },
+          action: () => {
+            ui.setActiveCell?.([i, t]);
+            ui.setHighlightedCells?.([[i - 1, t]]);
+          },
+        });
+      }
+    }
+  }
+
+  const reachable = table[`${nums.length},${target}`] === true;
+  steps.push({
+    description: `Subset sum ${target} is ${reachable ? 'reachable' : 'not reachable'} from the given numbers`,
+    kind: reachable ? 'found' : 'error',
+    line: 6,
+    vars: { target, reachable, matrix: snap() },
+    action: () => {
+      ui.setActiveCell?.(null);
+      ui.setHighlightedCells?.([]);
+      ui.setTable?.(snap());
+    },
+  });
+
+  return steps;
+};
+
+// ---- Kadane (best subarray sum ending at each index) ----
+export const buildKadaneSteps = (values, ui) => {
+  const dp = { 0: values[0] };
+  const snap = () => ({ ...dp });
+  const steps = [
+    {
+      description: `Kadane's maximum subarray on [${values.join(', ')}]`,
+      kind: 'move',
+      line: 1,
+      vars: { values },
+      action: () => {
+        ui.setActiveKey?.(null);
+        ui.setHighlightedKeys?.([]);
+        ui.setTable?.(snap());
+      },
+    },
+    {
+      description: 'dp[i] = best sum of a subarray ending at i',
+      kind: 'compare',
+      line: 2,
+      action: () => {
+        ui.setActiveKey?.(0);
+        ui.setTable?.(snap());
+      },
+    },
+  ];
+
+  for (let i = 1; i < values.length; i += 1) {
+    const prev = dp[i - 1];
+    if (prev >= 0) {
+      dp[i] = prev + values[i];
+      steps.push({
+        description: `dp[${i}] = dp[${i - 1}] + a[${i}] = ${prev} + ${values[i] < 0 ? `(${values[i]})` : values[i]} = ${dp[i]} (extend)`,
+        kind: 'found',
+        line: 4,
+        vars: { i, prev, value: dp[i] },
+        action: () => {
+          ui.setActiveKey?.(i);
+          ui.setHighlightedKeys?.([i - 1]);
+          ui.setTable?.(snap());
+        },
+      });
+    } else {
+      dp[i] = values[i];
+      steps.push({
+        description: `dp[${i}] = a[${i}] = ${values[i]} (restart: dp[${i - 1}] = ${prev} was negative)`,
+        kind: 'compare',
+        line: 4,
+        vars: { i, prev, value: dp[i] },
+        action: () => {
+          ui.setActiveKey?.(i);
+          ui.setHighlightedKeys?.([i - 1]);
+          ui.setTable?.(snap());
+        },
+      });
+    }
+  }
+
+  const value = Math.max(...Object.values(dp));
+  steps.push({
+    description: `Maximum subarray sum: ${value}`,
+    kind: 'found',
+    line: 5,
+    vars: { values, value },
+    action: () => {
+      ui.setActiveKey?.(null);
+      ui.setHighlightedKeys?.([]);
+      ui.setTable?.(snap());
+    },
+  });
+
+  return steps;
+};
