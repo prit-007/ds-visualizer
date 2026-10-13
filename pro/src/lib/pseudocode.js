@@ -960,6 +960,27 @@ export const STRING_PSEUDOCODE = {
     '  return matches',
     'end procedure',
   ],
+  rabin: [
+    'procedure rabinKarp(text, pattern)',
+    '  hp ← hash(pattern); hw ← hash(text[0..m))',
+    '  for shift in 0..n-m do',
+    '    if shift > 0 then roll hw: (hw − out·B^(m−1))·B + in  (mod q)',
+    '    if hw == hp then verify text[shift..shift+m) against pattern',
+    '  return matches',
+    'end procedure',
+  ],
+  zalg: [
+    'procedure zSearch(text, pattern)',
+    '  S ← pattern + \'$\' + text; Z ← [0] * |S|',
+    '  Z[0] ← |S|; l ← r ← 0',
+    '  for i ← 1 to |S|-1 do',
+    '    if i ≤ r then Z[i] ← min(r−i+1, Z[i−l])',
+    '    extend while S[Z[i]] == S[i+Z[i]]',
+    '    if i+Z[i]−1 > r then l, r ← i, i+Z[i]−1',
+    '    if i ≥ |pattern|+1 and Z[i] ≥ |pattern| then match at i−|pattern|−1',
+    '  return matches',
+    'end procedure',
+  ],
   naive: [
     'procedure naiveSearch(text, pattern)',
     '  for shift in 0..len(text)-len(pattern) do',
@@ -970,6 +991,8 @@ export const STRING_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+STRING_PSEUDOCODE.kmp = STRING_PSEUDOCODE.kmpMatch;
 
 export const FLOYD_PSEUDOCODE = [
   'procedure floydWarshall(G)',
