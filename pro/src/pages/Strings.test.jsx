@@ -64,6 +64,26 @@ describe('Strings page', () => {
     expect(listRuns('strings')[listRuns('strings').length - 1].label).toBe('Naive "abab"');
   });
 
+  test('rabin-karp tab rolls the hash and records its run', () => {
+    render(<Strings />);
+    fireEvent.click(screen.getByRole('button', { name: 'Rabin-Karp' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Rabin-Karp' }));
+    finishRun();
+
+    expect(listRuns('strings')[listRuns('strings').length - 1].label).toBe('Rabin-Karp "abab"');
+    expect(screen.getByText('Occurrences of "abab": 0, 8')).toBeInTheDocument();
+  });
+
+  test('z algorithm tab finds prefix matches and records its run', () => {
+    render(<Strings />);
+    fireEvent.click(screen.getByRole('button', { name: 'Z Algorithm' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Z Search' }));
+    finishRun();
+
+    expect(listRuns('strings')[listRuns('strings').length - 1].label).toBe('Z search "abab"');
+    expect(screen.getByText('Occurrences of "abab": 0, 8')).toBeInTheDocument();
+  });
+
   test('failure table rebuilds π for the pattern', () => {
     render(<Strings />);
     fireEvent.click(screen.getByRole('button', { name: 'Failure Table' }));

@@ -6,6 +6,7 @@ import {
   buildKmpSearchSteps,
   buildNaiveSearchSteps,
 } from "../lib/kmpSteps";
+import { buildRabinKarpSteps, buildZSearchSteps } from "../lib/rabinZSteps";
 import { STRING_PSEUDOCODE } from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import OperationPlayer from "../components/OperationPlayer";
@@ -21,10 +22,26 @@ import "./Strings.css";
 const TABS = [
   { id: "kmp", label: "KMP Search" },
   { id: "naive", label: "Naive Search" },
+  { id: "rabin", label: "Rabin-Karp" },
+  { id: "zalg", label: "Z Algorithm" },
   { id: "table", label: "Failure Table" },
 ];
 
-const INPUT_LABEL = { kmp: "Run KMP", naive: "Run Naive", table: "Build π Table" };
+const INPUT_LABEL = {
+  kmp: "Run KMP",
+  naive: "Run Naive",
+  rabin: "Run Rabin-Karp",
+  zalg: "Run Z Search",
+  table: "Build π Table",
+};
+
+const LABEL_PREFIX = {
+  kmp: "KMP",
+  naive: "Naive",
+  rabin: "Rabin-Karp",
+  zalg: "Z search",
+  table: "π table for",
+};
 
 const COMPLEXITY = {
   kmp: {
@@ -38,6 +55,18 @@ const COMPLEXITY = {
     complexity: "O(n · m)",
     explanation:
       "Every character of text belongs to every window that overlaps it — worst case re-reads the whole text for each pattern position.",
+  },
+  rabin: {
+    operationName: "Rabin-Karp",
+    complexity: "O(n + m) average, O(n · m) worst",
+    explanation:
+      "Each window slides by hashing only its two changing characters — no character re-compared on a miss. Equal hashes trigger a character verification, so collisions can cost O(m) but never produce false matches.",
+  },
+  zalg: {
+    operationName: "Z Algorithm",
+    complexity: "O(n + m)",
+    explanation:
+      "One left-to-right pass fills Z[i] = the longest prefix match at each position, reusing the current [l..r] box so every comparison extends it — positions with Z[i] ≥ |pattern| are exact matches.",
   },
   table: {
     operationName: "Failure Table (π)",
@@ -126,6 +155,8 @@ const Strings = () => {
     setPatternInput(p);
     let steps;
     if (activeTab === "naive") steps = buildNaiveSearchSteps(t, p, ui);
+    else if (activeTab === "rabin") steps = buildRabinKarpSteps(t, p, ui);
+    else if (activeTab === "zalg") steps = buildZSearchSteps(t, p, ui);
     else if (activeTab === "table") steps = buildKmpTableSteps(p, ui);
     else steps = buildKmpSearchSteps(t, p, ui);
 
@@ -137,7 +168,7 @@ const Strings = () => {
       {
         before: { text: t, pattern: p },
         after: { text: t, pattern: p },
-        label: `${activeTab === "naive" ? "Naive" : activeTab === "table" ? "π table for" : "KMP"} "${p}"`,
+        label: `${LABEL_PREFIX[activeTab]} "${p}"`,
       }
     );
   };
@@ -174,8 +205,8 @@ const Strings = () => {
       </p>
 
       <AlgoOverview
-        title="String Matching (Naive + KMP)"
-        what="Naive search slides the pattern one position at a time and re-checks everything. KMP computes a failure table of prefix–suffix overlaps once, then shifts the pattern by exactly that overlap — linear overall."
+        title="String Matching (Naive, KMP, Rabin-Karp, Z)"
+        what="Naive search re-checks every window. KMP reuses a failure table of prefix–suffix overlaps. Rabin-Karp slides a rolling hash and verifies only on hash hits. The Z algorithm fills a longest-prefix-match array in one pass — matches are positions where Z ≥ |pattern|."
         time="O(n · m) → O(n + m)"
         space="O(m) for the π table"
         when="searching logs, DNA strings, and text: any time 'find every occurrence of this short string' matters."

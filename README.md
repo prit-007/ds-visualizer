@@ -28,7 +28,7 @@
 | Greedy | `/greedy` | activity selection, fractional knapsack, greedy coin change |
 | Hash tables | `/hash-table` | separate chaining, chain-walk narration |
 | Sorting | `/sorting` | bubble, selection, insertion, merge, quick, heap — swaps visibly move nodes |
-| Strings (KMP) | `/strings` | naive + KMP with failure table, char-cell canvas
+| Strings (KMP, Rabin-Karp, Z) | `/strings` | naive + KMP + rolling-hash + Z-array search, char-cell canvas
 | Searching | `/searching` | linear + binary search with window narration |
 
 ### Learning features
