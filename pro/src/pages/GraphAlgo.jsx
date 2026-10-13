@@ -3,11 +3,13 @@ import TabNavigation from "../components/TabNavigation";
 import { buildDijkstraSteps } from "../lib/dijkstraSteps";
 import { buildTopoSteps } from "../lib/topoSteps";
 import { buildBellmanFordSteps } from "../lib/bellmanFordSteps";
+import { buildPrimSteps, buildKruskalSteps } from "../lib/mstSteps";
 import { layoutGraph } from "../lib/graphLayout";
 import {
   DIJKSTRA_PSEUDOCODE,
   TOPO_PSEUDOCODE,
   BELLMAN_FORD_PSEUDOCODE,
+  MST_PSEUDOCODE,
 } from "../lib/pseudocode";
 import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
@@ -86,10 +88,33 @@ const BF_CYCLE_EDGES = [
   [3, 1, 1],
 ];
 
+// MST presets (non-negative weights).
+const MST_NODES = [1, 2, 3, 4, 5];
+const MST_EDGES = [
+  [1, 2, 4],
+  [1, 3, 3],
+  [2, 4, 2],
+  [3, 4, 5],
+  [3, 5, 1],
+  [4, 5, 6],
+];
+
+const MST_DENSE_NODES = [1, 2, 3, 4];
+const MST_DENSE_EDGES = [
+  [1, 2, 1],
+  [1, 3, 4],
+  [2, 3, 2],
+  [2, 4, 3],
+  [3, 4, 5],
+];
+
+const MST_DISCONNECTED_EDGES = [[1, 2, 4]];
+
 const TABS = [
   { id: "dijkstra", label: "Dijkstra" },
   { id: "topo", label: "Topological Sort" },
   { id: "bellman", label: "Bellman-Ford" },
+  { id: "mst", label: "MST" },
 ];
 
 const COMPLEXITY = {
@@ -110,6 +135,12 @@ const COMPLEXITY = {
     complexity: "O(V · E)",
     explanation:
       "Every edge is relaxed V − 1 times; each pass spreads a shortest distance one hop further. A final pass that still improves means a negative cycle exists.",
+  },
+  mst: {
+    operationName: "MST (Prim / Kruskal)",
+    complexity: "O(E log V) · O(E log E)",
+    explanation:
+      "Prim greedily grows one tree through the cheapest fringe edge (heap gives log V per step); Kruskal sorts all edges and accepts the cheapest safe one, tracking components with union-find (log E per step).",
   },
 };
 
@@ -146,6 +177,8 @@ const GraphAlgo = () => {
   const [indegrees, setIndegrees] = useState(() => zeroIndegrees(DEMO_NODES));
   const [topoOrder, setTopoOrder] = useState([]);
   const [activeEdge, setActiveEdge] = useState(null);
+  const [treeEdges, setTreeEdges] = useState([]);
+  const [mstMethod, setMstMethod] = useState("prim");
   const [isAnimating, setIsAnimating] = useState(false);
   const [run, setRun] = useState(null);
   const [error, setError] = useState(null);
@@ -153,6 +186,7 @@ const GraphAlgo = () => {
   const containerRef = useRef(null);
   const isTopo = algo === "topo";
   const isBellman = algo === "bellman";
+  const isMst = algo === "mst";
 
   useEffect(() => {
     if (error) {
@@ -167,11 +201,12 @@ const GraphAlgo = () => {
     if (runMeta) recordRun({ structure: "graph-algo", steps, ...runMeta });
   };
 
-  const clearHighlights = () => {
+  const clearHighlights = ({ keepTree = false } = {}) => {
     setActiveNode(null);
     setVisitedNodes([]);
     setActiveEdge(null);
     setTopoHighlighted([]);
+    if (!keepTree) setTreeEdges([]);
   };
 
   const applyPreset = (presetNodes, presetEdges, start = presetNodes[0]) => {
@@ -197,6 +232,56 @@ const GraphAlgo = () => {
   const handleRun = () => {
     if (nodes.length === 0) {
       setError("Graph is empty — load a preset first");
+      return;
+    }
+
+    if (isMst) {
+      if (mstMethod === "prim") {
+        const start = parseInt(startInput);
+        if (isNaN(start)) {
+          setError("Please enter a start node");
+          return;
+        }
+        if (!nodes.includes(start)) {
+          setError(`Start node ${start} is not in the graph`);
+          return;
+        }
+        const steps = buildPrimSteps(nodes, edges, start, {
+          setActiveNode,
+          setVisitedNodes,
+          setActiveEdge,
+          setTreeEdges,
+        });
+        startRun(
+          steps,
+          () => {
+            clearHighlights({ keepTree: true });
+          },
+          {
+            before: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+            after: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+            label: `Prim MST from ${start}`,
+          }
+        );
+      } else {
+        const steps = buildKruskalSteps(nodes, edges, {
+          setActiveNode,
+          setVisitedNodes,
+          setActiveEdge,
+          setTreeEdges,
+        });
+        startRun(
+          steps,
+          () => {
+            clearHighlights({ keepTree: true });
+          },
+          {
+            before: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+            after: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+            label: "Kruskal MST",
+          }
+        );
+      }
       return;
     }
 
@@ -278,6 +363,11 @@ const GraphAlgo = () => {
     if (next === "bellman" && edges.some((e) => e[2] < 0) === false) {
       applyPreset(BF_NODES, BF_EDGES, 1);
     }
+    if (next === "mst") {
+      setMstMethod("prim");
+      applyPreset(MST_NODES, MST_EDGES, 1);
+      return;
+    }
     setDistances(emptyDistances(nodes));
     setDistances(emptyDistances(nodes));
     setIndegrees(zeroIndegrees(nodes));
@@ -289,8 +379,8 @@ const GraphAlgo = () => {
 
   const handleReset = () =>
     applyPreset(
-      isTopo ? COURSE_NODES : isBellman ? BF_NODES : DEMO_NODES,
-      isTopo ? COURSE_EDGES : isBellman ? BF_EDGES : DEMO_EDGES,
+      isTopo ? COURSE_NODES : isBellman ? BF_NODES : isMst ? MST_NODES : DEMO_NODES,
+      isTopo ? COURSE_EDGES : isBellman ? BF_EDGES : isMst ? MST_EDGES : DEMO_EDGES,
       isBellman ? 1 : 1
     );
   const handleClear = () => applyPreset([], [], "");
@@ -324,12 +414,14 @@ const GraphAlgo = () => {
           ? "Topological sort on a directed acyclic graph — Kahn’s algorithm."
           : isBellman
             ? "Bellman-Ford shortest paths on weights that may be negative."
-            : "Dijkstra's shortest path on a weighted graph, edge by edge."}
+            : isMst
+              ? "Minimum spanning tree — the cheapest edge set that connects every node."
+              : "Dijkstra's shortest path on a weighted graph, edge by edge."}
       </p>
 
       <AlgoOverview
-        title="Dijkstra + Topological Sort + Bellman-Ford"
-        what="Dijkstra settles nodes nearest-first by relaxing weighted edges; Kahn’s algorithm topologically sorts a DAG by removing in-degree-0 nodes; Bellman-Ford relaxes every edge V−1 times so negative weights work, and flags negative cycles."
+        title="Dijkstra + Topological Sort + Bellman-Ford + MST"
+        what="Dijkstra settles nodes nearest-first; Kahn’s algorithm topologically sorts a DAG; Bellman-Ford accepts negative weights (and outs negative cycles); Prim and Kruskal build the minimum spanning tree — the cheapest edge set that connects every node."
         time="O((V+E) log V) · O(V + E) · O(V·E)"
         space="O(V)"
         when="single-source shortest paths on any weights; dependency ordering on acyclic graphs."
@@ -383,10 +475,16 @@ const GraphAlgo = () => {
                     </marker>
                   </defs>
                 )}
-                {layout.edges.map((e, i) => (
+                {layout.edges.map((e, i) => {
+                  const inMst = isMst && treeEdges.some(
+                    ([u, v]) =>
+                      (u === e.fromValue && v === e.toValue) ||
+                      (u === e.toValue && v === e.fromValue)
+                  );
+                  return (
                   <g key={`${e.fromValue}-${e.toValue}-${i}`}>
                     <line
-                      className={`graph-algo-edge${isEdgeActive(e) ? " active" : ""}`}
+                      className={`graph-algo-edge${isEdgeActive(e) ? " active" : ""}${inMst ? " mst-edge" : ""}`}
                       x1={e.x1}
                       y1={e.y1}
                       x2={e.x2}
@@ -404,7 +502,8 @@ const GraphAlgo = () => {
                       </text>
                     )}
                   </g>
-                ))}
+                );
+                })}
               </svg>
               {layout.nodes.map((n) => (
                 <div
@@ -437,7 +536,13 @@ const GraphAlgo = () => {
               onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
               pseudocode={
-                isTopo ? TOPO_PSEUDOCODE : isBellman ? BELLMAN_FORD_PSEUDOCODE : DIJKSTRA_PSEUDOCODE
+                isTopo
+                  ? TOPO_PSEUDOCODE
+                  : isBellman
+                    ? BELLMAN_FORD_PSEUDOCODE
+                    : isMst
+                      ? MST_PSEUDOCODE[mstMethod]
+                      : DIJKSTRA_PSEUDOCODE
               }
             />
           )}
@@ -509,7 +614,13 @@ const GraphAlgo = () => {
                       { label: "Two + negative", onClick: () => applyPreset(BF_NEG_NODES, BF_NEG_EDGES, 1) },
                       { label: "Negative cycle", onClick: () => applyPreset(BF_CYCLE_NODES, BF_CYCLE_EDGES, 1) },
                     ]
-                  : [
+                  : isMst
+                    ? [
+                        { label: "Classic", onClick: () => applyPreset(MST_NODES, MST_EDGES, 1) },
+                        { label: "Dense", onClick: () => applyPreset(MST_DENSE_NODES, MST_DENSE_EDGES, 1) },
+                        { label: "Disconnected", onClick: () => applyPreset(MST_NODES, MST_DISCONNECTED_EDGES, 1) },
+                      ]
+                    : [
                     { label: "Demo graph", onClick: () => applyPreset(DEMO_NODES, DEMO_EDGES, 1) },
                     { label: "Small graph", onClick: () => applyPreset(SMALL_NODES, SMALL_EDGES, 1) },
                     {
@@ -527,7 +638,7 @@ const GraphAlgo = () => {
               handleRun();
             }}
           >
-            {!isTopo && (
+            {!isTopo && (!isMst || mstMethod === "prim") && (
               <div className="input-group">
                 <label>Start node:</label>
                 <input
@@ -539,8 +650,30 @@ const GraphAlgo = () => {
                 />
               </div>
             )}
+            {isMst && (
+              <div className="method-toggle" aria-label="MST method">
+                <button
+                  type="button"
+                  className={`method-chip${mstMethod === "prim" ? " active" : ""}`}
+                  aria-pressed={mstMethod === "prim"}
+                  onClick={() => setMstMethod("prim")}
+                  disabled={isAnimating}
+                >
+                  Prim
+                </button>
+                <button
+                  type="button"
+                  className={`method-chip${mstMethod === "kruskal" ? " active" : ""}`}
+                  aria-pressed={mstMethod === "kruskal"}
+                  onClick={() => setMstMethod("kruskal")}
+                  disabled={isAnimating}
+                >
+                  Kruskal
+                </button>
+              </div>
+            )}
             <button type="submit" className="operation-button" disabled={isAnimating}>
-              {isTopo ? "Run Topological Sort" : isBellman ? "Run Bellman-Ford" : "Run Dijkstra"}
+              {isTopo ? "Run Topological Sort" : isBellman ? "Run Bellman-Ford" : isMst ? "Run MST" : "Run Dijkstra"}
             </button>
           </form>
 
@@ -556,12 +689,14 @@ const GraphAlgo = () => {
               { name: "Nodes", value: nodes.length },
               { name: "Edges", value: edges.length },
               {
-                name: isTopo ? "Ordered" : "Settled",
+                name: isTopo ? "Ordered" : isMst ? "Tree edges" : "Settled",
                 value: isTopo
                   ? `${topoOrder.length} / ${nodes.length}`
-                  : isBellman
-                    ? `${nodes.filter((n) => distances[n] !== Infinity && distances[n] !== undefined).length} / ${nodes.length}`
-                    : `${visitedNodes.length} / ${nodes.length}`,
+                  : isMst
+                    ? `${treeEdges.length} / ${nodes.length - 1}`
+                    : isBellman
+                      ? `${nodes.filter((n) => distances[n] !== Infinity && distances[n] !== undefined).length} / ${nodes.length}`
+                      : `${visitedNodes.length} / ${nodes.length}`,
               },
             ]}
           />

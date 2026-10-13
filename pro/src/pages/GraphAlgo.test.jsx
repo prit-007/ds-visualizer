@@ -202,3 +202,49 @@ describe('GraphAlgo (Bellman-Ford)', () => {
     expect(screen.getByText(/Negative cycle detected/)).toBeInTheDocument();
   });
 });
+
+describe('GraphAlgo (MST)', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+    window.location.hash = '';
+  });
+
+  test('Prim picks cheap edges and records the run label', () => {
+    const { container } = render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'MST' }));
+    expect(screen.getByRole('button', { name: 'Run MST' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run MST' }));
+    finishRun();
+
+    expect(listRuns('graph-algo')[listRuns('graph-algo').length - 1].label).toBe('Prim MST from 1');
+    expect(container.querySelectorAll('.graph-algo-edge.mst-edge').length).toBe(4);
+  });
+
+  test('Kruskal is selectable and skips cycle-forming edges', () => {
+    render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'MST' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Kruskal' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run MST' }));
+    finishRun();
+
+    expect(listRuns('graph-algo')[listRuns('graph-algo').length - 1].label).toBe('Kruskal MST');
+  });
+
+  test('a disconnected preset reports no spanning tree', () => {
+    render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'MST' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Disconnected' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run MST' }));
+    finishRun();
+
+    expect(screen.getByText(/Graph disconnected/)).toBeInTheDocument();
+  });
+});

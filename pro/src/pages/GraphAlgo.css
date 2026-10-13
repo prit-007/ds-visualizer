@@ -112,3 +112,47 @@
 .dark .dist-table td {
   border-color: #334155;
 }
+
+.graph-algo-edge.mst-edge {
+  stroke: #16a34a;
+  stroke-width: 4;
+}
+
+.method-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.method-chip {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.method-chip.active {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: white;
+}
+
+.dark .method-chip {
+  background: #1e293b;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+.dark .method-chip.active {
+  background: #15803d;
+  border-color: #16a34a;
+  color: white;
+}
+
+.dark .graph-algo-edge.mst-edge {
+  stroke: #4ade80;
+}
