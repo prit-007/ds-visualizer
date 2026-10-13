@@ -134,12 +134,12 @@ Exit criteria: every sidebar route resolves to a real page.
 **Data structures:** Trie (string sets, auto-complete), Union-Find (disjoint sets), Segment Tree / Fenwick (range queries), 2-3-4 trees via the existing B-tree, Binary Indexed array.
 
 **Algorithms — more of each family**
-- Graph: Bellman-Ford (negative weights), Floyd-Warshall (all-pairs), Prim's / Kruskal's MST, A*, Kosaraju SCC, cycle detection.
-- Sorting: radix, counting, bucket, shell.
-- Searching: ternary, jump, interpolation (keeping the sorted-guard honesty).
-- Strings: KMP, Rabin-Karp, Z-algorithm.
-- Backtracking: N-Queens, Sudoku solver, Hamiltonian path, subset-sum.
-- DP: edit distance, subset-sum table, LIS, Kadane (max subarray), word-break.
+- Graph: Bellman-Ford ✅, Floyd-Warshall ✅, Prim's / Kruskal's MST ✅ (all on `/graph-algo`); remaining: A*, Kosaraju SCC, cycle detection.
+- Sorting: radix ✅, counting ✅ (linear-time pair on `/sorting`); remaining: bucket, shell.
+- Searching: ternary, jump, interpolation (keeping the sorted-guard honesty) — all remaining.
+- Strings: KMP ✅ (+ naive baseline, on `/strings`); remaining: Rabin-Karp, Z-algorithm.
+- Backtracking: N-Queens ✅, Sudoku solver ✅ (4×4 mini, on `/backtracking`); remaining: Hamiltonian path, subset-sum.
+- DP: ~~edit distance, subset-sum table, LIS, Kadane (max subarray), word-break~~ — **all five shipped** on `/dynamic-programming` (eleven programs total).
 - Trees: red-black insights (reuse AVL rotations), diameter/height mini-algos.
 
 **Features still unimplemented:** string/float value support across structures; Web Worker benchmarks (median-of-N, noise warnings) — both Phase 7 items.
