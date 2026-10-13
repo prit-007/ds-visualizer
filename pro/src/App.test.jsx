@@ -16,6 +16,7 @@ const ADVERTISED_ROUTES = [
   '/heap',
   '/union-find',
   '/trie',
+  '/backtracking',
   '/tree',
   '/graph',
   '/hash-table',

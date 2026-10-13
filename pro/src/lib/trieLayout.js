@@ -1,7 +1,5 @@
 // Pure trie coordinate layout — children fanned out under the parent,
 // parents centered over their subtree, edges trimmed to the node radius.
-import { TrieNode } from "./trie";
-
 const NODE_RADIUS = 22;
 const H_GAP = 56;
 const V_GAP = 86;
