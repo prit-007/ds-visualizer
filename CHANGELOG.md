@@ -35,7 +35,10 @@ All notable changes to AlgoViz are documented here. Format loosely follows
 - **Polish** — typography tokens (`--font-sans`/`--font-mono`), press-scale
   micro-interactions, panel transitions, current-step pulse
 - **Binary heap** — `/heap` min-heap / priority queue visualizer: insert (bubble up), extract-min (sift down), peek; dual animated array + tree canvas, `heap.js`/`heapSteps.js`/`heapLayout.js`
-- **Graph algorithms** — `/graph-algo` Dijkstra shortest path on weighted graphs: settle/relax narration, live distance table, weight labels, unreachable-∞ handling
+- **Graph algorithms** — `/graph-algo` Dijkstra + Topological Sort (directed arrowheads, in-degree table, cycle detection)
+- **Dynamic programming** — `/dynamic-programming`: Fibonacci, grid paths, fewest-coin change with animated DP tables
+- **Greedy** — `/greedy`: activity selection, fractional knapsack, greedy coin change
+- **Learning redesign** — `AlgoOverview` Learn cards (what · time · space · when) open every visualizer; `/help` page adds shortcuts, gestures, feature index and FAQ
 - **AVL improvements** — rotation steps drive edge highlights
   (LL/RR/LR/RL read as real rebalances), adaptive tree layout + scale-to-fit
   (no horizontal scroll as trees grow)
