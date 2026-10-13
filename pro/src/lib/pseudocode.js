@@ -920,6 +920,31 @@ SORTING_PSEUDOCODE.radix = [
   'end procedure',
 ];
 
+SORTING_PSEUDOCODE.shell = [
+  'procedure shellSort(array)',
+  '  n ← length(array)',
+  '  gap ← n / 2',
+  '  while gap > 0 do',
+  '    for i ← gap to n - 1 do',
+  '      key ← array[i]; j ← i',
+  '      while j ≥ gap and array[j - gap] > key do',
+  '        array[j] ← array[j - gap]; j ← j - gap',
+  '      array[j] ← key',
+  '    gap ← gap / 2',
+  '  return sorted array',
+];
+
+SORTING_PSEUDOCODE.bucket = [
+  'procedure bucketSort(array)',
+  '  n ← length(array); k ← max(array)',
+  '  b ← [ [] for _ in 1..n ]',
+  '  for x in array do',
+  '    append x to b[floor(x · n / (k + 1))]',
+  '  sort each bucket in place',
+  '  concatenate b[0], b[1], … back into array',
+  '  return sorted array',
+];
+
 export const TRIE_PSEUDOCODE = {
   insert: [
     'procedure insert(trie, word)',

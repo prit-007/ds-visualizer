@@ -420,3 +420,70 @@ describe('Sorting — distribution sorts', () => {
     expect(screen.getAllByText(/non-negative/).length).toBeGreaterThan(0);
   });
 });
+
+describe('Sorting — shell & bucket', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+    window.location.hash = '';
+  });
+
+  test('shell and bucket are offered as algorithm tabs', () => {
+    render(<Sorting />);
+    expect(screen.getByRole('button', { name: 'Shell' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Bucket' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Shell' }));
+    expect(screen.getByRole('button', { name: 'Run Shell Sort' })).toBeInTheDocument();
+  });
+
+  test('shell sort orders a small array and pins its pseudocode lines', () => {
+    const { container } = render(<Sorting initialArray={[4, 3, 2, 1]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Shell' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Shell Sort' }));
+    finishRun();
+
+    const runs = listRuns('sorting');
+    expect(runs[runs.length - 1].label).toBe('Shell sort');
+    const values = [...document.querySelectorAll('.memory-value')].map((n) =>
+      Number(n.textContent)
+    );
+    expect(values).toEqual([1, 2, 3, 4]);
+    const pane = container.querySelector('.code-pane');
+    expect(pane.querySelectorAll('.code-line')).toHaveLength(
+      SORTING_PSEUDOCODE.shell.length
+    );
+  });
+
+  test('bucket sort distributes, sorts and records the run', () => {
+    const { container } = render(<Sorting initialArray={[5, 3, 1, 2]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Bucket' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Bucket Sort' }));
+    finishRun();
+
+    const runs = listRuns('sorting');
+    expect(runs[runs.length - 1].label).toBe('Bucket sort');
+    const values = [...document.querySelectorAll('.memory-value')].map((n) =>
+      Number(n.textContent)
+    );
+    expect(values).toEqual([1, 2, 3, 5]);
+    const pane = container.querySelector('.code-pane');
+    expect(pane.querySelectorAll('.code-line')).toHaveLength(
+      SORTING_PSEUDOCODE.bucket.length
+    );
+  });
+
+  test('bucket sort rejects negative values with the shared guard', () => {
+    render(<Sorting initialArray={[5, -1, 3]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Bucket' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Bucket Sort' }));
+
+    expect(screen.getAllByText(/non-negative/).length).toBeGreaterThan(0);
+    expect(listRuns('sorting')).toHaveLength(0);
+  });
+});

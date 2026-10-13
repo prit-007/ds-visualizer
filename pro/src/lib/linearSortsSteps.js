@@ -199,3 +199,127 @@ export const buildRadixSteps = (items, ui) => {
 
   return steps;
 };
+
+const insertionSortInPlace = (list) => {
+  for (let i = 1; i < list.length; i += 1) {
+    const key = list[i];
+    let j = i - 1;
+    while (j >= 0 && list[j] > key) {
+      list[j + 1] = list[j];
+      j -= 1;
+    }
+    list[j + 1] = key;
+  }
+  return list;
+};
+
+export const buildBucketSteps = (items, ui) => {
+  const arr = [...items];
+  const n = arr.length;
+  const k = Math.max(...arr);
+  const bucketCount = n;
+  const buckets = Array.from({ length: bucketCount }, () => []);
+  const steps = [];
+
+  steps.push({
+    description: `Starting bucket sort on ${n} elements — max ${k}, ${bucketCount} buckets`,
+    kind: 'move',
+    line: 1,
+    vars: { n, k, buckets: bucketCount },
+    action: () => {
+      ui.setComparePair?.(null);
+      ui.setSwapPair?.(null);
+      ui.setActiveIndex?.(null);
+      ui.setDisplayArray?.([...arr]);
+    },
+  });
+
+  for (let i = 0; i < n; i += 1) {
+    const v = arr[i];
+    const idx = Math.floor((v * n) / (k + 1));
+    buckets[idx].push(v);
+    steps.push({
+      description: `Value ${v} → bucket ${idx} (floor(${v} × ${n} / ${k + 1}))`,
+      kind: 'move',
+      line: 5,
+      vars: { value: v, bucket: idx },
+      action: () => {
+        ui.setActiveIndex?.(i);
+      },
+    });
+  }
+
+  const nonEmpty = [];
+  buckets.forEach((b, idx) => {
+    if (b.length > 0) nonEmpty.push(idx);
+  });
+
+  steps.push({
+    description: 'Sorting each bucket with insertion sort',
+    kind: 'compare',
+    line: 6,
+    vars: { nonEmpty },
+    action: () => {
+      ui.setActiveIndex?.(null);
+    },
+  });
+
+  const sortedBuckets = buckets.map((b) =>
+    b.length <= 1 ? [...b] : insertionSortInPlace([...b])
+  );
+
+  nonEmpty.forEach((idx) => {
+    const before = buckets[idx];
+    const sorted = sortedBuckets[idx];
+    steps.push({
+      description:
+        sorted.length === 1
+          ? `Bucket ${idx}: [${before.join(', ')}] — single element, already sorted`
+          : `Sorting bucket ${idx}: [${before.join(', ')}] → ${sorted.join(', ')}`,
+      kind: sorted.length === 1 ? 'compare' : 'found',
+      line: 6,
+      vars: sorted.length === 1 ? { bucket: idx, values: [...before] } : { bucket: idx, values: [...before], sorted: [...sorted] },
+      action: () => {
+        ui.setActiveIndex?.(null);
+      },
+    });
+  });
+
+  const out = new Array(n).fill(null);
+  let filled = 0;
+  nonEmpty.forEach((idx) => {
+    const values = sortedBuckets[idx];
+    values.forEach((v) => {
+      out[filled] = v;
+      filled += 1;
+    });
+    const snap = snapshot(out);
+    const soFar = out.filter((v) => v !== null);
+    steps.push({
+      description: `Appending bucket ${idx}: [${values.join(', ')}] — array so far: ${soFar.join(', ')}`,
+      kind: 'move',
+      line: 7,
+      vars: { bucket: idx, values: [...values], soFar: [...soFar] },
+      action: () => {
+        ui.setActiveIndex?.(null);
+        ui.setDisplayArray?.(withSlots(snap));
+      },
+    });
+  });
+
+  steps.push({
+    description: `Bucket sort complete — sorted: ${out.join(', ')}`,
+    kind: 'found',
+    line: 8,
+    vars: { sorted: [...out] },
+    action: () => {
+      ui.setComparePair?.(null);
+      ui.setSwapPair?.(null);
+      ui.setActiveIndex?.(null);
+      ui.setSortedIndexes?.(out.map((_, idx) => idx));
+      ui.setDisplayArray?.([...out]);
+    },
+  });
+
+  return steps;
+};

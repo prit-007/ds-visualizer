@@ -2,6 +2,7 @@ import {
   buildBubbleSteps,
   buildSelectionSteps,
   buildInsertionSteps,
+  buildShellSteps,
   buildMergeSteps,
   buildQuickSteps,
   buildHeapSteps,
@@ -13,6 +14,7 @@ const makeUi = () => ({
   setSwapPair: vi.fn(),
   setActiveIndex: vi.fn(),
   setSortedIndexes: vi.fn(),
+  setDisplayArray: vi.fn(),
 });
 
 const descriptions = (steps) => steps.map((s) => s.description);
@@ -124,6 +126,101 @@ describe('buildInsertionSteps', () => {
   });
 });
 
+describe('buildShellSteps', () => {
+  test('runs gapped insertion passes over a shrinking gap sequence', () => {
+    const ui = makeUi();
+    const steps = buildShellSteps([4, 3, 2, 1], ui);
+
+    expect(descriptions(steps)).toEqual([
+      'Starting shell sort on 4 elements — gap sequence 2, 1',
+      'Gap phase g = 2: insertion passes with stride 2',
+      'Comparing arr[0] = 4 with key 2 (gap 2)',
+      'Shifting 4 from position 0 to position 2',
+      'Placing key 2 at position 0',
+      'Comparing arr[1] = 3 with key 1 (gap 2)',
+      'Shifting 3 from position 1 to position 3',
+      'Placing key 1 at position 1',
+      'Gap phase g = 1: insertion passes with stride 1',
+      'Comparing arr[0] = 2 with key 1 (gap 1)',
+      'Shifting 2 from position 0 to position 1',
+      'Placing key 1 at position 0',
+      'Comparing arr[1] = 2 with key 4 (gap 1)',
+      '4 ≥ 2 — key stays in place',
+      'Placing key 4 at position 2',
+      'Comparing arr[2] = 4 with key 3 (gap 1)',
+      'Shifting 4 from position 2 to position 3',
+      'Comparing arr[1] = 2 with key 3 (gap 1)',
+      '3 ≥ 2 — key stays in place',
+      'Placing key 3 at position 2',
+      'Array is sorted: 1, 2, 3, 4',
+    ]);
+
+    runAll(steps);
+    expect(kinds(steps)).toEqual([
+      'move',
+      'compare',
+      'compare',
+      'move',
+      'move',
+      'compare',
+      'move',
+      'move',
+      'compare',
+      'compare',
+      'move',
+      'move',
+      'compare',
+      'compare',
+      'move',
+      'compare',
+      'move',
+      'compare',
+      'compare',
+      'move',
+      'found',
+    ]);
+    expect(compareCalls(ui)).toEqual([
+      [0, 2],
+      [1, 3],
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [1, 2],
+    ]);
+    expect(swapCalls(ui)).toEqual([
+      [0, 2],
+      [1, 3],
+      [0, 1],
+      [2, 3],
+    ]);
+    expect(sortedCalls(ui)[sortedCalls(ui).length - 1]).toEqual([0, 1, 2, 3]);
+    expect(steps[steps.length - 1].vars).toEqual({ sorted: [1, 2, 3, 4] });
+  });
+
+  test('a two-element input only needs the gap-1 pass', () => {
+    const steps = buildShellSteps([2, 1], makeUi());
+    expect(descriptions(steps)).toEqual([
+      'Starting shell sort on 2 elements — gap sequence 1',
+      'Gap phase g = 1: insertion passes with stride 1',
+      'Comparing arr[0] = 2 with key 1 (gap 1)',
+      'Shifting 2 from position 0 to position 1',
+      'Placing key 1 at position 0',
+      'Array is sorted: 1, 2',
+    ]);
+    expect(descriptions(steps).join('\n')).not.toContain('Gap phase g = 2');
+  });
+
+  test('already-sorted input narrates no shifts at every gap', () => {
+    const ui = makeUi();
+    const steps = buildShellSteps([1, 2, 3], ui);
+    const text = descriptions(steps).join('\n');
+    expect(text).toContain('key stays in place');
+    expect(text).not.toContain('Shifting');
+    expect(text).toContain('Array is sorted: 1, 2, 3');
+    expect(swapCalls(ui)).toEqual([]);
+  });
+});
+
 describe('every step has a non-empty description', () => {
   test('all three builders', () => {
     const ui = makeUi();
@@ -131,6 +228,7 @@ describe('every step has a non-empty description', () => {
       buildBubbleSteps([3, 1], ui),
       buildSelectionSteps([2, 1], ui),
       buildInsertionSteps([3, 1, 2], ui),
+      buildShellSteps([3, 1], ui),
     ].forEach((steps) =>
       steps.forEach((s) => expect(s.description.length).toBeGreaterThan(0))
     );
@@ -163,6 +261,21 @@ describe('pseudocode lines and variable watch', () => {
     expect(steps[2].vars).toEqual({ key: 1, i: 1 });
     steps.forEach((s) =>
       expect(s.line).toBeLessThanOrEqual(SORTING_PSEUDOCODE.insertion.length)
+    );
+  });
+
+  test('shell steps line up with the shellSort listing', () => {
+    const steps = buildShellSteps([4, 3, 2, 1], makeUi());
+    expect(steps.map((s) => s.line)).toEqual([
+      1, 5, 7, 8, 9, 7, 8, 9, 5, 7, 8, 9, 7, 7, 9, 7, 8, 7, 7, 9, 11,
+    ]);
+    expect(steps[0].vars).toEqual({ n: 4, gaps: [2, 1] });
+    expect(steps[1].vars).toEqual({ gap: 2 });
+    expect(steps[2].vars).toEqual({ gap: 2, j: 0, a: 4, key: 2 });
+    expect(steps[3].vars).toEqual({ gap: 2, from: 0, to: 2, value: 4 });
+    expect(steps[4].vars).toEqual({ pos: 0, key: 2 });
+    steps.forEach((s) =>
+      expect(s.line).toBeLessThanOrEqual(SORTING_PSEUDOCODE.shell.length)
     );
   });
 });
