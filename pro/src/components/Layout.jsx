@@ -142,7 +142,7 @@ const Layout = () => {
               <li>
                 <button
                   type="button"
-                  className={categoryClass(categoryActive(['/array', '/linked-list', '/stack-queue', '/heap', '/tree', '/graph', '/hash-table']))}
+                  className={categoryClass(categoryActive(['/array', '/linked-list', '/stack-queue', '/heap', '/union-find', '/tree', '/graph', '/hash-table']))}
                   onClick={() => toggleCategory('dataStructures')}
                   aria-expanded={expandedCategories.dataStructures}
                   aria-label="Data Structures"
@@ -178,6 +178,11 @@ const Layout = () => {
                     <li>
                       <Link to="/heap" className={subLinkClass('/heap')} aria-current={isActivePath('/heap') ? 'page' : undefined}>
                         Heaps
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/union-find" className={subLinkClass('/union-find')} aria-current={isActivePath('/union-find') ? 'page' : undefined}>
+                        Union-Find
                       </Link>
                     </li>
                     <li>

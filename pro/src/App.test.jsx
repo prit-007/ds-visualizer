@@ -14,6 +14,7 @@ const ADVERTISED_ROUTES = [
   '/linked-list',
   '/stack-queue',
   '/heap',
+  '/union-find',
   '/tree',
   '/graph',
   '/hash-table',
