@@ -769,3 +769,15 @@ export const UNION_FIND_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+export const BELLMAN_FORD_PSEUDOCODE = [
+  'procedure bellmanFord(graph, start)',
+  '  dist ← {all: ∞}, dist[start] ← 0',
+  '  for pass ← 1 to V − 1 do',
+  '    for each edge (u, v, w) do',
+  '      if dist[u] + w < dist[v] then dist[v] ← dist[u] + w',
+  '  if a pass improves nothing, stop early',
+  '  return distances',
+  '  if a final pass still improves, a negative cycle exists',
+  'end procedure',
+];
