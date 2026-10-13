@@ -103,13 +103,14 @@ export const buildKmpSearchSteps = (text, pattern, ui) => {
   for (let i = 0; i < n; i += 1) {
     while (j > 0 && text[i] !== pattern[j]) {
       const piJump = pi[j - 1];
+      const atJump = i - j;
       steps.push({
         description: mismatchNarration(i, text[i], pattern[j], true),
         kind: 'compare',
         line: 5,
         vars: { i, j, piJump },
         action: () => {
-          ui.setHighlight?.([i - j, i]);
+          ui.setHighlight?.([atJump, i]);
           ui.setFound?.(null);
         },
       });
@@ -117,13 +118,14 @@ export const buildKmpSearchSteps = (text, pattern, ui) => {
     }
     if (text[i] === pattern[j]) {
       j += 1;
+      const matchStart = i - j + 1;
       steps.push({
         description: `Matched text[${i}] = ${text[i]} with pattern[${j - 1}] = ${pattern[j - 1]}`,
         kind: 'move',
         line: 6,
         vars: { i, j },
         action: () => {
-          ui.setHighlight?.([i - j + 1, i]);
+          ui.setHighlight?.([matchStart, i]);
         },
       });
     } else if (j === 0) {

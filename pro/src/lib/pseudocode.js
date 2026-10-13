@@ -688,6 +688,25 @@ export const DP_PSEUDOCODE = {
     '  return dp[amount]',
     'end procedure',
   ],
+  edit: [
+    'procedure editDistance(x, y)',
+    '  dp[i][0] = i; dp[0][j] = j',
+    '  for i ← 1..|x| do',
+    '    for j ← 1..|y| do',
+    '      if x[i] = y[j] then dp[i][j] ← dp[i-1][j-1]',
+    '      else dp[i][j] ← 1 + min(up, left, diag)',
+    '  return dp[|x|][|y|]',
+    'end procedure',
+  ],
+  lis: [
+    'procedure LIS(A)',
+    '  dp[0] ← 1',
+    '  for i ← 1 to n-1 do',
+    '    dp[i] ← 1',
+    '    if A[j] < A[i] and dp[j] + 1 > dp[i] then dp[i] ← dp[j] + 1',
+    '  return max(dp)',
+    'end procedure',
+  ],
 };
 
 export const GREEDY_PSEUDOCODE = {

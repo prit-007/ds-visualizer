@@ -37,6 +37,7 @@ All notable changes to AlgoViz are documented here. Format loosely follows
 - **Binary heap** — `/heap` min-heap / priority queue visualizer: insert (bubble up), extract-min (sift down), peek; dual animated array + tree canvas, `heap.js`/`heapSteps.js`/`heapLayout.js`
 - **Graph algorithms** — `/graph-algo` Dijkstra + Topological Sort (directed arrowheads, in-degree table, cycle detection)
 - **Dynamic programming** — `/dynamic-programming`: Fibonacci, grid paths, fewest-coin change with animated DP tables
+- **DP expansions** — edit distance (Levenshtein, 2D min(insert/delete/replace) table) + longest increasing subsequence (best-predecessor chain) on `/dynamic-programming` — eight programs total (`dpExtraSteps.js`)
 - **Greedy** — `/greedy`: activity selection, fractional knapsack, greedy coin change
 - **Learning redesign** — `AlgoOverview` Learn cards (what · time · space · when) open every visualizer; `/help` page adds shortcuts, gestures, feature index and FAQ
 - **DP expansion** — `/dynamic-programming` grows to six page-wise programs (Fibonacci, Grid Paths, Coin Change, Longest Common Subsequence, 0/1 Knapsack, House Robber) with 2D-table canvases
