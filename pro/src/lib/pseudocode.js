@@ -610,3 +610,31 @@ export const SEARCHING_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+export const HEAP_PSEUDOCODE = {
+  insert: [
+    'procedure heapInsert(heap, value)',
+    '  append value at the end',
+    '  i ← index of the new value',
+    '  while i > 0 and heap[parent(i)] > heap[i] do',
+    '    swap(heap[i], heap[parent(i)])',
+    '    i ← parent(i)',
+    '  return heap',
+  ],
+  extractMin: [
+    'procedure heapExtractMin(heap)',
+    '  if heap is empty then return null',
+    '  root ← heap[0]',
+    '  heap[0] ← heap[last]',
+    '  remove the last slot',
+    '  sift down the root',
+    '  while children exist do',
+    '    swap with the smaller child',
+    '  return root',
+  ],
+  peek: [
+    'procedure heapPeek(heap)',
+    '  if heap is empty then return null',
+    '  return heap[0]',
+  ],
+};

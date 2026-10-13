@@ -16,6 +16,7 @@ import HashTable from './pages/HashTable';
 import Graph from './pages/Graph';
 import Sorting from './pages/Sorting';
 import Searching from './pages/Searching';
+import Heap from './pages/Heap';
 import ComingSoon from './pages/ComingSoon';
 
 const App = () => {
@@ -34,6 +35,7 @@ const App = () => {
           <Route path='/complexity' element={<ComplexityLab />} />
           <Route path='/challenges' element={<Challenges />} />
           <Route path='/stack-queue' element={<StackQueue />} />
+          <Route path='/heap' element={<Heap />} />
           <Route path='/graph' element={<Graph />} />
           <Route path='/hash-table' element={<HashTable />} />
           <Route path='/sorting' element={<Sorting />} />
