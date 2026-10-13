@@ -40,6 +40,7 @@ All notable changes to AlgoViz are documented here. Format loosely follows
 - **Greedy** — `/greedy`: activity selection, fractional knapsack, greedy coin change
 - **Learning redesign** — `AlgoOverview` Learn cards (what · time · space · when) open every visualizer; `/help` page adds shortcuts, gestures, feature index and FAQ
 - **DP expansion** — `/dynamic-programming` grows to six page-wise programs (Fibonacci, Grid Paths, Coin Change, Longest Common Subsequence, 0/1 Knapsack, House Robber) with 2D-table canvases
+- **Strings (KMP + Naive)** — `/strings` page: failure-table builder, KMP search with π-table shift narration, naive slide-by-1 comparison; char-cell canvas with green match / red mismatch / found rings; O(n·m) → O(n+m)
 - **Backtracking** — `/backtracking` page: n-Queens (board sizes 4–6, true recursive search with dead-end undo narration) + 4×4 mini-Sudoku (digit validity + backtrack on exhausted cells); queens/backtrack board states, `BACKTRACKING_PSEUDOCODE`
 - **Trie** — `/trie` prefix-tree visualizer: insert/search/delete with letter-walk narration and pruning, alphabetical list-words DFS, live autocomplete suggestions, word-end ✓ badges, O(L) panels
 - **Linear-time sorts** — `/sorting` gains Counting + Radix (LSD) tabs: tally/prefix/stable-placement narration, per-digit bucket passes, honest non-negative + range guards, O(n + k)/O(d · n) panels
