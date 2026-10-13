@@ -134,7 +134,7 @@ Exit criteria: every sidebar route resolves to a real page.
 **Data structures:** Trie (string sets, auto-complete), Union-Find (disjoint sets), Segment Tree / Fenwick (range queries), 2-3-4 trees via the existing B-tree, Binary Indexed array.
 
 **Algorithms — more of each family**
-- Graph: Bellman-Ford ✅, Floyd-Warshall ✅, Prim's / Kruskal's MST ✅ (all on `/graph-algo`); remaining: A*, Kosaraju SCC, cycle detection.
+- Graph: Bellman-Ford ✅, Floyd-Warshall ✅, Prim's / Kruskal's MST ✅, A* ✅, Kosaraju SCC ✅, cycle detection ✅ (all on `/graph-algo`) — **family complete**.
 - Sorting: radix ✅, counting ✅ (linear-time pair on `/sorting`); remaining: bucket, shell.
 - Searching: ternary, jump, interpolation (keeping the sorted-guard honesty) — all remaining.
 - Strings: ~~KMP, Rabin-Karp, Z-algorithm~~ — **all shipped** on `/strings` (+ naive baseline).

@@ -5,6 +5,9 @@ import { buildTopoSteps } from "../lib/topoSteps";
 import { buildBellmanFordSteps } from "../lib/bellmanFordSteps";
 import { buildPrimSteps, buildKruskalSteps } from "../lib/mstSteps";
 import { buildFloydWarshallSteps } from "../lib/floydWarshallSteps";
+import { buildAstarSteps } from "../lib/astarSteps";
+import { buildKosarajuSteps } from "../lib/kosarajuSteps";
+import { buildCycleSteps } from "../lib/cycleSteps";
 import { layoutGraph } from "../lib/graphLayout";
 import {
   DIJKSTRA_PSEUDOCODE,
@@ -12,6 +15,9 @@ import {
   BELLMAN_FORD_PSEUDOCODE,
   MST_PSEUDOCODE,
   FLOYD_PSEUDOCODE,
+  ASTAR_PSEUDOCODE,
+  KOSARAJU_PSEUDOCODE,
+  CYCLE_PSEUDOCODE,
 } from "../lib/pseudocode";
 import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
@@ -70,6 +76,18 @@ const CYCLIC_EDGES = [
   [2, 1, 0],
 ];
 
+// Kosaraju: two directed SCCs ({1,2,3} and {4,5,6}) joined by one edge.
+const SCC_NODES = [1, 2, 3, 4, 5, 6];
+const SCC_EDGES = [
+  [1, 2, 0],
+  [2, 3, 0],
+  [3, 1, 0],
+  [3, 4, 0],
+  [4, 5, 0],
+  [5, 6, 0],
+  [6, 4, 0],
+];
+
 // Bellman-Ford: negative weights are welcome, negative cycles are caught.
 const BF_NODES = [1, 2, 3, 4];
 const BF_EDGES = [
@@ -118,7 +136,32 @@ const TABS = [
   { id: "bellman", label: "Bellman-Ford" },
   { id: "mst", label: "MST" },
   { id: "floyd", label: "Floyd-Warshall" },
+  { id: "astar", label: "A*" },
+  { id: "scc", label: "Kosaraju SCC" },
+  { id: "cycle", label: "Cycle Detection" },
 ];
+
+const RUN_LABEL = {
+  dijkstra: "Run Dijkstra",
+  topo: "Run Topological Sort",
+  bellman: "Run Bellman-Ford",
+  mst: "Run MST",
+  floyd: "Run Floyd-Warshall",
+  astar: "Run A*",
+  scc: "Run Kosaraju",
+  cycle: "Detect Cycle",
+};
+
+const TAGLINE = {
+  dijkstra: "Dijkstra's shortest path on a weighted graph, edge by edge.",
+  topo: "Topological sort on a directed acyclic graph — Kahn’s algorithm.",
+  bellman: "Bellman-Ford shortest paths on weights that may be negative.",
+  mst: "Minimum spanning tree — the cheapest edge set that connects every node.",
+  floyd: "Floyd–Warshall — every pair of nodes at once.",
+  astar: "A* — heuristic-guided shortest path that stops at the goal.",
+  scc: "Strongly connected components via two passes over a directed graph.",
+  cycle: "Back-edge detection — is this directed graph a DAG?",
+};
 
 const COMPLEXITY = {
   dijkstra: {
@@ -150,6 +193,24 @@ const COMPLEXITY = {
     complexity: "O(V³)",
     explanation:
       "Every ordered pair (i, j) is tested against every intermediate k — three nested loops through all V nodes — so all-pairs shortest distances drop out in one pass.",
+  },
+  astar: {
+    operationName: "A* Search",
+    complexity: "O((V + E) log V)",
+    explanation:
+      "Like Dijkstra, but the queue orders by f = g + h, expanding the most promising node first and stopping the moment the goal is selected. The heuristic is admissible (never overestimates), so the first time the goal is popped the path is still optimal.",
+  },
+  scc: {
+    operationName: "Kosaraju's SCC",
+    complexity: "O(V + E)",
+    explanation:
+      "Two depth-first passes: the first records finish order on the original graph, the second walks the reversed graph in decreasing finish order — each node and edge is touched exactly twice, and every second-pass tree is one strongly connected component.",
+  },
+  cycle: {
+    operationName: "Cycle Detection (directed DFS)",
+    complexity: "O(V + E)",
+    explanation:
+      "One DFS colors nodes white/gray/black. An edge into a gray node — one still on the recursion stack — is a back edge, and back edges are exactly what make a directed graph cyclic.",
   },
 };
 
@@ -188,6 +249,9 @@ const GraphAlgo = () => {
   const [activeEdge, setActiveEdge] = useState(null);
   const [treeEdges, setTreeEdges] = useState([]);
   const [mstMethod, setMstMethod] = useState("prim");
+  const [goalInput, setGoalInput] = useState("4");
+  const [sccOf, setSccOf] = useState({});
+  const [algoResult, setAlgoResult] = useState(null);
   const [fwMatrix, setFwMatrix] = useState([]);
   const [fwActiveCell, setFwActiveCell] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -199,6 +263,10 @@ const GraphAlgo = () => {
   const isBellman = algo === "bellman";
   const isMst = algo === "mst";
   const isFloyd = algo === "floyd";
+  const isAstar = algo === "astar";
+  const isScc = algo === "scc";
+  const isCycle = algo === "cycle";
+  const isDirected = isTopo || isScc || isCycle;
 
   useEffect(() => {
     if (error) {
@@ -228,6 +296,8 @@ const GraphAlgo = () => {
     setIndegrees(zeroIndegrees(presetNodes));
     setStartInput(String(start));
     setTopoOrder([]);
+    setSccOf({});
+    setAlgoResult(null);
     setFwMatrix([]);
     setFwActiveCell(null);
     clearHighlights();
@@ -246,6 +316,89 @@ const GraphAlgo = () => {
   const handleRun = () => {
     if (nodes.length === 0) {
       setError("Graph is empty — load a preset first");
+      return;
+    }
+
+    if (isAstar) {
+      const start = parseInt(startInput);
+      const goal = parseInt(goalInput);
+      if (isNaN(start)) {
+        setError("Please enter a start node");
+        return;
+      }
+      if (!nodes.includes(start)) {
+        setError(`Start node ${start} is not in the graph`);
+        return;
+      }
+      if (isNaN(goal)) {
+        setError("Please enter a goal node");
+        return;
+      }
+      if (!nodes.includes(goal)) {
+        setError(`Goal node ${goal} is not in the graph`);
+        return;
+      }
+      const steps = buildAstarSteps(nodes, edges, start, goal, {
+        setActiveNode,
+        setVisitedNodes,
+        setActiveEdge,
+        setDistances,
+        setResult: setAlgoResult,
+      });
+      startRun(
+        steps,
+        () => {
+          clearHighlights();
+        },
+        {
+          before: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          after: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          label: `A* ${start} → ${goal}`,
+        }
+      );
+      return;
+    }
+
+    if (isScc) {
+      const steps = buildKosarajuSteps(nodes, edges, {
+        setActiveNode,
+        setVisitedNodes,
+        setActiveEdge,
+        setSccOf,
+        setResult: setAlgoResult,
+      });
+      startRun(
+        steps,
+        () => {
+          clearHighlights();
+        },
+        {
+          before: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          after: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          label: "Kosaraju SCC",
+        }
+      );
+      return;
+    }
+
+    if (isCycle) {
+      const steps = buildCycleSteps(nodes, edges, {
+        setActiveNode,
+        setVisitedNodes,
+        setActiveEdge,
+        setResult: setAlgoResult,
+      });
+      startRun(
+        steps,
+        () => {
+          clearHighlights();
+        },
+        {
+          before: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          after: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          label: "Cycle detection",
+        }
+      );
       return;
     }
 
@@ -405,10 +558,25 @@ const GraphAlgo = () => {
       applyPreset(SMALL_NODES, SMALL_EDGES, 1);
       return;
     }
-    setDistances(emptyDistances(nodes));
+    if (next === "scc") {
+      applyPreset(SCC_NODES, SCC_EDGES, 1);
+      return;
+    }
+    if (next === "cycle") {
+      applyPreset(CYCLIC_NODES, CYCLIC_EDGES, 1);
+      return;
+    }
+    if (next === "astar") {
+      const g = parseInt(goalInput);
+      if (!nodes.includes(g)) {
+        setGoalInput(nodes.length > 0 ? String(nodes[nodes.length - 1]) : "");
+      }
+    }
     setDistances(emptyDistances(nodes));
     setIndegrees(zeroIndegrees(nodes));
     setTopoOrder([]);
+    setSccOf({});
+    setAlgoResult(null);
     clearHighlights();
     setError(null);
     setRun(null);
@@ -416,8 +584,32 @@ const GraphAlgo = () => {
 
   const handleReset = () =>
     applyPreset(
-      isTopo ? COURSE_NODES : isBellman ? BF_NODES : isMst ? MST_NODES : isFloyd ? SMALL_NODES : DEMO_NODES,
-      isTopo ? COURSE_EDGES : isBellman ? BF_EDGES : isMst ? MST_EDGES : isFloyd ? SMALL_EDGES : DEMO_EDGES,
+      isTopo
+        ? COURSE_NODES
+        : isBellman
+          ? BF_NODES
+          : isMst
+            ? MST_NODES
+            : isFloyd
+              ? SMALL_NODES
+              : isScc
+                ? SCC_NODES
+                : isCycle
+                  ? CYCLIC_NODES
+                  : DEMO_NODES,
+      isTopo
+        ? COURSE_EDGES
+        : isBellman
+          ? BF_EDGES
+          : isMst
+            ? MST_EDGES
+            : isFloyd
+              ? SMALL_EDGES
+              : isScc
+                ? SCC_EDGES
+                : isCycle
+                  ? CYCLIC_EDGES
+                  : DEMO_EDGES,
       isBellman ? 1 : 1
     );
   const handleClear = () => applyPreset([], [], "");
@@ -447,22 +639,16 @@ const GraphAlgo = () => {
     <div className="graph-algo-page" ref={containerRef}>
       <h1>Graph Algorithms Visualizer</h1>
       <p className="page-tagline">
-        {isTopo
-          ? "Topological sort on a directed acyclic graph — Kahn’s algorithm."
-          : isBellman
-            ? "Bellman-Ford shortest paths on weights that may be negative."
-            : isMst
-              ? "Minimum spanning tree — the cheapest edge set that connects every node."
-              : "Dijkstra's shortest path on a weighted graph, edge by edge."}
+        {TAGLINE[algo] ?? TAGLINE.dijkstra}
       </p>
 
       <AlgoOverview
-        title="Dijkstra + Topological Sort + Bellman-Ford + MST"
-        what="Dijkstra settles nodes nearest-first; Kahn’s algorithm topologically sorts a DAG; Bellman-Ford accepts negative weights (and outs negative cycles); Prim and Kruskal build the minimum spanning tree — the cheapest edge set that connects every node."
-        time="O((V+E) log V) · O(V + E) · O(V·E)"
+        title="Shortest paths, DAGs, MST & connectivity"
+        what="Dijkstra and A* settle nodes nearest-first (A* steers with an admissible heuristic and stops at the goal); Kahn topologically sorts a DAG; Bellman-Ford accepts negative weights; Prim and Kruskal build the minimum spanning tree; Floyd–Warshall fills all pairs at once; Kosaraju splits a directed graph into strongly connected components; a DFS back-edge scan detects cycles."
+        time="O((V+E) log V) · O(V + E) · O(V·E) · O(V³)"
         space="O(V)"
-        when="single-source shortest paths on any weights; dependency ordering on acyclic graphs."
-        note="Directed edges (topo) wear arrows; unreachable nodes stay at ∞ honestly; Bellman-Ford catches negative cycles on its final pass."
+        when="shortest paths (any weights, any pairs); dependency ordering; connectivity of directed graphs; acyclicity checks."
+        note="Directed edges (topo/SCC/cycle) wear arrows; unreachable nodes stay at ∞ honestly; Bellman-Ford catches negative cycles; A*'s heuristic never overestimates."
       />
       <div className="visualizer-grid">
         <div className="visualization-area">
@@ -498,7 +684,7 @@ const GraphAlgo = () => {
                 height={layout.height}
                 aria-hidden="true"
               >
-                {isTopo && (
+                {isDirected && (
                   <defs>
                     <marker
                       id="arrow"
@@ -526,9 +712,9 @@ const GraphAlgo = () => {
                       y1={e.y1}
                       x2={e.x2}
                       y2={e.y2}
-                      markerEnd={isTopo ? "url(#arrow)" : undefined}
+                      markerEnd={isDirected ? "url(#arrow)" : undefined}
                     />
-                    {!isTopo && (
+                    {!isDirected && (
                       <text
                         className="graph-algo-weight"
                         x={(e.x1 + e.x2) / 2}
@@ -610,26 +796,36 @@ const GraphAlgo = () => {
               onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
               pseudocode={
-                isTopo
-                  ? TOPO_PSEUDOCODE
-                  : isBellman
-                    ? BELLMAN_FORD_PSEUDOCODE
-                    : isMst
-                      ? MST_PSEUDOCODE[mstMethod]
-                      : isFloyd
-                        ? FLOYD_PSEUDOCODE
-                        : DIJKSTRA_PSEUDOCODE
+                {
+                  topo: TOPO_PSEUDOCODE,
+                  bellman: BELLMAN_FORD_PSEUDOCODE,
+                  mst: MST_PSEUDOCODE[mstMethod],
+                  floyd: FLOYD_PSEUDOCODE,
+                  astar: ASTAR_PSEUDOCODE,
+                  scc: KOSARAJU_PSEUDOCODE,
+                  cycle: CYCLE_PSEUDOCODE,
+                }[algo] ?? DIJKSTRA_PSEUDOCODE
               }
             />
           )}
 
           <div className="info-panel dist-panel">
-            <h3>{isTopo ? "In-degree table" : "Distance table"}</h3>
+            <h3>
+              {isTopo
+                ? "In-degree table"
+                : isScc
+                  ? "Component table"
+                  : isCycle
+                    ? "Visited table"
+                    : "Distance table"}
+            </h3>
             <table className="dist-table">
               <thead>
                 <tr>
                   <th>Node</th>
-                  <th>{isTopo ? "In-degree" : "Distance"}</th>
+                  <th>
+                    {isTopo ? "In-degree" : isScc ? "Component" : isCycle ? "Visited" : "Distance"}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -640,16 +836,24 @@ const GraphAlgo = () => {
                       className={
                         isTopo
                           ? "dist-settled"
-                          : visitedNodes.includes(n)
-                            ? "dist-settled"
-                            : ""
+                          : isScc
+                            ? sccOf[n] !== undefined
+                              ? "dist-settled"
+                              : ""
+                            : visitedNodes.includes(n)
+                              ? "dist-settled"
+                              : ""
                       }
                     >
                       {isTopo
                         ? indegrees[n] ?? 0
-                        : distances[n] === Infinity || distances[n] === undefined
-                          ? "∞"
-                          : distances[n]}
+                        : isScc
+                          ? sccOf[n] ?? "—"
+                          : isCycle
+                            ? visitedNodes.includes(n) ? "✓" : "—"
+                            : distances[n] === Infinity || distances[n] === undefined
+                              ? "∞"
+                              : distances[n]}
                     </td>
                   </tr>
                 ))}
@@ -660,6 +864,7 @@ const GraphAlgo = () => {
                 Order: {topoOrder.join(" → ")}
               </p>
             )}
+            {algoResult && <p className="algo-result">{algoResult}</p>}
           </div>
         </div>
 
@@ -705,7 +910,28 @@ const GraphAlgo = () => {
                             onClick: () => applyPreset(BF_CYCLE_NODES, BF_CYCLE_EDGES, 1),
                           },
                         ]
-                      : [
+                      : isAstar
+                        ? [
+                            { label: "Demo graph", onClick: () => applyPreset(DEMO_NODES, DEMO_EDGES, 1) },
+                            { label: "Small graph", onClick: () => applyPreset(SMALL_NODES, SMALL_EDGES, 1) },
+                          ]
+                        : isScc
+                          ? [
+                              { label: "Two components", onClick: () => applyPreset(SCC_NODES, SCC_EDGES, 1) },
+                              {
+                                label: "Course DAG (singletons)",
+                                onClick: () => applyPreset(COURSE_NODES, COURSE_EDGES, 1),
+                              },
+                            ]
+                          : isCycle
+                            ? [
+                                { label: "Cyclic (2-cycle)", onClick: () => applyPreset(CYCLIC_NODES, CYCLIC_EDGES, 1) },
+                                {
+                                  label: "Course DAG (acyclic)",
+                                  onClick: () => applyPreset(COURSE_NODES, COURSE_EDGES, 1),
+                                },
+                              ]
+                            : [
                     { label: "Demo graph", onClick: () => applyPreset(DEMO_NODES, DEMO_EDGES, 1) },
                     { label: "Small graph", onClick: () => applyPreset(SMALL_NODES, SMALL_EDGES, 1) },
                     {
@@ -723,7 +949,7 @@ const GraphAlgo = () => {
               handleRun();
             }}
           >
-            {!isTopo && (!isMst || mstMethod === "prim") && (
+            {!isTopo && !isScc && !isCycle && (!isMst || mstMethod === "prim") && (
               <div className="input-group">
                 <label>Start node:</label>
                 <input
@@ -731,6 +957,18 @@ const GraphAlgo = () => {
                   value={startInput}
                   onChange={(e) => setStartInput(e.target.value)}
                   placeholder="Start node"
+                  disabled={isAnimating}
+                />
+              </div>
+            )}
+            {isAstar && (
+              <div className="input-group">
+                <label>Goal node:</label>
+                <input
+                  type="number"
+                  value={goalInput}
+                  onChange={(e) => setGoalInput(e.target.value)}
+                  placeholder="Goal node"
                   disabled={isAnimating}
                 />
               </div>
@@ -758,15 +996,7 @@ const GraphAlgo = () => {
               </div>
             )}
             <button type="submit" className="operation-button" disabled={isAnimating}>
-              {isTopo
-                ? "Run Topological Sort"
-                : isBellman
-                  ? "Run Bellman-Ford"
-                  : isMst
-                    ? "Run MST"
-                    : isFloyd
-                      ? "Run Floyd-Warshall"
-                      : "Run Dijkstra"}
+              {RUN_LABEL[algo] ?? "Run Dijkstra"}
             </button>
           </form>
 
@@ -782,7 +1012,17 @@ const GraphAlgo = () => {
               { name: "Nodes", value: nodes.length },
               { name: "Edges", value: edges.length },
               {
-                name: isTopo ? "Ordered" : isMst ? "Tree edges" : isFloyd ? "Matrix" : "Settled",
+                name: isTopo
+                  ? "Ordered"
+                  : isMst
+                    ? "Tree edges"
+                    : isFloyd
+                      ? "Matrix"
+                      : isScc
+                        ? "Components"
+                        : isCycle
+                          ? "Visited"
+                          : "Settled",
                 value: isTopo
                   ? `${topoOrder.length} / ${nodes.length}`
                   : isMst
