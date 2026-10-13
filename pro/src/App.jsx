@@ -24,6 +24,7 @@ import Help from './pages/Help';
 import Settings from './pages/Settings';
 import Playground from './pages/Playground';
 import UnionFindPage from './pages/UnionFind';
+import TrieVisualizer from './pages/TrieVisualizer';
 
 const App = () => {
   return (
@@ -42,6 +43,7 @@ const App = () => {
           <Route path='/challenges' element={<Challenges />} />
           <Route path='/stack-queue' element={<StackQueue />} />
           <Route path='/union-find' element={<UnionFindPage />} />
+          <Route path='/trie' element={<TrieVisualizer />} />
           <Route path='/heap' element={<Heap />} />
           <Route path='/graph' element={<Graph />} />
           <Route path='/hash-table' element={<HashTable />} />

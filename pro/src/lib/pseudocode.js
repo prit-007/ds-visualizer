@@ -828,3 +828,44 @@ SORTING_PSEUDOCODE.radix = [
   '  return array',
   'end procedure',
 ];
+
+export const TRIE_PSEUDOCODE = {
+  insert: [
+    'procedure insert(trie, word)',
+    '  node ← root',
+    '  for i in 1..len(word) do',
+    '    char ← word[i]',
+    '    if node has child char then',
+    '      node ← child(char)             ▸ follow existing edge',
+    '    else',
+    '      create child(char); node ← it',
+    '  mark node as a word end',
+    'end procedure',
+  ],
+  search: [
+    'procedure search(trie, word)',
+    '  node ← root',
+    '  for i in 1..len(word) do',
+    '    char ← word[i]',
+    '    if node has no child char then return false',
+    '    node ← child(char)',
+    '  return node.isEnd              ▸ prefix alone ≠ word',
+    'end procedure',
+  ],
+  delete: [
+    'procedure delete(trie, word)',
+    '  descend from root, remembering the last branching node',
+    '  unmark the word end',
+    '  prune unneeded nodes up from the last branch',
+    '  return true / false if the word was missing',
+    'end procedure',
+  ],
+  list: [
+    'procedure listAll(trie)',
+    '  words ← []',
+    '  dfs(node, prefix): if node.isEnd then append prefix',
+    '  recurse through children in letter order',
+    '  return words',
+    'end procedure',
+  ],
+};
