@@ -132,3 +132,30 @@ describe('typography + micro-interactions polish', () => {
     expect(indexCss).toMatch(/\.current-step \.step-chip[^}]*step-chip-pulse/);
   });
 });
+
+describe('pseudocode pane', () => {
+  test('keeps listing indentation and ships explicit readable colors', () => {
+    expect(indexCss).toMatch(/\.code-text\s*\{[^}]*white-space:\s*pre-wrap/);
+    expect(indexCss).toMatch(/\.code-text\s*\{[^}]*color:/);
+    expect(indexCss).toMatch(/\.code-pane\s*\{[^}]*color:/);
+  });
+
+  test('tints the active line by step kind with the shared tokens', () => {
+    expect(indexCss).toMatch(/\.code-line\.active\.code-line-compare\s*\{[^}]*var\(--kind-compare\)/);
+    expect(indexCss).toMatch(/\.code-line\.active\.code-line-move\s*\{[^}]*var\(--kind-move\)/);
+    expect(indexCss).toMatch(/\.code-line\.active\.code-line-found\s*\{[^}]*var\(--kind-found\)/);
+    expect(indexCss).toMatch(/\.code-line\.active\.code-line-error\s*\{[^}]*var\(--kind-error\)/);
+  });
+
+  test('scrolls only the code body while title and variable watch stay fixed', () => {
+    expect(indexCss).toMatch(/\.code-pane\s*\{[^}]*display:\s*flex/);
+    expect(indexCss).toMatch(/\.code-lines\s*\{[^}]*overflow:\s*auto/);
+    expect(indexCss).toMatch(/\.code-pane\s*\{[^}]*max-height:\s*340px/);
+    expect(indexCss).toMatch(/\.var-watch\s*\{[^}]*flex-shrink:\s*0/);
+  });
+
+  test('gutter is a non-selectable editor-style divider', () => {
+    expect(indexCss).toMatch(/\.code-gutter\s*\{[^}]*border-right/);
+    expect(indexCss).toMatch(/\.code-gutter\s*\{[^}]*user-select:\s*none/);
+  });
+});
