@@ -892,3 +892,36 @@ export const BACKTRACKING_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+export const STRING_PSEUDOCODE = {
+  table: [
+    'procedure buildTable(pattern)',
+    '  π ← [0] * len(pattern)',
+    '  for i in 1..len(pattern)-1 do',
+    '    extend the match: if pattern[i] == pattern[j] then j++',
+    '    bounce back along π until pattern[i] matches or j == 0',
+    '    π[i] ← j',
+    '  return π',
+    'end procedure',
+  ],
+  kmpMatch: [
+    'procedure kmpSearch(text, pattern)',
+    '  π ← buildTable(pattern)',
+    '  j ← 0',
+    '  for i in 0..len(text)-1 do',
+    '    while j > 0 and text[i] ≠ pattern[j] do j ← π[j-1]',
+    '    if text[i] == pattern[j] then j++',
+    '    if j == len(pattern): record i-j+1, then j ← π[j-1]',
+    '  return matches',
+    'end procedure',
+  ],
+  naive: [
+    'procedure naiveSearch(text, pattern)',
+    '  for shift in 0..len(text)-len(pattern) do',
+    '    for j in 0..len(pattern)-1 do',
+    '      if text[shift+j] ≠ pattern[j] then break',
+    '    if the inner loop finished, record a match at shift',
+    '  return matches',
+    'end procedure',
+  ],
+};
