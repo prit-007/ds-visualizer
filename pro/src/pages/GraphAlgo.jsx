@@ -2,8 +2,13 @@ import React, { useState, useRef, useEffect } from "react";
 import TabNavigation from "../components/TabNavigation";
 import { buildDijkstraSteps } from "../lib/dijkstraSteps";
 import { buildTopoSteps } from "../lib/topoSteps";
+import { buildBellmanFordSteps } from "../lib/bellmanFordSteps";
 import { layoutGraph } from "../lib/graphLayout";
-import { DIJKSTRA_PSEUDOCODE, TOPO_PSEUDOCODE } from "../lib/pseudocode";
+import {
+  DIJKSTRA_PSEUDOCODE,
+  TOPO_PSEUDOCODE,
+  BELLMAN_FORD_PSEUDOCODE,
+} from "../lib/pseudocode";
 import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import OperationPlayer from "../components/OperationPlayer";
@@ -61,9 +66,30 @@ const CYCLIC_EDGES = [
   [2, 1, 0],
 ];
 
+// Bellman-Ford: negative weights are welcome, negative cycles are caught.
+const BF_NODES = [1, 2, 3, 4];
+const BF_EDGES = [
+  [1, 2, 4],
+  [1, 3, 5],
+  [2, 3, -2],
+  [2, 4, 7],
+  [3, 4, 1],
+];
+
+const BF_NEG_NODES = [1, 2];
+const BF_NEG_EDGES = [[1, 2, -1]];
+
+const BF_CYCLE_NODES = [1, 2, 3];
+const BF_CYCLE_EDGES = [
+  [1, 2, -8],
+  [2, 3, 1],
+  [3, 1, 1],
+];
+
 const TABS = [
   { id: "dijkstra", label: "Dijkstra" },
   { id: "topo", label: "Topological Sort" },
+  { id: "bellman", label: "Bellman-Ford" },
 ];
 
 const COMPLEXITY = {
@@ -78,6 +104,12 @@ const COMPLEXITY = {
     complexity: "O(V + E)",
     explanation:
       "Kahn's algorithm computes in-degrees once, then each node is enqueued and dequeued exactly once while every edge is examined — linear in V + E.",
+  },
+  bellman: {
+    operationName: "Bellman-Ford",
+    complexity: "O(V · E)",
+    explanation:
+      "Every edge is relaxed V − 1 times; each pass spreads a shortest distance one hop further. A final pass that still improves means a negative cycle exists.",
   },
 };
 
@@ -120,6 +152,7 @@ const GraphAlgo = () => {
 
   const containerRef = useRef(null);
   const isTopo = algo === "topo";
+  const isBellman = algo === "bellman";
 
   useEffect(() => {
     if (error) {
@@ -164,6 +197,35 @@ const GraphAlgo = () => {
   const handleRun = () => {
     if (nodes.length === 0) {
       setError("Graph is empty — load a preset first");
+      return;
+    }
+
+    if (isBellman) {
+      const start = parseInt(startInput);
+      if (isNaN(start)) {
+        setError("Please enter a start node");
+        return;
+      }
+      if (!nodes.includes(start)) {
+        setError(`Start node ${start} is not in the graph`);
+        return;
+      }
+      const steps = buildBellmanFordSteps(nodes, edges, start, {
+        setActiveNode,
+        setActiveEdge,
+        setDistances,
+      });
+      startRun(
+        steps,
+        () => {
+          clearHighlights();
+        },
+        {
+          before: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          after: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          label: `Bellman-Ford from ${start}`,
+        }
+      );
       return;
     }
 
@@ -213,6 +275,10 @@ const GraphAlgo = () => {
   const handleAlgoChange = (next) => {
     if (next === algo || isAnimating) return;
     setAlgo(next);
+    if (next === "bellman" && edges.some((e) => e[2] < 0) === false) {
+      applyPreset(BF_NODES, BF_EDGES, 1);
+    }
+    setDistances(emptyDistances(nodes));
     setDistances(emptyDistances(nodes));
     setIndegrees(zeroIndegrees(nodes));
     setTopoOrder([]);
@@ -223,9 +289,9 @@ const GraphAlgo = () => {
 
   const handleReset = () =>
     applyPreset(
-      isTopo ? COURSE_NODES : DEMO_NODES,
-      isTopo ? COURSE_EDGES : DEMO_EDGES,
-      1
+      isTopo ? COURSE_NODES : isBellman ? BF_NODES : DEMO_NODES,
+      isTopo ? COURSE_EDGES : isBellman ? BF_EDGES : DEMO_EDGES,
+      isBellman ? 1 : 1
     );
   const handleClear = () => applyPreset([], [], "");
 
@@ -256,16 +322,18 @@ const GraphAlgo = () => {
       <p className="page-tagline">
         {isTopo
           ? "Topological sort on a directed acyclic graph — Kahn’s algorithm."
-          : "Dijkstra's shortest path on a weighted graph, edge by edge."}
+          : isBellman
+            ? "Bellman-Ford shortest paths on weights that may be negative."
+            : "Dijkstra's shortest path on a weighted graph, edge by edge."}
       </p>
 
       <AlgoOverview
-        title="Dijkstra + Topological Sort"
-        what="Dijkstra settles nodes nearest-first by relaxing weighted edges; Kahn’s algorithm topologically sorts a DAG by repeatedly removing in-degree-0 nodes."
-        time="O((V+E) log V) · O(V + E)"
+        title="Dijkstra + Topological Sort + Bellman-Ford"
+        what="Dijkstra settles nodes nearest-first by relaxing weighted edges; Kahn’s algorithm topologically sorts a DAG by removing in-degree-0 nodes; Bellman-Ford relaxes every edge V−1 times so negative weights work, and flags negative cycles."
+        time="O((V+E) log V) · O(V + E) · O(V·E)"
         space="O(V)"
-        when="single-source shortest paths on non-negative weights; dependency ordering on acyclic graphs."
-        note="Directed edges (topo) wear arrows; unreachable nodes stay at ∞ honestly."
+        when="single-source shortest paths on any weights; dependency ordering on acyclic graphs."
+        note="Directed edges (topo) wear arrows; unreachable nodes stay at ∞ honestly; Bellman-Ford catches negative cycles on its final pass."
       />
       <div className="visualizer-grid">
         <div className="visualization-area">
@@ -368,7 +436,9 @@ const GraphAlgo = () => {
               }}
               onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
-              pseudocode={isTopo ? TOPO_PSEUDOCODE : DIJKSTRA_PSEUDOCODE}
+              pseudocode={
+                isTopo ? TOPO_PSEUDOCODE : isBellman ? BELLMAN_FORD_PSEUDOCODE : DIJKSTRA_PSEUDOCODE
+              }
             />
           )}
 
@@ -433,7 +503,13 @@ const GraphAlgo = () => {
                     { label: "Small DAG", onClick: () => applyPreset(SMALL_DAG_NODES, SMALL_DAG_EDGES) },
                     { label: "Cyclic", onClick: () => applyPreset(CYCLIC_NODES, CYCLIC_EDGES) },
                   ]
-                : [
+                : isBellman
+                  ? [
+                      { label: "Negative weights", onClick: () => applyPreset(BF_NODES, BF_EDGES, 1) },
+                      { label: "Two + negative", onClick: () => applyPreset(BF_NEG_NODES, BF_NEG_EDGES, 1) },
+                      { label: "Negative cycle", onClick: () => applyPreset(BF_CYCLE_NODES, BF_CYCLE_EDGES, 1) },
+                    ]
+                  : [
                     { label: "Demo graph", onClick: () => applyPreset(DEMO_NODES, DEMO_EDGES, 1) },
                     { label: "Small graph", onClick: () => applyPreset(SMALL_NODES, SMALL_EDGES, 1) },
                     {
@@ -464,7 +540,7 @@ const GraphAlgo = () => {
               </div>
             )}
             <button type="submit" className="operation-button" disabled={isAnimating}>
-              {isTopo ? "Run Topological Sort" : "Run Dijkstra"}
+              {isTopo ? "Run Topological Sort" : isBellman ? "Run Bellman-Ford" : "Run Dijkstra"}
             </button>
           </form>
 
@@ -481,7 +557,11 @@ const GraphAlgo = () => {
               { name: "Edges", value: edges.length },
               {
                 name: isTopo ? "Ordered" : "Settled",
-                value: isTopo ? `${topoOrder.length} / ${nodes.length}` : `${visitedNodes.length} / ${nodes.length}`,
+                value: isTopo
+                  ? `${topoOrder.length} / ${nodes.length}`
+                  : isBellman
+                    ? `${nodes.filter((n) => distances[n] !== Infinity && distances[n] !== undefined).length} / ${nodes.length}`
+                    : `${visitedNodes.length} / ${nodes.length}`,
               },
             ]}
           />

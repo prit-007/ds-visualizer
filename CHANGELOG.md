@@ -40,6 +40,7 @@ All notable changes to AlgoViz are documented here. Format loosely follows
 - **Greedy** — `/greedy`: activity selection, fractional knapsack, greedy coin change
 - **Learning redesign** — `AlgoOverview` Learn cards (what · time · space · when) open every visualizer; `/help` page adds shortcuts, gestures, feature index and FAQ
 - **DP expansion** — `/dynamic-programming` grows to six page-wise programs (Fibonacci, Grid Paths, Coin Change, Longest Common Subsequence, 0/1 Knapsack, House Robber) with 2D-table canvases
+- **Bellman-Ford** — third `/graph-algo` tab: negative edge weights (signed `4-2=2` narration), V−1 relaxation passes with early-stop convergence, final-pass negative-cycle detection, neg-weight presets; O(V·E)
 - **Union-Find** — `/union-find` disjoint-set visualizer: union by rank, find with path compression (compression narration), forest canvas with root badges, parent-pointer memory view
 - **Every ComingSoon route now real** — `/settings` (theme/motion/tour/progress) and `/visualizer` custom-algorithm Playground (`step()` DSL compiled tab-locally). 0 placeholder routes remain
 - **AVL improvements** — rotation steps drive edge highlights

@@ -165,3 +165,40 @@ describe('topological sort mode', () => {
     expect(listRuns('graph-algo')[listRuns('graph-algo').length - 1].label).toBe('Topological sort');
   });
 });
+
+describe('GraphAlgo (Bellman-Ford)', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+    window.location.hash = '';
+  });
+
+  test('tab-switch loads the negative-weights graph and a run records', () => {
+    render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'Bellman-Ford' }));
+    expect(screen.getByRole('button', { name: 'Run Bellman-Ford' })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Start node'), { target: { value: '1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Run Bellman-Ford' }));
+    finishRun();
+
+    const runs = listRuns('graph-algo');
+    expect(runs[runs.length - 1].label).toBe('Bellman-Ford from 1');
+  });
+
+  test('a negative cycle is reported', () => {
+    render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'Bellman-Ford' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Negative cycle' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Bellman-Ford' }));
+    finishRun();
+
+    expect(screen.getByText(/Negative cycle detected/)).toBeInTheDocument();
+  });
+});
