@@ -1,0 +1,136 @@
+
+.trie-canvas {
+  position: relative;
+  margin: 1rem auto;
+  max-width: 100%;
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  min-height: 200px;
+  padding: 0.5rem;
+}
+
+.trie-edge {
+  stroke: #94a3b8;
+  stroke-width: 2;
+}
+
+.trie-edge.active {
+  stroke: #38bdf8;
+  stroke-width: 3;
+}
+
+.trie-node-slot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.trie-node {
+  min-width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #0284c7;
+  background: white;
+  color: #1e293b;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.trie-node.root {
+  background: #0f172a;
+  color: white;
+}
+
+.trie-node.active {
+  transform: scale(1.15);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+  background: #e0f2fe;
+}
+
+.trie-node.pruned {
+  opacity: 0.35;
+  border-style: dashed;
+}
+
+.trie-node.end::after {
+  content: '✓';
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  background: #16a34a;
+  color: white;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+}
+
+.suggestions-box {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  min-height: 2rem;
+}
+
+.suggestions-box .suggestion-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.suggestions-box .suggestion-chip {
+  background: #e0f2fe;
+  color: #0369a1;
+  border-radius: 9999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.dark .trie-canvas {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+.dark .trie-node {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-color: #0369a1;
+}
+
+.dark .trie-node.root {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.dark .trie-node.active {
+  background: #0c4a6e;
+  color: white;
+}
+
+.dark .trie-edge {
+  stroke: #475569;
+}
+
+.dark .trie-edge.active {
+  stroke: #38bdf8;
+}
+
+.dark .suggestions-box {
+  background: #1e293b;
+  border-color: #334155;
+}
