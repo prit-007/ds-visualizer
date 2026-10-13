@@ -1,7 +1,7 @@
 # AlgoViz — Data Structures & Algorithms Visualizer
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-648%20green-brightgreen)](pro/)
+[![Tests](https://img.shields.io/badge/tests-876%20green-brightgreen)](pro/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)](https://vite.dev/)
 
@@ -27,7 +27,7 @@
 | Backtracking | `/backtracking` | N-Queens + mini-Sudoku with honest dead-end undos
 | Greedy | `/greedy` | activity selection, fractional knapsack, greedy coin change |
 | Hash tables | `/hash-table` | separate chaining, chain-walk narration |
-| Sorting | `/sorting` | bubble, selection, insertion, merge, quick, heap — swaps visibly move nodes |
+| Sorting | `/sorting` | ten algorithms — bubble, selection, insertion, shell, merge, quick, heap, counting, radix, bucket — swaps visibly move nodes |
 | Strings (KMP, Rabin-Karp, Z) | `/strings` | naive + KMP + rolling-hash + Z-array search, char-cell canvas
 | Searching | `/searching` | linear + binary search with window narration |
 
@@ -60,7 +60,7 @@ npm start          # dev server → http://localhost:3000
 |---|---|
 | `npm start` / `npm run dev` | dev server (port 3000) |
 | `npm test` | watch tests |
-| `npm run test:ci` | one-shot full suite (648 tests) |
+| `npm run test:ci` | one-shot full suite (876 tests) |
 | `npm run lint` | ESLint (0 errors / 0 warnings policy) |
 | `npm run build` | production build → `dist/` (+ SPA `404.html` fallback) |
 

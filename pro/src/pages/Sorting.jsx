@@ -4,11 +4,16 @@ import {
   buildBubbleSteps,
   buildSelectionSteps,
   buildInsertionSteps,
+  buildShellSteps,
   buildMergeSteps,
   buildQuickSteps,
   buildHeapSteps,
 } from "../lib/sortingSteps";
-import { buildCountingSteps, buildRadixSteps } from "../lib/linearSortsSteps";
+import {
+  buildCountingSteps,
+  buildRadixSteps,
+  buildBucketSteps,
+} from "../lib/linearSortsSteps";
 import { SORTING_PSEUDOCODE } from "../lib/pseudocode";
 import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
@@ -32,33 +37,39 @@ const TABS = [
   { id: "bubble", label: "Bubble" },
   { id: "selection", label: "Selection" },
   { id: "insertion", label: "Insertion" },
+  { id: "shell", label: "Shell" },
   { id: "merge", label: "Merge" },
   { id: "quick", label: "Quick" },
   { id: "heap", label: "Heap" },
   { id: "counting", label: "Counting" },
   { id: "radix", label: "Radix" },
+  { id: "bucket", label: "Bucket" },
 ];
 
 const BUILDERS = {
   bubble: buildBubbleSteps,
   selection: buildSelectionSteps,
   insertion: buildInsertionSteps,
+  shell: buildShellSteps,
   merge: buildMergeSteps,
   quick: buildQuickSteps,
   heap: buildHeapSteps,
   counting: buildCountingSteps,
   radix: buildRadixSteps,
+  bucket: buildBucketSteps,
 };
 
 const ALGORITHM_NAME = {
   bubble: "Bubble",
   selection: "Selection",
   insertion: "Insertion",
+  shell: "Shell",
   merge: "Merge",
   quick: "Quick",
   heap: "Heap",
   counting: "Counting",
   radix: "Radix",
+  bucket: "Bucket",
 };
 
 const COMPLEXITY = {
@@ -79,6 +90,12 @@ const COMPLEXITY = {
     complexity: "O(n²)",
     explanation:
       "Insertion sort grows a sorted prefix one element at a time, shifting larger elements right. Fast on nearly-sorted input, quadratic in the worst case.",
+  },
+  shell: {
+    operationName: "Shell Sort",
+    complexity: "O(n²) worst",
+    explanation:
+      "Shell sort runs insertion passes over shrinking gaps — early wide gaps clear long-range disorder cheaply. With this halving gap sequence the worst case is O(n²), but typical runs land far below quadratic.",
   },
   merge: {
     operationName: "Merge Sort",
@@ -109,6 +126,12 @@ const COMPLEXITY = {
     complexity: "O(d · n)",
     explanation:
       "Radix sort stable-sorts the array once per decimal digit place, least-significant first. d digit passes of O(n) each — no comparisons needed.",
+  },
+  bucket: {
+    operationName: "Bucket Sort",
+    complexity: "O(n + b)",
+    explanation:
+      "Bucket sort spreads values across n buckets by magnitude, sorts each small bucket with insertion, then concatenates. Average O(n) when values spread evenly — worst O(n²) when everything lands in one bucket.",
   },
 };
 
@@ -213,8 +236,11 @@ const Sorting = ({ initialArray }) => {
       return;
     }
 
-    if ((activeTab === "counting" || activeTab === "radix") && array.some((v) => v < 0)) {
-      setError("Counting and radix sort need non-negative integers");
+    if (
+      (activeTab === "counting" || activeTab === "radix" || activeTab === "bucket") &&
+      array.some((v) => v < 0)
+    ) {
+      setError("Counting, radix and bucket sort need non-negative integers");
       return;
     }
     if (activeTab === "counting") {
@@ -270,11 +296,11 @@ const Sorting = ({ initialArray }) => {
   return (
     <div className="sorting-page" ref={containerRef}>
       <h1>Interactive Sorting Visualizer</h1>
-      <p className="page-tagline">Eight algorithms with animated swaps, comparisons — and digit buckets.</p>
+      <p className="page-tagline">Ten algorithms with animated swaps, comparisons — and buckets.</p>
 
       <AlgoOverview
         title="Sorting — comparison + distribution"
-        what="Reorder a collection. Bubble, selection and insertion teach the loops; merge, quick and heap reach O(n log n); counting and radix beat all comparisons by exploiting integer range and digits (O(n + k), O(d · n))."
+        what="Reorder a collection. Bubble, selection and insertion teach the loops — shell adds shrinking-gap passes in between; merge, quick and heap reach O(n log n); counting, radix and bucket beat all comparisons by exploiting integer range and digits (O(n + k), O(d · n))."
         time="O(n²) … O(n log n)"
         space="O(1) … O(n)"
         when="order matters — and to see how the same goal gets solved very differently."

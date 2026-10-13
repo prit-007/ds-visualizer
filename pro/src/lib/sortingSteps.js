@@ -412,6 +412,122 @@ export const buildInsertionSteps = (items, ui) => {
   return steps;
 };
 
+export const buildShellSteps = (items, ui) => {
+  const arr = [...items];
+  const n = arr.length;
+  const snapshot = () => [...arr];
+  const gaps = [];
+  for (let g = Math.floor(n / 2); g >= 1; g = Math.floor(g / 2)) {
+    gaps.push(g);
+  }
+  const steps = [
+    {
+      description: `Starting shell sort on ${n} elements — gap sequence ${gaps.join(', ')}`,
+      kind: 'move',
+      line: 1,
+      vars: { n, gaps: [...gaps] },
+      action: () => {
+        clearUi(ui);
+        ui.setDisplayArray?.([...items]);
+      },
+    },
+  ];
+
+  for (const gap of gaps) {
+    const phaseSnap = snapshot();
+    steps.push({
+      description: `Gap phase g = ${gap}: insertion passes with stride ${gap}`,
+      kind: 'compare',
+      line: 5,
+      vars: { gap },
+      action: () => {
+        ui.setComparePair?.(null);
+        ui.setSwapPair?.(null);
+        ui.setDisplayArray?.(phaseSnap);
+      },
+    });
+
+    for (let i = gap; i < n; i++) {
+      const key = arr[i];
+      let j = i;
+      while (j >= gap) {
+        const behind = arr[j - gap];
+        const stepBehind = j - gap;
+        const stepJ = j;
+        const cmpSnap = snapshot();
+        steps.push({
+          description: `Comparing arr[${stepBehind}] = ${behind} with key ${key} (gap ${gap})`,
+          kind: 'compare',
+          line: 7,
+          vars: { gap, j: stepBehind, a: behind, key },
+          action: () => {
+            ui.setComparePair?.([stepBehind, stepJ]);
+            ui.setSwapPair?.(null);
+            ui.setDisplayArray?.(cmpSnap);
+          },
+        });
+        if (behind > key) {
+          arr[j] = behind;
+          const shiftSnap = snapshot();
+          steps.push({
+            description: `Shifting ${behind} from position ${stepBehind} to position ${stepJ}`,
+            kind: 'move',
+            line: 8,
+            vars: { gap, from: stepBehind, to: stepJ, value: behind },
+            action: () => {
+              ui.setComparePair?.(null);
+              ui.setSwapPair?.([stepBehind, stepJ]);
+              ui.setDisplayArray?.(shiftSnap);
+            },
+          });
+          j -= gap;
+        } else {
+          const staysSnap = snapshot();
+          steps.push({
+            description: `${key} ≥ ${behind} — key stays in place`,
+            kind: 'compare',
+            line: 7,
+            vars: { gap, j: stepBehind, a: behind, key },
+            action: () => {
+              ui.setComparePair?.(null);
+              ui.setDisplayArray?.(staysSnap);
+            },
+          });
+          break;
+        }
+      }
+      arr[j] = key;
+      const placeSnap = snapshot();
+      steps.push({
+        description: `Placing key ${key} at position ${j}`,
+        kind: 'move',
+        line: 9,
+        vars: { pos: j, key },
+        action: () => {
+          ui.setActiveIndex?.(j);
+          ui.setSwapPair?.(null);
+          ui.setDisplayArray?.(placeSnap);
+        },
+      });
+    }
+  }
+
+  const finalSnap = snapshot();
+  steps.push({
+    description: `Array is sorted: ${arr.join(', ')}`,
+    kind: 'found',
+    line: 11,
+    vars: { sorted: [...arr] },
+    action: () => {
+      clearUi(ui);
+      ui.setSortedIndexes?.(arr.map((_, idx) => idx));
+      ui.setDisplayArray?.(finalSnap);
+    },
+  });
+
+  return steps;
+};
+
 export const buildMergeSteps = (items, ui) => {
   const n = items.length;
   const snapshot = () => [...display];

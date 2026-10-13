@@ -135,7 +135,7 @@ Exit criteria: every sidebar route resolves to a real page.
 
 **Algorithms — more of each family**
 - Graph: Bellman-Ford ✅, Floyd-Warshall ✅, Prim's / Kruskal's MST ✅, A* ✅, Kosaraju SCC ✅, cycle detection ✅ (all on `/graph-algo`) — **family complete**.
-- Sorting: radix ✅, counting ✅ (linear-time pair on `/sorting`); remaining: bucket, shell.
+- Sorting: radix ✅, counting ✅, bucket ✅, shell ✅ — **family complete** on `/sorting` (ten algorithms).
 - Searching: ternary, jump, interpolation (keeping the sorted-guard honesty) — all remaining.
 - Strings: ~~KMP, Rabin-Karp, Z-algorithm~~ — **all shipped** on `/strings` (+ naive baseline).
 - Backtracking: N-Queens ✅, Sudoku solver ✅ (4×4 mini, on `/backtracking`); remaining: Hamiltonian path, subset-sum.
