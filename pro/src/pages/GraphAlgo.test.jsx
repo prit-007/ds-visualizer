@@ -285,3 +285,70 @@ describe('GraphAlgo (Floyd-Warshall)', () => {
     expect(screen.getByText(/Negative cycle detected/)).toBeInTheDocument();
   });
 });
+
+describe('GraphAlgo (A* + Kosaraju + cycle)', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+    window.location.hash = '';
+  });
+
+  test('A* runs with a goal input and stops at the goal', () => {
+    const { container } = render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'A*' }));
+    expect(screen.getByRole('button', { name: 'Run A*' })).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText('Goal node'), {
+      target: { value: '5' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Run A*' }));
+    finishRun();
+
+    expect(listRuns('graph-algo')[listRuns('graph-algo').length - 1].label).toBe('A* 1 → 5');
+    expect(container.querySelector('.algo-result').textContent).toBe(
+      'Path 1 → 3 → 6 → 5 costs 20'
+    );
+  });
+
+  test('Kosaraju loads its preset, groups components, hides weights', () => {
+    const { container } = render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'Kosaraju SCC' }));
+    expect(screen.getByRole('button', { name: 'Run Kosaraju' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Run Kosaraju' }));
+    finishRun();
+
+    expect(listRuns('graph-algo')[listRuns('graph-algo').length - 1].label).toBe('Kosaraju SCC');
+    expect(screen.getByText('Components: {1, 2, 3} {4, 5, 6}')).toBeInTheDocument();
+    const cells = [...container.querySelectorAll('.dist-table tbody tr')].map(
+      (row) => row.children[1].textContent
+    );
+    expect(cells).toEqual(['1', '1', '1', '2', '2', '2']);
+    expect(container.querySelectorAll('.graph-algo-weight')).toHaveLength(0);
+    expect(screen.getByText('Components:')).toBeInTheDocument();
+  });
+
+  test('cycle detection reports the cycle, DAG preset finds none', () => {
+    const { container } = render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'Cycle Detection' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Detect Cycle' }));
+    finishRun();
+
+    expect(listRuns('graph-algo')[listRuns('graph-algo').length - 1].label).toBe('Cycle detection');
+    expect(container.querySelector('.algo-result').textContent).toBe(
+      'Cycle detected: 1 → 2 → 1'
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Course DAG (acyclic)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Detect Cycle' }));
+    finishRun();
+
+    expect(container.querySelector('.algo-result').textContent).toBe(
+      'No cycle — the graph is a DAG'
+    );
+  });
+});

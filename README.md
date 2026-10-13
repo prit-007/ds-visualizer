@@ -22,7 +22,7 @@
 | Trie | `/trie` | prefix tree with insert/search/delete, live prefix suggestions (priority queue): insert, extract-min, peek — dual array + tree canvas |
 | Trees | `/tree` | AVL (with counterfactual rotations-off BST mode), B-tree (order-3), BFS/DFS/Validate/Mirror/LCA algorithms |
 | Graphs | `/graph` | add node/edge, BFS, DFS on a circular canvas |
-| Graph algorithms | `/graph-algo` | Dijkstra shortest path + Topological Sort, live distance/in-degree tables |
+| Graph algorithms | `/graph-algo` | Dijkstra, A*, Topological Sort, Bellman-Ford, MST, Floyd-Warshall, Kosaraju SCC, cycle detection — live tables |
 | Dynamic programming | `/dynamic-programming` | eleven programs — Fibonacci, grid paths, coin change, LCS, edit distance, 0/1 knapsack, house robber, LIS, subset sum, Kadane, word break — DP-tables animate cell by cell |
 | Backtracking | `/backtracking` | N-Queens + mini-Sudoku with honest dead-end undos
 | Greedy | `/greedy` | activity selection, fractional knapsack, greedy coin change |

@@ -650,6 +650,52 @@ export const DIJKSTRA_PSEUDOCODE = [
   'end procedure',
 ];
 
+export const ASTAR_PSEUDOCODE = [
+  'procedure astar(graph, start, goal)',
+  '  h(n) ← minEdgeWeight × fewestEdgesTo(goal)   // admissible',
+  '  g[start] ← 0, g[others] ← ∞; open ← {start}',
+  '  while open ≠ ∅ do',
+  '    u ← node in open with the smallest f = g + h',
+  '    if u = goal then reconstruct path via parents',
+  '    for each edge (u, v, w): alt ← g[u] + w',
+  '    if alt < g[v] then g[v] ← alt, parent[v] ← u',
+  '  return path or "unreachable"',
+  'end procedure',
+];
+
+export const KOSARAJU_PSEUDOCODE = [
+  'procedure kosaraju(graph)',
+  '  visited ← ∅; post ← []',
+  '  for each node u: if u ∉ visited then dfs1(u)',
+  '  dfs1(u): visited ∪= u',
+  '  for each edge (u, v) do',
+  '    if v ∉ visited then dfs1(v)',
+  '  post.append(u) — finished',
+  '  r ← reversed graph; visited ← ∅; components ← []',
+  '  for u in reverse(post): if u ∉ visited then components.append(dfs2(u))',
+  '  dfs2(u): visited ∪= u; component ∪= u',
+  '  for each edge (u, v) in r do',
+  '    if v ∉ visited then dfs2(v)',
+  '  components.append(component) — sealed',
+  '  return components',
+  'end procedure',
+];
+
+export const CYCLE_PSEUDOCODE = [
+  'procedure detectCycle(graph)',
+  '  visited ← ∅; onStack ← ∅',
+  '  for each node u: if u ∉ visited then dfs(u)',
+  '  return "no cycle — the graph is a DAG"',
+  'end procedure',
+  'procedure dfs(u)',
+  '  visited ∪= u; onStack ∪= u',
+  '  for each edge (u, v) do',
+  '    if v ∈ onStack then report back edge u→v',
+  '    if v ∉ visited then dfs(v)',
+  '  onStack ∖= u',
+  'end procedure',
+];
+
 export const TOPO_PSEUDOCODE = [
   'procedure topologicalSort(graph)',
   '  compute in-degree of every node',
