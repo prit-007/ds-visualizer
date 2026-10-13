@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
+import TabNavigation from "../components/TabNavigation";
 import { buildDijkstraSteps } from "../lib/dijkstraSteps";
+import { buildTopoSteps } from "../lib/topoSteps";
 import { layoutGraph } from "../lib/graphLayout";
-import { DIJKSTRA_PSEUDOCODE } from "../lib/pseudocode";
+import { DIJKSTRA_PSEUDOCODE, TOPO_PSEUDOCODE } from "../lib/pseudocode";
 import { recordOperation, recordPrediction } from "../lib/progress";
 import OperationPlayer from "../components/OperationPlayer";
 import ErrorMessage from "../components/ErrorMessage";
@@ -34,14 +36,52 @@ const SMALL_EDGES = [
   [3, 2, 1],
 ];
 
+// Directed DAGs for topological sort (edges carry a dummy weight slot).
+const COURSE_NODES = [1, 2, 3, 4, 5];
+const COURSE_EDGES = [
+  [1, 2, 0],
+  [1, 3, 0],
+  [2, 4, 0],
+  [3, 4, 0],
+  [4, 5, 0],
+];
+
+const SMALL_DAG_NODES = [1, 2, 3, 4];
+const SMALL_DAG_EDGES = [
+  [1, 2, 0],
+  [1, 3, 0],
+  [2, 3, 0],
+  [3, 4, 0],
+];
+
+const CYCLIC_NODES = [1, 2];
+const CYCLIC_EDGES = [
+  [1, 2, 0],
+  [2, 1, 0],
+];
+
+const TABS = [
+  { id: "dijkstra", label: "Dijkstra" },
+  { id: "topo", label: "Topological Sort" },
+];
+
 const COMPLEXITY = {
-  operationName: "Dijkstra's Algorithm",
-  complexity: "O((V + E) log V)",
-  explanation:
-    "Each node is settled once (V extractions) and every edge is relaxed once (E). With a binary heap the smallest-distance selection costs log V, giving O((V + E) log V).",
+  dijkstra: {
+    operationName: "Dijkstra's Algorithm",
+    complexity: "O((V + E) log V)",
+    explanation:
+      "Each node is settled once (V extractions) and every edge is relaxed once (E). With a binary heap the smallest-distance selection costs log V, giving O((V + E) log V).",
+  },
+  topo: {
+    operationName: "Topological Sort (Kahn)",
+    complexity: "O(V + E)",
+    explanation:
+      "Kahn's algorithm computes in-degrees once, then each node is enqueued and dequeued exactly once while every edge is examined — linear in V + E.",
+  },
 };
 
 const emptyDistances = (nodes) => Object.fromEntries(nodes.map((n) => [n, Infinity]));
+const zeroIndegrees = (nodes) => Object.fromEntries(nodes.map((n) => [n, 0]));
 
 const GraphAlgo = () => {
   const [nodes, setNodes] = useState(() => {
@@ -65,15 +105,20 @@ const GraphAlgo = () => {
     }
     return "1";
   });
+  const [algo, setAlgo] = useState("dijkstra");
   const [activeNode, setActiveNode] = useState(null);
   const [visitedNodes, setVisitedNodes] = useState([]);
+  const [topoHighlighted, setTopoHighlighted] = useState([]);
   const [distances, setDistances] = useState(() => emptyDistances(DEMO_NODES));
+  const [indegrees, setIndegrees] = useState(() => zeroIndegrees(DEMO_NODES));
+  const [topoOrder, setTopoOrder] = useState([]);
   const [activeEdge, setActiveEdge] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [run, setRun] = useState(null);
   const [error, setError] = useState(null);
 
   const containerRef = useRef(null);
+  const isTopo = algo === "topo";
 
   useEffect(() => {
     if (error) {
@@ -92,23 +137,27 @@ const GraphAlgo = () => {
     setActiveNode(null);
     setVisitedNodes([]);
     setActiveEdge(null);
+    setTopoHighlighted([]);
   };
 
   const applyPreset = (presetNodes, presetEdges, start = presetNodes[0]) => {
     setNodes([...presetNodes]);
     setEdges(presetEdges.map((e) => [...e]));
     setDistances(emptyDistances(presetNodes));
+    setIndegrees(zeroIndegrees(presetNodes));
     setStartInput(String(start));
+    setTopoOrder([]);
     clearHighlights();
     setError(null);
     setRun(null);
   };
 
-  const ui = {
+  const dijkstraUi = { setActiveNode, setVisitedNodes, setDistances, setActiveEdge };
+  const topoUi = {
     setActiveNode,
-    setVisitedNodes,
-    setDistances,
-    setActiveEdge,
+    setHighlightedNodes: setTopoHighlighted,
+    setIndegrees,
+    setOrder: setTopoOrder,
   };
 
   const handleRun = () => {
@@ -116,6 +165,27 @@ const GraphAlgo = () => {
       setError("Graph is empty — load a preset first");
       return;
     }
+
+    if (isTopo) {
+      const steps = buildTopoSteps(
+        nodes,
+        edges.map(([u, v]) => [u, v]),
+        topoUi
+      );
+      startRun(
+        steps,
+        () => {
+          clearHighlights();
+        },
+        {
+          before: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          after: { nodes: [...nodes], edges: edges.map((e) => [...e]) },
+          label: "Topological sort",
+        }
+      );
+      return;
+    }
+
     const start = parseInt(startInput);
     if (isNaN(start)) {
       setError("Please enter a start node");
@@ -125,7 +195,7 @@ const GraphAlgo = () => {
       setError(`Start node ${start} is not in the graph`);
       return;
     }
-    const steps = buildDijkstraSteps(nodes, edges, start, ui);
+    const steps = buildDijkstraSteps(nodes, edges, start, dijkstraUi);
     startRun(
       steps,
       () => {
@@ -139,7 +209,23 @@ const GraphAlgo = () => {
     );
   };
 
-  const handleReset = () => applyPreset(DEMO_NODES, DEMO_EDGES, 1);
+  const handleAlgoChange = (next) => {
+    if (next === algo || isAnimating) return;
+    setAlgo(next);
+    setDistances(emptyDistances(nodes));
+    setIndegrees(zeroIndegrees(nodes));
+    setTopoOrder([]);
+    clearHighlights();
+    setError(null);
+    setRun(null);
+  };
+
+  const handleReset = () =>
+    applyPreset(
+      isTopo ? COURSE_NODES : DEMO_NODES,
+      isTopo ? COURSE_EDGES : DEMO_EDGES,
+      1
+    );
   const handleClear = () => applyPreset([], [], "");
 
   const handleForkRun = (runEntry) => {
@@ -151,9 +237,7 @@ const GraphAlgo = () => {
   const edgePairs = edges.map(([u, v]) => [u, v]);
   const layout = layoutGraph(nodes, edgePairs);
   const weightOf = (a, b) => {
-    const found = edges.find(
-      ([u, v]) => (u === a && v === b) || (u === b && v === a)
-    );
+    const found = edges.find(([u, v]) => (u === a && v === b) || (u === b && v === a));
     return found ? found[2] : null;
   };
 
@@ -163,15 +247,20 @@ const GraphAlgo = () => {
       (activeEdge[0] === e.toValue && activeEdge[1] === e.fromValue));
 
   const orderedNodes = [...nodes].sort((a, b) => a - b);
+  const complexityInfo = COMPLEXITY[algo] ?? COMPLEXITY.dijkstra;
 
   return (
     <div className="graph-algo-page" ref={containerRef}>
-      <h1>Dijkstra Shortest Path Visualizer</h1>
-      <p className="page-tagline">Dijkstra's shortest path on a weighted graph, edge by edge.</p>
+      <h1>Graph Algorithms Visualizer</h1>
+      <p className="page-tagline">
+        {isTopo
+          ? "Topological sort on a directed acyclic graph — Kahn’s algorithm."
+          : "Dijkstra's shortest path on a weighted graph, edge by edge."}
+      </p>
 
       <div className="visualizer-grid">
         <div className="visualization-area">
-          <h2>Weighted Graph</h2>
+          <h2>Graph</h2>
 
           <ShareButton
             structure="graph-algo"
@@ -203,6 +292,20 @@ const GraphAlgo = () => {
                 height={layout.height}
                 aria-hidden="true"
               >
+                {isTopo && (
+                  <defs>
+                    <marker
+                      id="arrow"
+                      markerWidth="8"
+                      markerHeight="8"
+                      refX="7"
+                      refY="4"
+                      orient="auto"
+                    >
+                      <path d="M0,0 L8,4 L0,8 z" fill="#94a3b8" />
+                    </marker>
+                  </defs>
+                )}
                 {layout.edges.map((e, i) => (
                   <g key={`${e.fromValue}-${e.toValue}-${i}`}>
                     <line
@@ -211,15 +314,18 @@ const GraphAlgo = () => {
                       y1={e.y1}
                       x2={e.x2}
                       y2={e.y2}
+                      markerEnd={isTopo ? "url(#arrow)" : undefined}
                     />
-                    <text
-                      className="graph-algo-weight"
-                      x={(e.x1 + e.x2) / 2}
-                      y={(e.y1 + e.y2) / 2}
-                      textAnchor="middle"
-                    >
-                      {weightOf(e.fromValue, e.toValue)}
-                    </text>
+                    {!isTopo && (
+                      <text
+                        className="graph-algo-weight"
+                        x={(e.x1 + e.x2) / 2}
+                        y={(e.y1 + e.y2) / 2}
+                        textAnchor="middle"
+                      >
+                        {weightOf(e.fromValue, e.toValue)}
+                      </text>
+                    )}
                   </g>
                 ))}
               </svg>
@@ -231,7 +337,10 @@ const GraphAlgo = () => {
                 >
                   <div
                     className={`graph-algo-node${activeNode === n.value ? " active" : ""}${
-                      visitedNodes.includes(n.value) && activeNode !== n.value ? " visited" : ""
+                      activeNode !== n.value &&
+                      (isTopo ? topoHighlighted.includes(n.value) : visitedNodes.includes(n.value))
+                        ? " visited"
+                        : ""
                     }`}
                   >
                     {n.value}
@@ -246,36 +355,51 @@ const GraphAlgo = () => {
               steps={run.steps}
               onComplete={() => {
                 run.onComplete?.();
-                recordOperation("graph-algo:dijkstra");
+                recordOperation(`graph-algo:${algo}`);
               }}
               onPredictionAnswer={recordPrediction}
               onPlayStateChange={setIsAnimating}
-              pseudocode={DIJKSTRA_PSEUDOCODE}
+              pseudocode={isTopo ? TOPO_PSEUDOCODE : DIJKSTRA_PSEUDOCODE}
             />
           )}
 
           <div className="info-panel dist-panel">
-            <h3>Distance table</h3>
+            <h3>{isTopo ? "In-degree table" : "Distance table"}</h3>
             <table className="dist-table">
               <thead>
                 <tr>
                   <th>Node</th>
-                  <th>Distance</th>
+                  <th>{isTopo ? "In-degree" : "Distance"}</th>
                 </tr>
               </thead>
               <tbody>
                 {orderedNodes.map((n) => (
                   <tr key={n} data-node={n}>
                     <td>{n}</td>
-                    <td className={visitedNodes.includes(n) ? "dist-settled" : ""}>
-                      {distances[n] === Infinity || distances[n] === undefined
-                        ? "∞"
-                        : distances[n]}
+                    <td
+                      className={
+                        isTopo
+                          ? "dist-settled"
+                          : visitedNodes.includes(n)
+                            ? "dist-settled"
+                            : ""
+                      }
+                    >
+                      {isTopo
+                        ? indegrees[n] ?? 0
+                        : distances[n] === Infinity || distances[n] === undefined
+                          ? "∞"
+                          : distances[n]}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {isTopo && topoOrder.length > 0 && (
+              <p className="topo-order">
+                Order: {topoOrder.join(" → ")}
+              </p>
+            )}
           </div>
         </div>
 
@@ -284,16 +408,31 @@ const GraphAlgo = () => {
 
           <ErrorMessage message={error} />
 
+          <TabNavigation
+            tabs={TABS}
+            activeTab={algo}
+            onTabChange={handleAlgoChange}
+            disabled={isAnimating}
+          />
+
           <CasePresets
             disabled={isAnimating}
-            presets={[
-              { label: "Demo graph", onClick: () => applyPreset(DEMO_NODES, DEMO_EDGES, 1) },
-              { label: "Small graph", onClick: () => applyPreset(SMALL_NODES, SMALL_EDGES, 1) },
-              {
-                label: "Disconnected",
-                onClick: () => applyPreset([...DEMO_NODES, 9], DEMO_EDGES, 1),
-              },
-            ]}
+            presets={
+              isTopo
+                ? [
+                    { label: "Course DAG", onClick: () => applyPreset(COURSE_NODES, COURSE_EDGES) },
+                    { label: "Small DAG", onClick: () => applyPreset(SMALL_DAG_NODES, SMALL_DAG_EDGES) },
+                    { label: "Cyclic", onClick: () => applyPreset(CYCLIC_NODES, CYCLIC_EDGES) },
+                  ]
+                : [
+                    { label: "Demo graph", onClick: () => applyPreset(DEMO_NODES, DEMO_EDGES, 1) },
+                    { label: "Small graph", onClick: () => applyPreset(SMALL_NODES, SMALL_EDGES, 1) },
+                    {
+                      label: "Disconnected",
+                      onClick: () => applyPreset([...DEMO_NODES, 9], DEMO_EDGES, 1),
+                    },
+                  ]
+            }
           />
 
           <form
@@ -303,25 +442,27 @@ const GraphAlgo = () => {
               handleRun();
             }}
           >
-            <div className="input-group">
-              <label>Start node:</label>
-              <input
-                type="number"
-                value={startInput}
-                onChange={(e) => setStartInput(e.target.value)}
-                placeholder="Start node"
-                disabled={isAnimating}
-              />
-            </div>
+            {!isTopo && (
+              <div className="input-group">
+                <label>Start node:</label>
+                <input
+                  type="number"
+                  value={startInput}
+                  onChange={(e) => setStartInput(e.target.value)}
+                  placeholder="Start node"
+                  disabled={isAnimating}
+                />
+              </div>
+            )}
             <button type="submit" className="operation-button" disabled={isAnimating}>
-              Run Dijkstra
+              {isTopo ? "Run Topological Sort" : "Run Dijkstra"}
             </button>
           </form>
 
           <ComplexityInfo
-            operationName={COMPLEXITY.operationName}
-            complexity={COMPLEXITY.complexity}
-            explanation={COMPLEXITY.explanation}
+            operationName={complexityInfo.operationName}
+            complexity={complexityInfo.complexity}
+            explanation={complexityInfo.explanation}
           />
 
           <PropertyDisplay
@@ -330,8 +471,8 @@ const GraphAlgo = () => {
               { name: "Nodes", value: nodes.length },
               { name: "Edges", value: edges.length },
               {
-                name: "Settled",
-                value: `${visitedNodes.length} / ${nodes.length}`,
+                name: isTopo ? "Ordered" : "Settled",
+                value: isTopo ? `${topoOrder.length} / ${nodes.length}` : `${visitedNodes.length} / ${nodes.length}`,
               },
             ]}
           />

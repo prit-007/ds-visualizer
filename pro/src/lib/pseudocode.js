@@ -649,3 +649,16 @@ export const DIJKSTRA_PSEUDOCODE = [
   '  return dist',
   'end procedure',
 ];
+
+export const TOPO_PSEUDOCODE = [
+  'procedure topologicalSort(graph)',
+  '  compute in-degree of every node',
+  '  queue ← nodes with in-degree 0',
+  '  while queue ≠ ∅ do',
+  '    u ← dequeue(queue); order ← order ∪ [u]',
+  '    for each neighbor v of u do',
+  '      if in-degree(v) − 1 = 0 then enqueue(queue, v)',
+  '  if order ≠ all nodes then cycle detected',
+  '  return order',
+  'end procedure',
+];

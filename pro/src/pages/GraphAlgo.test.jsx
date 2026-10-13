@@ -35,7 +35,7 @@ describe('GraphAlgo (Dijkstra)', () => {
 
   test('renders the demo weighted graph with weights and distance table', () => {
     const { container } = render(<GraphAlgo />);
-    expect(screen.getByText('Dijkstra Shortest Path Visualizer')).toBeInTheDocument();
+    expect(screen.getByText('Graph Algorithms Visualizer')).toBeInTheDocument();
     expect(container.querySelectorAll('.graph-algo-node')).toHaveLength(6);
     expect(container.querySelectorAll('.graph-algo-edge')).toHaveLength(9);
     expect(container.querySelectorAll('.graph-algo-weight').length).toBeGreaterThan(0);
@@ -114,5 +114,54 @@ describe('GraphAlgo (Dijkstra)', () => {
     expect(css).toMatch(/\.graph-algo-weight\s*\{/);
     expect(css).toMatch(/\.dist-table\s*\{/);
     expect(css).toMatch(/\.dark\s+\.graph-algo-node/);
+  });
+});
+
+describe('topological sort mode', () => {
+  beforeEach(() => {
+    clearRuns();
+    vi.useFakeTimers();
+    window.location.hash = '';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    clearRuns();
+    window.location.hash = '';
+  });
+
+  test('switching tabs reveals topo controls and a DAG preset', () => {
+    const { container } = render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'Topological Sort' }));
+
+    expect(screen.getByRole('button', { name: 'Run Topological Sort' })).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Start node')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Small DAG' }));
+    // directed arrow markers are in the svg
+    expect(container.querySelector('marker#arrow')).not.toBeNull();
+  });
+
+  test('running topo on a DAG records the order', () => {
+    const { container } = render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'Topological Sort' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Small DAG' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Topological Sort' }));
+    finishRun();
+
+    const runs = listRuns('graph-algo');
+    expect(runs[runs.length - 1].label).toBe('Topological sort');
+    const order = container.querySelector('.topo-order');
+    expect(order).not.toBeNull();
+    expect(order.textContent).toContain('1 → 2 → 3 → 4');
+  });
+
+  test('a cyclic preset ends with the cycle-detected narration', () => {
+    render(<GraphAlgo />);
+    fireEvent.click(screen.getByRole('button', { name: 'Topological Sort' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cyclic' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Topological Sort' }));
+    finishRun();
+
+    expect(listRuns('graph-algo')[listRuns('graph-algo').length - 1].label).toBe('Topological sort');
   });
 });
