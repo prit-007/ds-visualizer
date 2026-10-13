@@ -213,7 +213,7 @@ const Layout = () => {
               <li>
                 <button
                   type="button"
-                  className={categoryClass(categoryActive(['/sorting', '/searching', '/graph-algo', '/dynamic-programming', '/greedy']))}
+                  className={categoryClass(categoryActive(['/sorting', '/searching', '/graph-algo', '/dynamic-programming', '/greedy', '/backtracking']))}
                   onClick={() => toggleCategory('algorithms')}
                   aria-expanded={expandedCategories.algorithms}
                   aria-label="Algorithms"
@@ -254,6 +254,11 @@ const Layout = () => {
                     <li>
                       <Link to="/greedy" className={subLinkClass('/greedy')} aria-current={isActivePath('/greedy') ? 'page' : undefined}>
                         Greedy Algorithms
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/backtracking" className={subLinkClass('/backtracking')} aria-current={isActivePath('/backtracking') ? 'page' : undefined}>
+                        Backtracking
                       </Link>
                     </li>
                   </ul>

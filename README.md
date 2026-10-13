@@ -24,6 +24,7 @@
 | Graphs | `/graph` | add node/edge, BFS, DFS on a circular canvas |
 | Graph algorithms | `/graph-algo` | Dijkstra shortest path + Topological Sort, live distance/in-degree tables |
 | Dynamic programming | `/dynamic-programming` | six programs — Fibonacci, grid paths, coin change, LCS, 0/1 knapsack, house robber — DP-tables animate cell by cell |
+| Backtracking | `/backtracking` | N-Queens + mini-Sudoku with honest dead-end undos
 | Greedy | `/greedy` | activity selection, fractional knapsack, greedy coin change |
 | Hash tables | `/hash-table` | separate chaining, chain-walk narration |
 | Sorting | `/sorting` | bubble, selection, insertion, merge, quick, heap — swaps visibly move nodes |

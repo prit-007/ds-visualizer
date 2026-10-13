@@ -25,6 +25,7 @@ import Settings from './pages/Settings';
 import Playground from './pages/Playground';
 import UnionFindPage from './pages/UnionFind';
 import TrieVisualizer from './pages/TrieVisualizer';
+import Backtracking from './pages/Backtracking';
 
 const App = () => {
   return (
@@ -45,6 +46,7 @@ const App = () => {
           <Route path='/union-find' element={<UnionFindPage />} />
           <Route path='/trie' element={<TrieVisualizer />} />
           <Route path='/heap' element={<Heap />} />
+          <Route path='/backtracking' element={<Backtracking />} />
           <Route path='/graph' element={<Graph />} />
           <Route path='/hash-table' element={<HashTable />} />
           <Route path='/sorting' element={<Sorting />} />

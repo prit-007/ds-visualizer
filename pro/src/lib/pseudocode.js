@@ -869,3 +869,26 @@ export const TRIE_PSEUDOCODE = {
     'end procedure',
   ],
 };
+
+export const BACKTRACKING_PSEUDOCODE = {
+  nqueens: [
+    'procedure nQueens(n)',
+    '  for each column c in the current row do',
+    '    if (r, c) is safe from every placed queen then place one',
+    '    recurse into the next row',
+    '    if the recursion succeeds, return the arrangement',
+    '    remove the queen and try the next column    ▸ backtrack',
+    '  this row offers no safe square',
+    'end procedure',
+  ],
+  sudoku: [
+    'procedure solveSudoku(grid)',
+    '  find the next empty cell',
+    '  for v in 1..4 do',
+    '    if placing v is valid then place it and recurse forward',
+    '    if the recursion fails, try the next digit',
+    '    reset the cell when no digit works            ▸ backtrack',
+    '  return the completed grid',
+    'end procedure',
+  ],
+};

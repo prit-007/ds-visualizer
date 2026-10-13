@@ -1,0 +1,98 @@
+
+.backtrack-canvas {
+  margin: 1rem auto;
+  max-width: 100%;
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.grid-board {
+  display: grid;
+  gap: 6px;
+  width: max-content;
+  margin: 0 auto;
+}
+
+.grid-board.nqueens {
+  grid-template-columns: repeat(var(--n), 42px);
+}
+
+.grid-board.sudoku {
+  grid-template-columns: repeat(4, 52px);
+}
+
+.board-cell {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.grid-board.nqueens .board-cell {
+  width: 42px;
+  height: 42px;
+}
+
+.grid-board.sudoku .board-cell {
+  width: 52px;
+  height: 52px;
+  font-size: 1.25rem;
+}
+
+.board-cell.queen {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #b45309;
+  font-size: 1.2rem;
+}
+
+.board-cell.trying {
+  outline: 2px solid #38bdf8;
+  outline-offset: -2px;
+}
+
+.board-cell.given {
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.board-cell.backtrack {
+  background: #fee2e2;
+  border-color: #ef4444;
+}
+
+.dark .backtrack-canvas {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+.dark .board-cell {
+  background: #1e293b;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+.dark .board-cell.given {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.dark .board-cell.queen {
+  background: #78350f;
+  color: #fde68a;
+}
+
+.dark .board-cell.backtrack {
+  background: #7f1d1d;
+  color: #fecaca;
+}
