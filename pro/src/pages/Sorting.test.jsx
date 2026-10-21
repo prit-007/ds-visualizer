@@ -134,7 +134,7 @@ describe('sorting runs', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Load Array' }));
     expect(
-      screen.getByText('Please enter at least two numbers to sort')
+      screen.getByText('Please enter at least two values to sort')
     ).toBeInTheDocument();
   });
 
@@ -290,7 +290,28 @@ describe('run history', () => {
     const values = [...document.querySelectorAll('.memory-value')].map((n) =>
       Number(n.textContent)
     );
+    // Fork rewinds to the run's before state (unsorted input)
     expect(values).toEqual([2, 1]);
+  });
+
+  test('bubble sort orders floats', () => {
+    render(<Sorting initialArray={[3.1, 1.2, 2.5]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Run Bubble Sort' }));
+    finishRun();
+
+    const values = [...document.querySelectorAll('.memory-value')].map((n) =>
+      Number(n.textContent)
+    );
+    expect(values).toEqual([1.2, 2.5, 3.1]);
+    expect(listRuns('sorting')[0].label).toBe('Bubble sort');
+  });
+
+  test('bubble sort orders strings', () => {
+    render(<Sorting initialArray={['banana', 'apple', 'cherry']} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Run Bubble Sort' }));
+    finishRun();
+
+    expect(listRuns('sorting')[0].label).toBe('Bubble sort');
   });
 });
 

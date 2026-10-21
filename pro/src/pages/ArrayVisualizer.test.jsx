@@ -47,6 +47,16 @@ describe('ArrayVisualizer', () => {
     expect(screen.getByText('Time Complexity')).toBeInTheDocument();
     expect(screen.getByText('Array Properties')).toBeInTheDocument();
   });
+
+  test('value input accepts floats and strings (not integers only)', () => {
+    render(<ArrayVisualizer />);
+    const input = screen.getByPlaceholderText('Enter a number or text');
+    expect(input).toHaveAttribute('type', 'text');
+    fireEvent.change(input, { target: { value: '3.14' } });
+    expect(input).toHaveValue('3.14');
+    fireEvent.change(input, { target: { value: 'hello' } });
+    expect(input).toHaveValue('hello');
+  });
 });
 
 describe('appearance with more than 10 elements', () => {
@@ -106,7 +116,7 @@ describe('empty array (user removed every element one by one)', () => {
     fireEvent.change(screen.getByPlaceholderText(/^Enter position/), {
       target: { value: '0' },
     });
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '7' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Insert at Position' }));
@@ -118,7 +128,7 @@ describe('empty array (user removed every element one by one)', () => {
 describe('keyboard submit (Enter)', () => {
   test('submitting the operation form runs the active operation', () => {
     const { container } = render(<ArrayVisualizer initialArray={[]} />);
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '5' },
     });
     const form = container.querySelector('form.operation-inputs');
@@ -163,7 +173,7 @@ describe('case presets', () => {
 describe('dual pane pseudocode', () => {
   test('add run shows the arrayAdd pseudocode with a live highlight', () => {
     const { container } = render(<ArrayVisualizer initialArray={[]} />);
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '5' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add to End' }));
@@ -264,7 +274,7 @@ describe('run history', () => {
   test('a completed push is recorded and fork rewinds to its before state', () => {
     render(<ArrayVisualizer />);
 
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '99' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add to End' }));

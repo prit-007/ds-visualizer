@@ -1,7 +1,7 @@
 # AlgoViz — Data Structures & Algorithms Visualizer
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-909%20green-brightgreen)](pro/)
+[![Tests](https://img.shields.io/badge/tests-928%20green-brightgreen)](pro/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)](https://vite.dev/)
 
@@ -60,7 +60,7 @@ npm start          # dev server → http://localhost:3000
 |---|---|
 | `npm start` / `npm run dev` | dev server (port 3000) |
 | `npm test` | watch tests |
-| `npm run test:ci` | one-shot full suite (909 tests) |
+| `npm run test:ci` | one-shot full suite (928 tests) |
 | `npm run lint` | ESLint (0 errors / 0 warnings policy) |
 | `npm run build` | production build → `dist/` (+ SPA `404.html` fallback) |
 

@@ -47,6 +47,16 @@ describe('LinkedListVisualizer', () => {
     expect(screen.queryByPlaceholderText('Enter a number')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Remove Node' })).toBeInTheDocument();
   });
+
+  test('value input accepts floats and strings (not integers only)', () => {
+    render(<LinkedListVisualizer />);
+    const input = screen.getByPlaceholderText('Enter a number or text');
+    expect(input).toHaveAttribute('type', 'text');
+    fireEvent.change(input, { target: { value: '2.71' } });
+    expect(input).toHaveValue('2.71');
+    fireEvent.change(input, { target: { value: 'world' } });
+    expect(input).toHaveValue('world');
+  });
 });
 
 describe('appearance with more than 10 nodes', () => {
@@ -101,7 +111,7 @@ describe('empty list (user removed every node one by one)', () => {
     fireEvent.change(screen.getByPlaceholderText(/^Enter position/), {
       target: { value: '0' },
     });
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '7' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Insert at Position' }));
@@ -175,7 +185,7 @@ describe('memory representation', () => {
     expect(nexts[0]).toHaveTextContent('next');
     expect(nexts[3]).toHaveTextContent('null');
 
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '99' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add to End' }));
@@ -224,7 +234,7 @@ describe('case presets', () => {
 describe('dual pane pseudocode', () => {
   test('add run shows the listAdd pseudocode with a live highlight', () => {
     const { container } = render(<LinkedListVisualizer />);
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '5' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add to End' }));
@@ -308,7 +318,7 @@ describe('run history', () => {
   test('a completed add is recorded and fork rewinds the list', () => {
     render(<LinkedListVisualizer />);
 
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '99' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add to End' }));
@@ -391,7 +401,7 @@ describe('list type toggle', () => {
     );
     expect(container.querySelectorAll('.prev-indicator')).toHaveLength(0);
 
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '99' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add to End' }));
@@ -435,7 +445,7 @@ describe('list type toggle', () => {
   test('doubly add narration mentions the prev pointer', () => {
     const { container } = render(<LinkedListVisualizer />);
     fireEvent.click(screen.getByRole('button', { name: 'Doubly' }));
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '99' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add to End' }));
@@ -446,7 +456,7 @@ describe('list type toggle', () => {
   test('circular add narration mentions closing the loop', () => {
     const { container } = render(<LinkedListVisualizer initialNodes={[10]} />);
     fireEvent.click(screen.getByRole('button', { name: 'Circular' }));
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '20' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add to End' }));

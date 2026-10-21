@@ -89,6 +89,23 @@ describe('search runs', () => {
     expect(listRuns('searching')[0].label).toBe('Binary search 8');
   });
 
+  test('ternary search finds a float target', () => {
+    render(<Searching initialArray={[1.5, 3.5, 5.5, 7.5]} initialTarget={5.5} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Ternary' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Ternary Search' }));
+    finishRun();
+
+    expect(listRuns('searching')[0].label).toBe('Ternary search 5.5');
+  });
+
+  test('linear search finds a string target', () => {
+    render(<Searching initialArray={['apple', 'banana', 'cherry']} initialTarget="banana" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Run Linear Search' }));
+    finishRun();
+
+    expect(listRuns('searching')[0].label).toBe('Linear search banana');
+  });
+
   test('binary search refuses an unsorted array with a guided error', () => {
     render(<Searching initialArray={[5, 1, 9]} initialTarget={1} />);
     fireEvent.click(screen.getByRole('button', { name: 'Binary' }));
