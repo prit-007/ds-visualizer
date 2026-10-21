@@ -57,6 +57,44 @@ describe('Backtracking page', () => {
     expect(filled).toHaveLength(16);
   });
 
+  test('renders hamiltonian path tab and run button', () => {
+    render(<Backtracking />);
+    fireEvent.click(screen.getByRole('button', { name: 'Hamiltonian Path' }));
+    expect(screen.getByRole('button', { name: 'Run Hamiltonian Path' })).toBeInTheDocument();
+  });
+
+  test('renders subset sum tab and run button', () => {
+    render(<Backtracking />);
+    fireEvent.click(screen.getByRole('button', { name: 'Subset Sum' }));
+    expect(screen.getByRole('button', { name: 'Run Subset Sum' })).toBeInTheDocument();
+  });
+
+  test('hamiltonian path finds a path visiting every cell once', () => {
+    const { container } = render(<Backtracking />);
+    fireEvent.click(screen.getByRole('button', { name: 'Hamiltonian Path' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Hamiltonian Path' }));
+    finishRun();
+
+    const runs = listRuns('backtracking');
+    expect(runs[runs.length - 1].label).toBe('Hamiltonian Path n = 3');
+    const lastRun = runs[runs.length - 1];
+    expect(lastRun.steps[lastRun.steps.length - 1]).toBe('Hamiltonian path found — 9 cells visited');
+    expect(container.querySelectorAll('.board-cell.visited')).toHaveLength(9);
+  });
+
+  test('subset sum finds a subset reaching the target', () => {
+    const { container } = render(<Backtracking />);
+    fireEvent.click(screen.getByRole('button', { name: 'Subset Sum' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Subset Sum' }));
+    finishRun();
+
+    const runs = listRuns('backtracking');
+    expect(runs[runs.length - 1].label).toBe('Subset Sum target 10');
+    const lastRun = runs[runs.length - 1];
+    expect(lastRun.steps[lastRun.steps.length - 1]).toBe('Subset found: [3, 5, 2] sums to 10');
+    expect(container.querySelectorAll('.subset-chip.taken')).toHaveLength(3);
+  });
+
   test('css contract', () => {
     expect(css).toMatch(/\.grid-board\s*\{/);
     expect(css).toMatch(/\.board-cell\.queen/);

@@ -114,6 +114,230 @@ export const buildNQueensSteps = (n, ui) => {
   return steps;
 };
 
+// ---- Hamiltonian path on an n×n grid (start top-left, goal bottom-right) ----
+
+export const buildHamiltonianSteps = (n, ui) => {
+  const total = n * n;
+  const path = [[0, 0]];
+  const visited = new Set(['0,0']);
+  const steps = [];
+
+  const key = (r, c) => `${r},${c}`;
+  const inBounds = (r, c) => r >= 0 && r < n && c >= 0 && c < n;
+  const neighbors = (r, c) =>
+    [
+      [r - 1, c],
+      [r + 1, c],
+      [r, c - 1],
+      [r, c + 1],
+    ].filter(([nr, nc]) => inBounds(nr, nc) && !visited.has(key(nr, nc)));
+
+  const board = () =>
+    Array.from({ length: n }, (_, r) =>
+      Array.from({ length: n }, (_, c) => {
+        const step = path.findIndex((p) => p[0] === r && p[1] === c);
+        return step >= 0 ? step + 1 : 0;
+      })
+    );
+
+  steps.push({
+    description: `Starting Hamiltonian path search — visit all ${total} cells on ${n}×${n} grid`,
+    kind: 'move',
+    line: 1,
+    vars: { n, total },
+    action: () => {
+      ui.setBoard?.(board());
+      ui.setHighlight?.([0, 0]);
+    },
+  });
+
+  const solve = (r, c) => {
+    if (path.length === total && r === n - 1 && c === n - 1) {
+      steps.push({
+        description: `Hamiltonian path found — ${total} cells visited`,
+        kind: 'found',
+        line: 4,
+        vars: { path: path.map((p) => [...p]) },
+        action: () => {
+          ui.setBoard?.(board());
+          ui.setHighlight?.(null);
+        },
+      });
+      return true;
+    }
+
+    const unvisited = neighbors(r, c);
+    if (unvisited.length === 0) {
+      steps.push({
+        description: `Dead end at (${r},${c}) — no unvisited neighbor`,
+        kind: 'error',
+        line: 9,
+        vars: { r, c },
+        action: () => {
+          ui.setBoard?.(board());
+          ui.setHighlight?.([r, c]);
+        },
+      });
+      return false;
+    }
+
+    for (const [nr, nc] of unvisited) {
+      steps.push({
+        description: `Trying (${nr},${nc})`,
+        kind: 'compare',
+        line: 5,
+        vars: { r, c, nr, nc },
+        action: () => {
+          ui.setBoard?.(board());
+          ui.setHighlight?.([nr, nc]);
+        },
+      });
+      path.push([nr, nc]);
+      visited.add(key(nr, nc));
+      steps.push({
+        description: `Visiting (${nr},${nc})`,
+        kind: 'move',
+        line: 6,
+        vars: { r, c, nr, nc },
+        action: () => {
+          ui.setBoard?.(board());
+          ui.setHighlight?.([nr, nc]);
+        },
+      });
+      if (solve(nr, nc)) return true;
+      path.pop();
+      visited.delete(key(nr, nc));
+      steps.push({
+        description: `Backtracking from (${nr},${nc})`,
+        kind: 'error',
+        line: 8,
+        vars: { r, c, nr, nc },
+        action: () => {
+          ui.setBoard?.(board());
+          ui.setHighlight?.([nr, nc]);
+        },
+      });
+    }
+    return false;
+  };
+
+  if (!solve(0, 0)) {
+    steps.push({
+      description: `No Hamiltonian path exists on ${n}×${n} grid`,
+      kind: 'error',
+      line: 11,
+      vars: { n },
+      action: () => {
+        ui.setBoard?.(Array.from({ length: n }, () => new Array(n).fill(0)));
+        ui.setHighlight?.(null);
+      },
+    });
+  }
+
+  return steps;
+};
+
+// ---- Subset sum ----
+
+export const buildSubsetSumSteps = (nums, target, ui) => {
+  const n = nums.length;
+  const subset = [];
+  const steps = [];
+
+  steps.push({
+    description: `Starting subset sum search — [${nums.join(', ')}] target ${target}`,
+    kind: 'move',
+    line: 1,
+    vars: { nums, target },
+    action: () => {
+      ui.setSubset?.([]);
+      ui.setHighlight?.(null);
+    },
+  });
+
+  const solve = (i, remaining) => {
+    if (remaining === 0) {
+      steps.push({
+        description: `Subset found: [${subset.join(', ')}] sums to ${target}`,
+        kind: 'found',
+        line: 2,
+        vars: { subset: [...subset], target },
+        action: () => {
+          ui.setSubset?.([...subset]);
+          ui.setHighlight?.(null);
+        },
+      });
+      return true;
+    }
+    if (i === n) return false;
+
+    const value = nums[i];
+    if (value <= remaining) {
+      steps.push({
+        description: `Trying include ${value} (remaining ${remaining - value})`,
+        kind: 'compare',
+        line: 3,
+        vars: { i, value, remaining },
+        action: () => {
+          ui.setSubset?.([...subset]);
+          ui.setHighlight?.(i);
+        },
+      });
+      subset.push(value);
+      steps.push({
+        description: `Taking ${value} → remaining ${remaining - value}`,
+        kind: 'move',
+        line: 4,
+        vars: { i, value, remaining },
+        action: () => {
+          ui.setSubset?.([...subset]);
+          ui.setHighlight?.(i);
+        },
+      });
+      if (solve(i + 1, remaining - value)) return true;
+      subset.pop();
+      steps.push({
+        description: `Backtracking on ${value}`,
+        kind: 'error',
+        line: 7,
+        vars: { i, value },
+        action: () => {
+          ui.setSubset?.([...subset]);
+          ui.setHighlight?.(i);
+        },
+      });
+    } else {
+      steps.push({
+        description: `${value} exceeds remaining ${remaining} — skipping ${value}`,
+        kind: 'compare',
+        line: 5,
+        vars: { i, value, remaining },
+        action: () => {
+          ui.setSubset?.([...subset]);
+          ui.setHighlight?.(i);
+        },
+      });
+    }
+
+    return solve(i + 1, remaining);
+  };
+
+  if (!solve(0, target)) {
+    steps.push({
+      description: `No subset of [${nums.join(', ')}] sums to ${target}`,
+      kind: 'error',
+      line: 9,
+      vars: { nums, target },
+      action: () => {
+        ui.setSubset?.([]);
+        ui.setHighlight?.(null);
+      },
+    });
+  }
+
+  return steps;
+};
+
 // ---- Sudoku (4x4 mini) ----
 
 export const SUDOKU_PUZZLE = [

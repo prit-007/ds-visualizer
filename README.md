@@ -1,7 +1,7 @@
 # AlgoViz — Data Structures & Algorithms Visualizer
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-898%20green-brightgreen)](pro/)
+[![Tests](https://img.shields.io/badge/tests-909%20green-brightgreen)](pro/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)](https://vite.dev/)
 
@@ -24,7 +24,7 @@
 | Graphs | `/graph` | add node/edge, BFS, DFS on a circular canvas |
 | Graph algorithms | `/graph-algo` | Dijkstra, A*, Topological Sort, Bellman-Ford, MST, Floyd-Warshall, Kosaraju SCC, cycle detection — live tables |
 | Dynamic programming | `/dynamic-programming` | eleven programs — Fibonacci, grid paths, coin change, LCS, edit distance, 0/1 knapsack, house robber, LIS, subset sum, Kadane, word break — DP-tables animate cell by cell |
-| Backtracking | `/backtracking` | N-Queens + mini-Sudoku with honest dead-end undos
+| Backtracking | `/backtracking` | N-Queens + mini-Sudoku + Hamiltonian path (n×n grid) + subset sum, all with honest dead-end undos |
 | Greedy | `/greedy` | activity selection, fractional knapsack, greedy coin change |
 | Hash tables | `/hash-table` | separate chaining, chain-walk narration |
 | Sorting | `/sorting` | ten algorithms — bubble, selection, insertion, shell, merge, quick, heap, counting, radix, bucket — swaps visibly move nodes |
@@ -60,7 +60,7 @@ npm start          # dev server → http://localhost:3000
 |---|---|
 | `npm start` / `npm run dev` | dev server (port 3000) |
 | `npm test` | watch tests |
-| `npm run test:ci` | one-shot full suite (898 tests) |
+| `npm run test:ci` | one-shot full suite (909 tests) |
 | `npm run lint` | ESLint (0 errors / 0 warnings policy) |
 | `npm run build` | production build → `dist/` (+ SPA `404.html` fallback) |
 

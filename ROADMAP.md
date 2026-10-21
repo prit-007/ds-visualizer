@@ -138,7 +138,7 @@ Exit criteria: every sidebar route resolves to a real page.
 - Sorting: radix ✅, counting ✅, bucket ✅, shell ✅ — **family complete** on `/sorting` (ten algorithms).
 - [x] **Searching**: ternary, jump, interpolation on `/searching` (sorted-guard honesty, per-algorithm tabs, `SEARCHING_PSEUDOCODE` listings) — shipped alongside linear + binary.
 - Strings: ~~KMP, Rabin-Karp, Z-algorithm~~ — **all shipped** on `/strings` (+ naive baseline).
-- Backtracking: N-Queens ✅, Sudoku solver ✅ (4×4 mini, on `/backtracking`); remaining: Hamiltonian path, subset-sum.
+- [x] **Backtracking**: N-Queens ✅, Sudoku solver ✅, **Hamiltonian path** ✅ (n×n grid, corner-to-corner, honest no-path), **subset sum** ✅ (take/skip with prune, honest no-subset) — family complete on `/backtracking`.
 - DP: ~~edit distance, subset-sum table, LIS, Kadane (max subarray), word-break~~ — **all five shipped** on `/dynamic-programming` (eleven programs total).
 - Trees: red-black insights (reuse AVL rotations), diameter/height mini-algos.
 
