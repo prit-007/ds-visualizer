@@ -18,8 +18,8 @@ All notable changes to AlgoViz are documented here. Format loosely follows
 - **Sorting** — six algorithms (`/sorting`): bubble, selection, insertion,
   (O(n²)) + merge, quick, heap (O(n log n)); swaps visibly move nodes via
   per-step display-array snapshots + stable ids
-- **Searching** — linear + binary (`/searching`): halving-window narration,
-  honest unsorted-array guard for binary search
+- **Searching** — linear + binary + ternary + jump + interpolation (`/searching`): per-algorithm tabs with targeted window/probe narration, honest sorted-array guard with guided errors for ternary/jump/interpolation, `SEARCHING_PSEUDOCODE` ternary/jump/interpolation listings (`searchingSteps.js`)
+
 - **Tree algorithms** — `/tree` Traversals & Algorithms panel: BFS (queue),
   DFS (stack), In-order, Post-order, Validate BST, Mirror, LCA
 - **B-tree mode** — order-3 B-tree on `/tree` (Binary | B-Tree toggle):
