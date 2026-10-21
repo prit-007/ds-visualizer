@@ -98,6 +98,81 @@ describe('search runs', () => {
     ).toBeInTheDocument();
   });
 
+  test('offers ternary, jump and interpolation tabs with run buttons', () => {
+    render(<Searching />);
+    ['Ternary', 'Jump', 'Interpolation'].forEach((label) => {
+      expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Ternary' }));
+    expect(screen.getByRole('button', { name: 'Run Ternary Search' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Jump' }));
+    expect(screen.getByRole('button', { name: 'Run Jump Search' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Interpolation' }));
+    expect(
+      screen.getByRole('button', { name: 'Run Interpolation Search' })
+    ).toBeInTheDocument();
+  });
+
+  test('ternary search finds the target and records the run', () => {
+    const { container } = render(
+      <Searching initialArray={[2, 4, 6, 8, 10, 12, 14]} initialTarget={8} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Ternary' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Ternary Search' }));
+    finishRun();
+
+    expect(listRuns('searching')[0].label).toBe('Ternary search 8');
+    const pane = container.querySelector('.code-pane');
+    expect(pane.querySelectorAll('.code-line')).toHaveLength(
+      SEARCHING_PSEUDOCODE.ternary.length
+    );
+  });
+
+  test('jump search finds the target and records the run', () => {
+    const { container } = render(
+      <Searching initialArray={[2, 4, 6, 8, 10, 12, 14]} initialTarget={8} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Jump' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Jump Search' }));
+    finishRun();
+
+    expect(listRuns('searching')[0].label).toBe('Jump search 8');
+    const pane = container.querySelector('.code-pane');
+    expect(pane.querySelectorAll('.code-line')).toHaveLength(
+      SEARCHING_PSEUDOCODE.jump.length
+    );
+  });
+
+  test('interpolation search finds the target and records the run', () => {
+    const { container } = render(
+      <Searching initialArray={[2, 4, 6, 8, 10, 12, 14]} initialTarget={8} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Interpolation' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Run Interpolation Search' }));
+    finishRun();
+
+    expect(listRuns('searching')[0].label).toBe('Interpolation search 8');
+    const pane = container.querySelector('.code-pane');
+    expect(pane.querySelectorAll('.code-line')).toHaveLength(
+      SEARCHING_PSEUDOCODE.interpolation.length
+    );
+  });
+
+  test.each(['Ternary', 'Jump', 'Interpolation'])(
+    '%s refuses an unsorted array with a guided error',
+    (label) => {
+      render(<Searching initialArray={[5, 1, 9]} initialTarget={1} />);
+      fireEvent.click(screen.getByRole('button', { name: label }));
+      fireEvent.click(screen.getByRole('button', { name: `Run ${label} Search` }));
+      expect(
+        screen.getByText(
+          `${label} search requires a sorted array — use the Sorted case preset`
+        )
+      ).toBeInTheDocument();
+      expect(listRuns('searching')).toHaveLength(0);
+    }
+  );
+
   test('submitting the form runs the search (Enter in target)', () => {
     const { container } = render(<Searching initialArray={[2, 4, 6]} initialTarget={4} />);
     const form = container.querySelector('form.operation-inputs');

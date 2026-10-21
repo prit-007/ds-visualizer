@@ -1,6 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
-import { buildLinearSteps, buildBinarySteps } from "../lib/searchingSteps";
+import {
+  buildLinearSteps,
+  buildBinarySteps,
+  buildTernarySteps,
+  buildJumpSteps,
+  buildInterpolationSteps,
+} from "../lib/searchingSteps";
 import { SEARCHING_PSEUDOCODE } from "../lib/pseudocode";
 import AlgoOverview from "../components/AlgoOverview";
 import { recordOperation, recordPrediction } from "../lib/progress";
@@ -23,14 +29,26 @@ import "./Searching.css";
 const TABS = [
   { id: "linear", label: "Linear" },
   { id: "binary", label: "Binary" },
+  { id: "ternary", label: "Ternary" },
+  { id: "jump", label: "Jump" },
+  { id: "interpolation", label: "Interpolation" },
 ];
 
 const BUILDERS = {
   linear: buildLinearSteps,
   binary: buildBinarySteps,
+  ternary: buildTernarySteps,
+  jump: buildJumpSteps,
+  interpolation: buildInterpolationSteps,
 };
 
-const ALGORITHM_NAME = { linear: "Linear", binary: "Binary" };
+const ALGORITHM_NAME = {
+  linear: "Linear",
+  binary: "Binary",
+  ternary: "Ternary",
+  jump: "Jump",
+  interpolation: "Interpolation",
+};
 
 const COMPLEXITY = {
   linear: {
@@ -44,6 +62,24 @@ const COMPLEXITY = {
     complexity: "O(n log n) build · O(log n) search",
     explanation:
       "Binary search halves the search window each step (mid comparison), so lookup is O(log n) — but the array must already be sorted.",
+  },
+  ternary: {
+    operationName: "Ternary Search",
+    complexity: "O(log₃ n)",
+    explanation:
+      "Ternary search splits the window into thirds with two probes per step — O(log₃ n) comparisons on sorted data.",
+  },
+  jump: {
+    operationName: "Jump Search",
+    complexity: "O(√n)",
+    explanation:
+      "Jump search skips √n-sized blocks, then scans one block — O(√n) comparisons — on sorted data.",
+  },
+  interpolation: {
+    operationName: "Interpolation Search",
+    complexity: "O(log log n) avg · O(n) worst",
+    explanation:
+      "Interpolation search probes near the target's estimated position — O(log log n) on uniform data, O(n) worst — on sorted data.",
   },
 };
 
@@ -129,10 +165,17 @@ const Searching = ({ initialArray, initialTarget }) => {
       setError("Please enter at least two numbers to search");
       return;
     }
-    if (activeTab === "binary") {
+    const SORTED_GUARD = {
+      binary: "Binary search requires a sorted array — use the Sorted case preset",
+      ternary: "Ternary search requires a sorted array — use the Sorted case preset",
+      jump: "Jump search requires a sorted array — use the Sorted case preset",
+      interpolation: "Interpolation search requires a sorted array — use the Sorted case preset",
+    };
+    const guard = SORTED_GUARD[activeTab];
+    if (guard) {
       const sorted = [...array].sort((a, b) => a - b);
       if (array.some((v, i) => v !== sorted[i])) {
-        setError("Binary search requires a sorted array — use the Sorted case preset");
+        setError(guard);
         return;
       }
     }
@@ -176,15 +219,15 @@ const Searching = ({ initialArray, initialTarget }) => {
   return (
     <div className="searching-page" ref={containerRef}>
       <h1>Interactive Searching Visualizer</h1>
-      <p className="page-tagline">Linear and binary search, one comparison at a time.</p>
+      <p className="page-tagline">Five search algorithms, one comparison at a time.</p>
 
       <AlgoOverview
         title="Searching"
-        what="Find a target in a collection. Linear search scans every index; binary search halves the window, but demands a sorted array."
-        time="O(n) linear · O(log n) binary"
+        what="Find a target in a collection. Linear scans every index; binary and ternary halve/third the window; jump skips √n blocks; interpolation probes near the estimated position. All except linear require a sorted array."
+        time="O(n) linear · O(log n) binary/ternary · O(√n) jump · O(log log n) avg interpolation"
         space="O(1)"
-        when="lookup, and binary whenever the data is already sorted."
-        note="Binary search on an unsorted array is refused — honestly, not silently wrong."
+        when="lookup on sorted data, and binary or ternary whenever a sorted array is already available."
+        note="Ternary, jump and interpolation search on an unsorted array are refused — honestly, not silently wrong."
       />
       <div className="visualizer-grid">
         <div className="visualization-area">
