@@ -56,6 +56,12 @@ All notable changes to AlgoViz are documented here. Format loosely follows
 - **AVL improvements** — rotation steps drive edge highlights
   (LL/RR/LR/RL read as real rebalances), adaptive tree layout + scale-to-fit
   (no horizontal scroll as trees grow)
+- **String/float value support** — value inputs on Array, LinkedList, Tree
+  (AVL + B-tree + LCA), Searching and Sorting now accept integers, floats and
+  arbitrary strings; new `src/lib/value.js` (`parseDataValue` /
+  `compareValues`) shared by the builders and page guards; position inputs stay
+  integers. `Searching` sorted-guard and `Sorting` display-sort use
+  `compareValues` so string/lexicographic ordering stays honest.
 
 ### Changed
 - Sorting animation: element positions animate during playback (was

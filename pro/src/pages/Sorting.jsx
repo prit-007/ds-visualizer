@@ -218,13 +218,20 @@ const Sorting = ({ initialArray }) => {
 
   const handleLoadArray = () => {
     const parts = arrayInput.split(/[,\s]+/).filter((p) => p.length > 0);
-    const parsed = parts.map((p) => parseInt(p, 10));
-    if (parsed.length < 2 || parsed.some((v) => isNaN(v))) {
-      setError("Please enter at least two numbers to sort");
+    const parsed = parts.map((p) => {
+      const t = String(p ?? '').trim();
+      return t === ''
+        ? null
+        : /^-?\d+(\.\d+)?$/.test(t)
+          ? parseFloat(t)
+          : t;
+    });
+    if (parsed.length < 2 || parsed.some((v) => v === null)) {
+      setError("Please enter at least two values to sort");
       return;
     }
     if (parsed.length > 20) {
-      setError("Please enter up to 20 numbers");
+      setError("Please enter up to 20 values");
       return;
     }
     applyPreset(parsed);

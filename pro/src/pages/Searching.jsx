@@ -22,6 +22,7 @@ import ShareButton from "../components/ShareButton";
 import RunHistoryPanel from "../components/RunHistoryPanel";
 import { readScenario } from "../lib/share";
 import { recordRun, listRuns } from "../lib/timeTravel";
+import { parseDataValue, compareValues } from "../lib/value";
 import CasePresets from "../components/CasePresets";
 import { randomValues, sortedSequence } from "../lib/presets";
 import "./Searching.css";
@@ -143,26 +144,26 @@ const Searching = ({ initialArray, initialTarget }) => {
 
   const handleLoadArray = () => {
     const parts = arrayInput.split(/[,\s]+/).filter((p) => p.length > 0);
-    const parsed = parts.map((p) => parseInt(p, 10));
-    if (parsed.length < 2 || parsed.some((v) => isNaN(v))) {
-      setError("Please enter at least two numbers to search");
+    const parsed = parts.map((p) => parseDataValue(p));
+    if (parsed.length < 2 || parsed.some((v) => v === null)) {
+      setError("Please enter at least two values to search");
       return;
     }
     if (parsed.length > 20) {
-      setError("Please enter up to 20 numbers");
+      setError("Please enter up to 20 values");
       return;
     }
     applyPreset(parsed);
   };
 
   const handleSearch = () => {
-    const t = parseInt(target);
-    if (isNaN(t)) {
+    const t = parseDataValue(target);
+    if (t === null) {
       setError("Please enter a valid target");
       return;
     }
     if (array.length < 2) {
-      setError("Please enter at least two numbers to search");
+      setError("Please enter at least two values to search");
       return;
     }
     const SORTED_GUARD = {
@@ -173,8 +174,8 @@ const Searching = ({ initialArray, initialTarget }) => {
     };
     const guard = SORTED_GUARD[activeTab];
     if (guard) {
-      const sorted = [...array].sort((a, b) => a - b);
-      if (array.some((v, i) => v !== sorted[i])) {
+      const sorted = [...array].sort((a, b) => compareValues(a, b));
+      if (array.some((v, i) => compareValues(v, sorted[i]) !== 0)) {
         setError(guard);
         return;
       }
@@ -235,7 +236,7 @@ const Searching = ({ initialArray, initialTarget }) => {
 
           <ViewToggle view={view} onChange={setView} disabled={isAnimating} />
 
-          <ShareButton structure="searching" values={array} extra={{ target: t2i(target) }} />
+          <ShareButton structure="searching" values={array} extra={{ target: parseDataValue(target) }} />
 
           <div className="data-actions">
             <button type="button" className="data-action-btn" onClick={handleReset} disabled={isAnimating}>
@@ -336,10 +337,10 @@ const Searching = ({ initialArray, initialTarget }) => {
             <div className="input-group">
               <label>Target:</label>
               <input
-                type="number"
+                type="text"
                 value={target}
                 onChange={(e) => setTarget(e.target.value)}
-                placeholder="Enter a number"
+                placeholder="Enter a number or text"
                 disabled={isAnimating}
               />
             </div>
@@ -381,11 +382,5 @@ const Searching = ({ initialArray, initialTarget }) => {
     </div>
   );
 };
-
-// tiny helper so the share payload always carries a number
-function t2i(t) {
-  const n = parseInt(t);
-  return isNaN(n) ? null : n;
-}
 
 export default Searching;

@@ -113,7 +113,7 @@ Exit criteria: each feature demoable on `/tree` with zero backend.
 - [x] **B-tree mode** shipped (`feat(btree)`: order-3 B-tree on `/tree` — `src/lib/btree.js` + `btreeSteps.js` + `btreeLayout.js`, Binary | B-Tree toggle, key-box canvas, insert with split/median narration, search, in-order chips).
 - [x] **Searching visualizer** shipped (`feat(searching)`: `/searching` linear + binary, `searchingSteps.js` + `SEARCHING_PSEUDOCODE`, Enter-to-search form, unsorted-binary guided error; decorative search content remains on Home until further polish).
 - [x] **Dark-mode polish** (`feat(dark)`: `.dark .linked-list-node`, `.dark .operation-button`, coverage sweep + token-flip contract). (`feat(layout)`: viewport-height shell with workspace-internal scroll, mobile drawer + backdrop, active-route highlighting, scroll-to-top on route change, framer-motion page transitions honoring reduced-motion).
-- [ ] string/float value support (currently integers only) — *level-order traversal shipped early in Phase 4*
+- [x] **string/float value support** — value inputs on Array, LinkedList, Tree (AVL + B-tree + LCA), Searching and Sorting accept integers, floats and arbitrary strings; new `src/lib/value.js` (`parseDataValue`/`compareValues`) shared by builders and page guards; position inputs remain integers; `Searching` sorted-guard and `Sorting` display-sort use `compareValues`.
 - [x] **Algorithms breadth (AlgoViz-style reference):** DP page (Fibonacci/grid/coin), Greedy page (activity/knapsack/coin), Dijkstra + Topological Sort on `/graph-algo`, heap visualizer.
 - [ ] Structure/algorithm benchmarks: Web Worker, median-of-N, noise warnings
 

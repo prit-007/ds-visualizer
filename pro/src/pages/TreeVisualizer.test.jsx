@@ -36,7 +36,7 @@ const advance = (steps) => {
 };
 
 const insertValue = (value) => {
-  fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+  fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
     target: { value: String(value) },
   });
   fireEvent.click(screen.getByRole('button', { name: 'Insert Node' }));
@@ -51,8 +51,26 @@ test('renders tree properties without crashing', () => {
 
 test('renders the insert controls', () => {
   render(<TreeVisualizer />);
-  expect(screen.getByPlaceholderText('Enter a number')).toBeInTheDocument();
+  expect(screen.getByPlaceholderText('Enter a number or text')).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Insert Node' })).toBeInTheDocument();
+});
+
+test('inserts a float value', () => {
+  vi.useFakeTimers();
+  render(<TreeVisualizer />);
+  insertValue(3.5);
+  const runs = listRuns('tree');
+  expect(runs[runs.length - 1].label).toBe('Insert 3.5');
+  vi.useRealTimers();
+});
+
+test('inserts a string value', () => {
+  vi.useFakeTimers();
+  render(<TreeVisualizer />);
+  insertValue('delta');
+  const runs = listRuns('tree');
+  expect(runs[runs.length - 1].label).toBe('Insert delta');
+  vi.useRealTimers();
 });
 
 describe('memory representation', () => {
@@ -130,7 +148,7 @@ describe('case presets', () => {
 describe('dual pane pseudocode', () => {
   test('insert run shows the treeInsert pseudocode with a live highlight', () => {
     const { container } = render(<TreeVisualizer />);
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '20' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Insert Node' }));
@@ -214,7 +232,7 @@ describe('tree canvas rendering', () => {
     insertValue(30);
 
     fireEvent.click(screen.getByRole('button', { name: 'Search' }));
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '30' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Search Node' }));
@@ -608,7 +626,7 @@ describe('B-tree mode', () => {
     fireEvent.click(screen.getByRole('button', { name: 'B-Tree' }));
 
     [8, 3, 10].forEach((k) => {
-      fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+      fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
         target: { value: String(k) },
       });
       fireEvent.click(screen.getByRole('button', { name: 'Insert Key' }));
@@ -632,14 +650,14 @@ describe('B-tree mode', () => {
     vi.useFakeTimers();
     render(<TreeVisualizer />);
     fireEvent.click(screen.getByRole('button', { name: 'B-Tree' }));
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '8' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Insert Key' }));
     finishRun();
 
     fireEvent.click(screen.getByRole('button', { name: 'Search' }));
-    fireEvent.change(screen.getByPlaceholderText('Enter a number'), {
+    fireEvent.change(screen.getByPlaceholderText('Enter a number or text'), {
       target: { value: '99' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Search Key' }));

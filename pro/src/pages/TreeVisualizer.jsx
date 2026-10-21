@@ -11,6 +11,7 @@ import ShareButton from "../components/ShareButton";
 import RunHistoryPanel from "../components/RunHistoryPanel";
 import { readScenario } from "../lib/share";
 import { recordRun, listRuns } from "../lib/timeTravel";
+import { parseDataValue } from "../lib/value";
 import CasePresets from "../components/CasePresets";
 import { sortedSequence, uniqueRandomValues } from "../lib/presets";
 import "./TreeVisualizer.css";
@@ -217,9 +218,9 @@ const TreeVisualizer = () => {
       return;
     }
     
-    const newValue = parseInt(value);
-    if (isNaN(newValue)) {
-      setError("Please enter a valid number");
+    const newValue = parseDataValue(value);
+    if (newValue === null) {
+      setError("Please enter a valid value");
       return;
     }
     
@@ -262,9 +263,9 @@ const TreeVisualizer = () => {
       return;
     }
     
-    const deleteValue = parseInt(value);
-    if (isNaN(deleteValue)) {
-      setError("Please enter a valid number");
+    const deleteValue = parseDataValue(value);
+    if (deleteValue === null) {
+      setError("Please enter a valid value");
       return;
     }
     
@@ -308,9 +309,9 @@ const TreeVisualizer = () => {
       return;
     }
     
-    const searchValue = parseInt(value);
-    if (isNaN(searchValue)) {
-      setError("Please enter a valid number");
+    const searchValue = parseDataValue(value);
+    if (searchValue === null) {
+      setError("Please enter a valid value");
       return;
     }
     
@@ -341,9 +342,9 @@ const TreeVisualizer = () => {
       setError("Please enter a key");
       return;
     }
-    const v = parseInt(btreeInput);
-    if (isNaN(v)) {
-      setError("Please enter a valid integer key");
+    const v = parseDataValue(btreeInput);
+    if (v === null) {
+      setError("Please enter a valid key");
       return;
     }
     const trace = [];
@@ -372,9 +373,9 @@ const TreeVisualizer = () => {
       setError("Please enter a key");
       return;
     }
-    const v = parseInt(btreeInput);
-    if (isNaN(v)) {
-      setError("Please enter a valid integer key");
+    const v = parseDataValue(btreeInput);
+    if (v === null) {
+      setError("Please enter a valid key");
       return;
     }
     const trace = [];
@@ -551,9 +552,9 @@ const TreeVisualizer = () => {
   };
 
   const handleLCA = () => {
-    const a = parseInt(lcaA);
-    const b = parseInt(lcaB);
-    if (isNaN(a) || isNaN(b)) {
+    const a = parseDataValue(lcaA);
+    const b = parseDataValue(lcaB);
+    if (a === null || b === null) {
       setError("Please enter both values for LCA");
       return;
     }
@@ -984,12 +985,12 @@ const TreeVisualizer = () => {
             <div className="input-group">
               <label>{isBTree ? "Key:" : "Value:"}</label>
               <input
-                type="number"
+                type="text"
                 value={isBTree ? btreeInput : value}
                 onChange={(e) =>
                   isBTree ? setBtreeInput(e.target.value) : setValue(e.target.value)
                 }
-                placeholder="Enter a number"
+                placeholder="Enter a number or text"
                 disabled={isAnimating}
               />
             </div>
@@ -1058,7 +1059,7 @@ const TreeVisualizer = () => {
                 <div className="input-group">
                   <label>Value A:</label>
                   <input
-                    type="number"
+                    type="text"
                     value={lcaA}
                     onChange={(e) => setLcaA(e.target.value)}
                     placeholder="Enter value A"
@@ -1068,7 +1069,7 @@ const TreeVisualizer = () => {
                 <div className="input-group">
                   <label>Value B:</label>
                   <input
-                    type="number"
+                    type="text"
                     value={lcaB}
                     onChange={(e) => setLcaB(e.target.value)}
                     placeholder="Enter value B"

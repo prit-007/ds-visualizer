@@ -22,6 +22,7 @@ import ShareButton from "../components/ShareButton";
 import RunHistoryPanel from "../components/RunHistoryPanel";
 import { readScenario } from "../lib/share";
 import { recordRun, listRuns } from "../lib/timeTravel";
+import { parseDataValue } from "../lib/value";
 import CasePresets from "../components/CasePresets";
 import { randomValues, sortedSequence } from "../lib/presets";
 
@@ -236,9 +237,9 @@ const LinkedListVisualizer = ({ initialNodes }) => {
       return;
     }
     
-    const newValue = parseInt(value);
-    if (isNaN(newValue)) {
-      setError("Please enter a valid number");
+    const newValue = parseDataValue(value);
+    if (newValue === null) {
+      setError("Please enter a valid value");
       return;
     }
     
@@ -276,11 +277,11 @@ const LinkedListVisualizer = ({ initialNodes }) => {
       return;
     }
     
-    const newValue = parseInt(value);
+    const newValue = parseDataValue(value);
     const pos = parseInt(position);
     
-    if (isNaN(newValue) || isNaN(pos)) {
-      setError("Please enter valid numbers");
+    if (newValue === null || isNaN(pos)) {
+      setError("Please enter valid values");
       return;
     }
     
@@ -547,10 +548,10 @@ const LinkedListVisualizer = ({ initialNodes }) => {
               <div className="input-group">
                 <label>Value:</label>
                 <input
-                  type="number"
+                  type="text"
                   value={value}
                   onChange={e => setValue(e.target.value)}
-                  placeholder="Enter a number"
+                  placeholder="Enter a number or text"
                   disabled={isAnimating}
                 />
               </div>
